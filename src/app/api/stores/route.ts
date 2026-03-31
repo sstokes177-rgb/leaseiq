@@ -1,0 +1,85 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { createServerSupabaseClient } from '@/lib/supabase'
+
+export async function GET() {
+  const supabase = await createServerSupabaseClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const { data: stores, error } = await supabase
+    .from('stores')
+    .select('*')
+    .eq('tenant_id', user.id)
+    .order('created_at', { ascending: true })
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  return NextResponse.json({ stores })
+}
+
+export async function POST(request: NextRequest) {
+  const supabase = await createServerSupabaseClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const body = await request.json()
+  const { store_name, shopping_center_name, suite_number, address } = body
+
+  if (!store_name?.trim()) {
+    return NextResponse.json({ error: 'Store name is required' }, { status: 400 })
+  }
+
+  const { data: store, error } = await supabase
+    .from('stores')
+    .insert({
+      tenant_id: user.id,
+      store_name: store_name.trim(),
+      shopping_center_name: shopping_center_name?.trim() || null,
+      suite_number: suite_number?.trim() || null,
+      address: address?.trim() || null,
+    })
+    .select()
+    .single()
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  return NextResponse.json({ store })
+}
+
+export async function DELETE(request: NextRequest) {
+  const supabase = await createServerSupabaseClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const { searchParams } = new URL(request.url)
+  const storeId = searchParams.get('id')
+
+  if (!storeId) {
+    return NextResponse.json({ error: 'Store ID required' }, { status: 400 })
+  }
+
+  const { error } = await supabase
+    .from('stores')
+    .delete()
+    .eq('id', storeId)
+    .eq('tenant_id', user.id)
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  return NextResponse.json({ success: true })
+}
