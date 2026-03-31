@@ -50,7 +50,7 @@ export async function retrieveRelevantChunks(
   console.log(`[RAG] Searching chunks — tenant=${tenantId} store=${storeId ?? 'null'} threshold=0.35`)
 
   const { data, error } = await supabase.rpc('match_document_chunks', {
-    query_embedding: queryEmbedding,
+    query_embedding: `[${queryEmbedding.join(',')}]`,
     match_tenant_id: tenantId,
     match_count: matchCount,
     match_threshold: 0.35,

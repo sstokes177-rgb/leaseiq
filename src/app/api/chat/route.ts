@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server'
 import { streamText, convertToModelMessages, type UIMessage, type TextUIPart } from 'ai'
 import { anthropic } from '@ai-sdk/anthropic'
-import { createServerSupabaseClient } from '@/lib/supabase'
+import { createServerSupabaseClient, createAdminSupabaseClient } from '@/lib/supabase'
 import { buildRAGContext } from '@/lib/ragChain'
 
 function getMessageText(message: UIMessage): string {
@@ -43,13 +43,15 @@ export async function POST(request: NextRequest) {
     system: systemPrompt,
     messages: modelMessages,
     maxOutputTokens: 1024,
+    maxRetries: 3,
     onFinish: async ({ text }) => {
       if (conversationId) {
-        await supabase.from('conversations').upsert(
+        const adminSupabase = createAdminSupabaseClient()
+        await adminSupabase.from('conversations').upsert(
           { id: conversationId, tenant_id: user.id, store_id: storeId ?? null },
           { onConflict: 'id', ignoreDuplicates: true }
         )
-        await supabase.from('messages').insert([
+        await adminSupabase.from('messages').insert([
           { conversation_id: conversationId, role: 'user', content: userText },
           { conversation_id: conversationId, role: 'assistant', content: text, citations },
         ])
