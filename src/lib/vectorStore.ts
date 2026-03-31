@@ -38,6 +38,8 @@ export interface RetrievedChunk {
   similarity: number
 }
 
+const MATCH_THRESHOLD = 0.20
+
 export async function retrieveRelevantChunks(
   question: string,
   tenantId: string,
@@ -45,26 +47,33 @@ export async function retrieveRelevantChunks(
   storeId?: string | null
 ): Promise<RetrievedChunk[]> {
   const supabase = createAdminSupabaseClient()
+
+  console.log(`[RAG] Question received: "${question.slice(0, 100)}"`)
+  console.log(`[RAG] Store ID: ${storeId ?? 'null'} | Tenant ID: ${tenantId}`)
+
   const queryEmbedding = await embedText(question)
+  console.log(`[RAG] Embedding generated: ${queryEmbedding.length} dimensions`)
 
-  console.log(`[RAG] Searching chunks — tenant=${tenantId} store=${storeId ?? 'null'} threshold=0.35`)
+  const embStr = `[${queryEmbedding.join(',')}]`
 
-  const { data, error } = await supabase.rpc('match_document_chunks', {
-    query_embedding: `[${queryEmbedding.join(',')}]`,
-    match_tenant_id: tenantId,
+  console.log(`[RAG] Calling match_documents — store_id=${storeId ?? 'null'}, threshold=${MATCH_THRESHOLD}, count=${matchCount}`)
+
+  const { data, error } = await supabase.rpc('match_documents', {
+    query_embedding: embStr,
+    p_tenant_id: tenantId,
+    p_store_id: storeId ?? null,
+    match_threshold: MATCH_THRESHOLD,
     match_count: matchCount,
-    match_threshold: 0.35,
-    match_store_id: storeId ?? null,
   })
 
   if (error) {
-    // Log the full error so it's visible in server logs
     console.error('[RAG] RPC error:', error.message, error)
     throw new Error(`Vector search failed: ${error.message}`)
   }
 
   const chunks = (data as RetrievedChunk[]) ?? []
-  console.log(`[RAG] Found ${chunks.length} chunks (store-scoped: ${storeId != null})`)
+  const topScore = chunks.length > 0 ? chunks[0].similarity.toFixed(4) : 'n/a'
+  console.log(`[RAG] Match results: ${chunks.length} chunks found, top score: ${topScore} (store-scoped: ${storeId != null})`)
 
   // Sort so amendments appear before base lease — amendments take precedence
   const docTypePriority: Record<string, number> = {

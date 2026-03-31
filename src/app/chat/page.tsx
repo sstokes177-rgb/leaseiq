@@ -45,7 +45,7 @@ function ChatInterface({ storeId, store, uploadHref }: ChatInterfaceProps) {
   const [conversationId] = useState(() => crypto.randomUUID())
   const timestampsRef = useRef<Map<string, Date>>(new Map())
 
-  const { messages, sendMessage, status } = useChat({
+  const { messages, sendMessage, status, error, clearError } = useChat({
     transport: new DefaultChatTransport({
       api: '/api/chat',
       body: { id: conversationId, store_id: storeId },
@@ -107,8 +107,9 @@ function ChatInterface({ storeId, store, uploadHref }: ChatInterfaceProps) {
                   {EXAMPLE_QUESTIONS.map((q) => (
                     <button
                       key={q}
-                      onClick={() => setInput(q)}
-                      className="text-left text-sm px-4 py-3 rounded-xl glass-card glass-card-lift text-foreground/90 hover:text-foreground transition-colors"
+                      onClick={() => { sendMessage({ text: q }) }}
+                      disabled={isLoading}
+                      className="text-left text-sm px-4 py-3 rounded-xl glass-card glass-card-lift text-foreground/90 hover:text-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {q}
                     </button>
@@ -137,6 +138,18 @@ function ChatInterface({ storeId, store, uploadHref }: ChatInterfaceProps) {
           )}
         </div>
       </div>
+
+      {/* Error banner */}
+      {error && (
+        <div className="shrink-0 flex items-center justify-between gap-3 px-4 py-2.5 border-t border-red-500/20 bg-red-500/10">
+          <p className="text-sm text-red-300/90">
+            {/overload|high demand|529/i.test(error.message ?? '')
+              ? 'Our AI is experiencing high demand. Please try again in a moment.'
+              : (error.message ?? 'Something went wrong. Please try again.')}
+          </p>
+          <button onClick={clearError} className="text-xs text-red-400/70 hover:text-red-300 shrink-0">Dismiss</button>
+        </div>
+      )}
 
       {/* Input */}
       <div className="glass border-t border-white/[0.07] px-4 py-4 shrink-0">
