@@ -80,27 +80,32 @@ export function FileUpload({ storeId, onUploadComplete, onChangeStore }: FileUpl
     setIsUploading(true)
     setError(null)
 
-    const formData = new FormData()
-    formData.append('file', selectedFile)
-    if (storeId) formData.append('store_id', storeId)
-    if (force) formData.append('force_upload', 'true')
+    try {
+      const formData = new FormData()
+      formData.append('file', selectedFile)
+      if (storeId) formData.append('store_id', storeId)
+      if (force) formData.append('force_upload', 'true')
 
-    const res = await fetch('/api/upload', { method: 'POST', body: formData })
-    const data = await res.json()
-    setIsUploading(false)
+      const res = await fetch('/api/upload', { method: 'POST', body: formData })
+      const data = await res.json()
 
-    if (!res.ok) {
-      if (data.errorCode === 'mismatch') {
-        setMismatch({ detected: data.detected, reference: data.reference })
+      if (!res.ok) {
+        if (data.errorCode === 'mismatch') {
+          setMismatch({ detected: data.detected, reference: data.reference })
+        } else {
+          setError(data.error || 'Upload failed')
+        }
       } else {
-        setError(data.error || 'Upload failed')
+        setSelectedFile(null)
+        setMismatch(null)
+        setConfirmingForce(false)
+        setDuplicateWarning(null)
+        onUploadComplete()
       }
-    } else {
-      setSelectedFile(null)
-      setMismatch(null)
-      setConfirmingForce(false)
-      setDuplicateWarning(null)
-      onUploadComplete()
+    } catch {
+      setError('Network error. Please check your connection and try again.')
+    } finally {
+      setIsUploading(false)
     }
   }
 

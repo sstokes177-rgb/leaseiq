@@ -35,7 +35,17 @@ export async function POST(request: NextRequest) {
   }
 
   const userText = getMessageText(lastUserMessage)
-  const { systemPrompt, citations } = await buildRAGContext(userText, user.id, storeId ?? null)
+  let systemPrompt: string
+  let citations: import('@/types').Citation[]
+  try {
+    const ragResult = await buildRAGContext(userText, user.id, storeId ?? null)
+    systemPrompt = ragResult.systemPrompt
+    citations = ragResult.citations
+  } catch (err) {
+    console.error('[Chat] RAG context build failed:', err)
+    return new Response('Search failed. Please try again.', { status: 500 })
+  }
+
   const modelMessages = await convertToModelMessages(messages)
 
   const result = streamText({
@@ -46,15 +56,24 @@ export async function POST(request: NextRequest) {
     maxRetries: 3,
     onFinish: async ({ text }) => {
       if (conversationId) {
-        const adminSupabase = createAdminSupabaseClient()
-        await adminSupabase.from('conversations').upsert(
-          { id: conversationId, tenant_id: user.id, store_id: storeId ?? null },
-          { onConflict: 'id', ignoreDuplicates: true }
-        )
-        await adminSupabase.from('messages').insert([
-          { conversation_id: conversationId, role: 'user', content: userText },
-          { conversation_id: conversationId, role: 'assistant', content: text, citations },
-        ])
+        try {
+          const adminSupabase = createAdminSupabaseClient()
+          // conversationId is always a fresh crypto.randomUUID() so conflicts
+          // should never occur — plain insert is safe here.
+          const { error: convErr } = await adminSupabase
+            .from('conversations')
+            .insert({ id: conversationId, tenant_id: user.id, store_id: storeId ?? null })
+          if (convErr) {
+            console.error('[Chat] Failed to save conversation:', convErr.message)
+          } else {
+            await adminSupabase.from('messages').insert([
+              { conversation_id: conversationId, role: 'user', content: userText },
+              { conversation_id: conversationId, role: 'assistant', content: text, citations },
+            ])
+          }
+        } catch (err) {
+          console.error('[Chat] Failed to save conversation:', err)
+        }
       }
     },
   })
