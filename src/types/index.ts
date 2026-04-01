@@ -84,6 +84,46 @@ export interface Citation {
   excerpt: string
 }
 
+export interface LeaseSummaryData {
+  tenant_name: string | null
+  landlord_name: string | null
+  property_address: string | null
+  suite_number: string | null
+  lease_start_date: string | null
+  lease_end_date: string | null
+  base_rent_monthly: string | null
+  rent_escalation: string | null
+  security_deposit: string | null
+  permitted_use: string | null
+  lease_type: string | null
+  renewal_options: string | null
+  square_footage: string | null
+}
+
+export interface LeaseSummary {
+  id: string
+  store_id: string
+  tenant_id: string
+  summary_data: LeaseSummaryData
+  created_at: string
+  updated_at: string
+}
+
+export interface ObligationItem {
+  category: string
+  responsible: 'Tenant' | 'Landlord' | 'Shared' | 'Not Addressed'
+  article: string | null
+  details: string
+}
+
+export interface ObligationMatrixRecord {
+  id: string
+  store_id: string
+  tenant_id: string
+  matrix_data: { obligations: ObligationItem[] }
+  created_at: string
+}
+
 export interface CriticalDate {
   id: string
   document_id: string

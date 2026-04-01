@@ -90,17 +90,25 @@ export function FileUpload({ storeId, onUploadComplete, onChangeStore }: FileUpl
       const data = await res.json()
 
       if (!res.ok) {
-        if (data.errorCode === 'mismatch') {
-          setMismatch({ detected: data.detected, reference: data.reference })
-        } else {
-          setError(data.error || 'Upload failed')
-        }
-      } else {
+        setError(data.error || 'Upload failed')
+        return
+      }
+
+      const result = data.results?.[0]
+      if (!result) { setError('Upload failed'); return }
+
+      if (result.status === 'success') {
         setSelectedFile(null)
         setMismatch(null)
         setConfirmingForce(false)
         setDuplicateWarning(null)
         onUploadComplete()
+      } else if (result.status === 'mismatch') {
+        setMismatch({ detected: result.detected, reference: result.reference })
+      } else if (result.status === 'duplicate') {
+        setDuplicateWarning(selectedFile!.name)
+      } else {
+        setError(result.error || 'Upload failed')
       }
     } catch {
       setError('Network error. Please check your connection and try again.')

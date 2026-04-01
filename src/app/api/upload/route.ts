@@ -6,74 +6,88 @@ import { extractDisplayName } from '@/lib/extractDisplayName'
 import { extractLeaseIdentifiers, checkMismatch } from '@/lib/validateDocument'
 import { extractCriticalDates } from '@/lib/extractCriticalDates'
 
-export async function POST(request: NextRequest) {
-  const supabase = await createServerSupabaseClient()
-  const { data: { user } } = await supabase.auth.getUser()
+export type FileResultStatus = 'success' | 'failed' | 'duplicate' | 'mismatch'
 
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+export interface FileResult {
+  file_name: string
+  status: FileResultStatus
+  error?: string
+  document?: { id: string; file_name: string; document_type: string; store_id: string | null }
+  // mismatch fields
+  detected?: { tenant_name: string | null; property_name: string | null }
+  reference?: { tenant_name: string | null; property_name: string | null; display_name: string | null }
+}
+
+async function processSingleFile(
+  file: File,
+  userId: string,
+  storeId: string | null,
+  forceUpload: boolean,
+  admin: ReturnType<typeof createAdminSupabaseClient>
+): Promise<FileResult> {
+  const fileName = file.name
+
+  // ── Validate file type ──
+  if (!isAcceptedFileType(file.type, fileName)) {
+    return { file_name: fileName, status: 'failed', error: 'Unsupported file type. Please upload a PDF (.pdf) or Word document (.doc, .docx).' }
   }
-
-  const formData = await request.formData()
-  const file = formData.get('file') as File | null
-  // document_type is now auto-detected from content; the form field is ignored
-  const storeId = (formData.get('store_id') as string) || null
-  const forceUpload = formData.get('force_upload') === 'true'
-
-  if (!file) {
-    return NextResponse.json({ error: 'No file provided' }, { status: 400 })
-  }
-
-  if (!isAcceptedFileType(file.type, file.name)) {
-    return NextResponse.json(
-      { error: 'Unsupported file type. Please upload a PDF (.pdf) or Word document (.doc, .docx).' },
-      { status: 400 }
-    )
-  }
-
   if (file.size > 20 * 1024 * 1024) {
-    return NextResponse.json({ error: 'File too large (max 20MB)' }, { status: 400 })
+    return { file_name: fileName, status: 'failed', error: 'File too large (max 20 MB).' }
   }
 
-  const admin = createAdminSupabaseClient()
+  // ── Duplicate check ──
+  try {
+    let dupQuery = admin
+      .from('documents')
+      .select('id')
+      .eq('tenant_id', userId)
+      .eq('file_name', fileName)
+
+    if (storeId) {
+      dupQuery = dupQuery.eq('store_id', storeId)
+    } else {
+      dupQuery = dupQuery.is('store_id', null)
+    }
+
+    const { data: existing } = await dupQuery.maybeSingle()
+    if (existing) {
+      return { file_name: fileName, status: 'duplicate' }
+    }
+  } catch {
+    // Non-fatal — continue processing
+  }
+
   const arrayBuffer = await file.arrayBuffer()
   const buffer = Buffer.from(arrayBuffer)
 
   // ── Step 1: Extract text ──
   let chunks: Awaited<ReturnType<typeof processDocument>>
   try {
-    // Use 'base_lease' as placeholder; the real type is set after AI detection below
-    chunks = await processDocument(buffer, file.name, file.type, file.name, 'base_lease')
+    chunks = await processDocument(buffer, fileName, file.type, fileName, 'base_lease')
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Could not extract text from document'
-    return NextResponse.json({ error: message }, { status: 422 })
+    return { file_name: fileName, status: 'failed', error: message }
   }
 
   const extractionText = chunks.slice(0, 4).map((c) => c.content).join('\n\n')
 
-  // ── Step 2: Validate document is lease-related and matches store docs ──
+  // ── Step 2: Validate lease identity ──
   const identifiers = await extractLeaseIdentifiers(extractionText)
-
   if (!identifiers.is_lease_related) {
-    return NextResponse.json(
-      { error: 'This document does not appear to be a lease, amendment, or lease-related document. Please upload a lease document.' },
-      { status: 422 }
-    )
+    return { file_name: fileName, status: 'failed', error: 'This document does not appear to be a lease or lease-related document.' }
   }
 
+  // ── Step 3: Mismatch check (skipped if forceUpload) ──
   if (!forceUpload) {
-    // Fetch reference document for this specific store (if store_id provided), else tenant-wide
     let refQuery = admin
       .from('documents')
       .select('lease_identifiers, display_name')
-      .eq('tenant_id', user.id)
+      .eq('tenant_id', userId)
       .not('lease_identifiers', 'is', null)
       .order('uploaded_at', { ascending: true })
       .limit(1)
 
-    if (storeId) {
-      refQuery = refQuery.eq('store_id', storeId)
-    }
+    if (storeId) refQuery = refQuery.eq('store_id', storeId)
 
     const { data: existingDocs } = await refQuery
 
@@ -85,30 +99,24 @@ export async function POST(request: NextRequest) {
         ref.display_name
       )
       if (!validation.valid) {
-        // Return structured mismatch info so the client can show a smart UI
         const refIdentifiers = ref.lease_identifiers as import('@/lib/validateDocument').LeaseIdentifiers
-        return NextResponse.json(
-          {
-            error: validation.error,
-            errorCode: 'mismatch',
-            detected: {
-              tenant_name: identifiers.tenant_name,
-              property_name: identifiers.property_name,
-            },
-            reference: {
-              tenant_name: refIdentifiers.tenant_name,
-              property_name: refIdentifiers.property_name,
-              display_name: ref.display_name,
-            },
+        return {
+          file_name: fileName,
+          status: 'mismatch',
+          error: validation.error,
+          detected: { tenant_name: identifiers.tenant_name, property_name: identifiers.property_name },
+          reference: {
+            tenant_name: refIdentifiers.tenant_name,
+            property_name: refIdentifiers.property_name,
+            display_name: ref.display_name,
           },
-          { status: 422 }
-        )
+        }
       }
     }
   }
 
-  // ── Step 3: Upload file to storage ──
-  const filePath = `${user.id}/${Date.now()}_${file.name}`
+  // ── Step 4: Upload file to storage ──
+  const filePath = `${userId}/${Date.now()}_${fileName}`
   const contentType = file.type || 'application/octet-stream'
 
   const { error: storageError } = await admin.storage
@@ -116,16 +124,16 @@ export async function POST(request: NextRequest) {
     .upload(filePath, buffer, { contentType, upsert: false })
 
   if (storageError) {
-    return NextResponse.json({ error: `Storage error: ${storageError.message}` }, { status: 500 })
+    return { file_name: fileName, status: 'failed', error: `Storage error: ${storageError.message}` }
   }
 
-  // ── Step 4: Create document record ──
+  // ── Step 5: Create document record ──
   const { data: document, error: docError } = await admin
     .from('documents')
     .insert({
-      tenant_id: user.id,
+      tenant_id: userId,
       store_id: storeId,
-      file_name: file.name,
+      file_name: fileName,
       file_path: filePath,
       document_type: identifiers.document_type,
       lease_identifiers: identifiers,
@@ -135,27 +143,25 @@ export async function POST(request: NextRequest) {
 
   if (docError || !document) {
     await admin.storage.from('leases').remove([filePath])
-    return NextResponse.json({ error: `Database error: ${docError?.message}` }, { status: 500 })
+    return { file_name: fileName, status: 'failed', error: `Database error: ${docError?.message}` }
   }
 
-  // ── Step 5: Store chunks ──
+  // ── Step 6: Store chunks ──
   try {
-    await storeChunks(chunks, document.id, user.id, storeId)
+    await storeChunks(chunks, document.id, userId, storeId)
   } catch (err) {
     await admin.from('documents').delete().eq('id', document.id)
     await admin.storage.from('leases').remove([filePath])
     const message = err instanceof Error ? err.message : 'Processing failed'
-    return NextResponse.json({ error: message }, { status: 500 })
+    return { file_name: fileName, status: 'failed', error: message }
   }
 
-  // ── Step 6: Non-blocking post-processing ──
+  // ── Step 7: Non-blocking post-processing ──
   const allText = chunks.map((c) => c.content).join('\n\n')
 
   extractDisplayName(extractionText)
     .then((displayName) => {
-      if (displayName) {
-        admin.from('documents').update({ display_name: displayName }).eq('id', document.id)
-      }
+      if (displayName) admin.from('documents').update({ display_name: displayName }).eq('id', document.id)
     })
     .catch(() => null)
 
@@ -165,7 +171,7 @@ export async function POST(request: NextRequest) {
       await admin.from('critical_dates').insert(
         dates.map((d) => ({
           document_id: document.id,
-          tenant_id: user.id,
+          tenant_id: userId,
           store_id: storeId,
           date_type: d.date_type,
           date_value: d.date_value,
@@ -176,8 +182,34 @@ export async function POST(request: NextRequest) {
     })
     .catch(() => null)
 
-  return NextResponse.json({
-    success: true,
-    document: { id: document.id, file_name: file.name, document_type: identifiers.document_type, store_id: storeId },
-  })
+  return {
+    file_name: fileName,
+    status: 'success',
+    document: { id: document.id, file_name: fileName, document_type: identifiers.document_type, store_id: storeId },
+  }
+}
+
+export async function POST(request: NextRequest) {
+  const supabase = await createServerSupabaseClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const formData = await request.formData()
+  const files = formData.getAll('file') as File[]
+  const storeId = (formData.get('store_id') as string) || null
+  const forceUpload = formData.get('force_upload') === 'true'
+
+  if (!files || files.length === 0) {
+    return NextResponse.json({ error: 'No files provided' }, { status: 400 })
+  }
+
+  const admin = createAdminSupabaseClient()
+  const results: FileResult[] = []
+
+  for (const file of files) {
+    const result = await processSingleFile(file, user.id, storeId, forceUpload, admin)
+    results.push(result)
+  }
+
+  return NextResponse.json({ results })
 }

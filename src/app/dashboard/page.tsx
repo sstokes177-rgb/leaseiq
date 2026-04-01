@@ -9,6 +9,8 @@ import {
   Calendar, AlertTriangle, AlertCircle, MapPin, Building2,
 } from 'lucide-react'
 import { AddStoreButton } from './AddStoreModal'
+import { LeaseSummaryCard } from '@/components/LeaseSummaryCard'
+import { ObligationMatrixCard } from '@/components/ObligationMatrixCard'
 
 function daysUntil(dateStr: string): number {
   const today = new Date()
@@ -313,6 +315,12 @@ export default async function DashboardPage({
                 )}
               </div>
             </div>
+
+            {/* Lease Summary */}
+            {hasDocuments && <LeaseSummaryCard storeId={selectedStore.id} />}
+
+            {/* Obligation Matrix */}
+            {hasDocuments && <ObligationMatrixCard storeId={selectedStore.id} />}
 
             {/* Action cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

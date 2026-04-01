@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { FileUpload } from '@/components/FileUpload'
+import { BatchFileUpload } from '@/components/BatchFileUpload'
 import { LeaseDocList } from '@/components/LeaseDocList'
 import Link from 'next/link'
 import { MessageSquare, Upload, FileText, ChevronDown } from 'lucide-react'
@@ -20,7 +20,6 @@ export function UploadPageClient({ stores, activeStoreId, isTenantAdmin }: Uploa
   const [refreshTrigger, setRefreshTrigger] = useState(0)
   const router = useRouter()
 
-  // Keep local state in sync when the server re-renders with a new activeStoreId
   useEffect(() => {
     setCurrentStoreId(activeStoreId)
   }, [activeStoreId])
@@ -31,9 +30,19 @@ export function UploadPageClient({ stores, activeStoreId, isTenantAdmin }: Uploa
   }, [router])
 
   const handleChangeStore = useCallback(() => {
-    // Scroll to store selector or focus it
     document.getElementById('store-selector')?.focus()
   }, [])
+
+  const handleUploadComplete = useCallback(() => {
+    setRefreshTrigger((n) => n + 1)
+    // Fire-and-forget: trigger summary and obligation matrix generation
+    if (currentStoreId) {
+      const body = JSON.stringify({ store_id: currentStoreId })
+      const headers = { 'Content-Type': 'application/json' }
+      fetch('/api/lease-summary/generate', { method: 'POST', headers, body }).catch(() => null)
+      fetch('/api/obligations/generate', { method: 'POST', headers, body }).catch(() => null)
+    }
+  }, [currentStoreId])
 
   const activeStore = stores.find((s) => s.id === currentStoreId) ?? stores[0] ?? null
 
@@ -79,17 +88,13 @@ export function UploadPageClient({ stores, activeStoreId, isTenantAdmin }: Uploa
             <Upload className="h-4 w-4 text-emerald-400" />
           </div>
           <div>
-            <h2 className="font-semibold text-sm">
-              Upload a Lease Document
-            </h2>
-            <p className="text-xs text-muted-foreground/90">
-              PDF, Word (.doc, .docx) · Max 20 MB
-            </p>
+            <h2 className="font-semibold text-sm">Upload Lease Documents</h2>
+            <p className="text-xs text-muted-foreground/90">PDF, Word (.doc, .docx) · Multiple files supported</p>
           </div>
         </div>
-        <FileUpload
+        <BatchFileUpload
           storeId={currentStoreId}
-          onUploadComplete={() => setRefreshTrigger((n) => n + 1)}
+          onUploadComplete={handleUploadComplete}
           onChangeStore={isTenantAdmin && stores.length > 1 ? handleChangeStore : undefined}
         />
       </div>
