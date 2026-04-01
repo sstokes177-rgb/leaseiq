@@ -2,15 +2,17 @@
 
 import { useState, useRef, useEffect, Suspense } from 'react'
 import { useChat } from '@ai-sdk/react'
-import { isTextUIPart, DefaultChatTransport } from 'ai'
+import { isTextUIPart, DefaultChatTransport, type UIMessage } from 'ai'
 import { useSearchParams } from 'next/navigation'
 import type { Citation } from '@/types'
 import { ChatMessage } from '@/components/ChatMessage'
 import { TypingIndicator } from '@/components/TypingIndicator'
 import { ChatInput } from '@/components/ChatInput'
+import { CitationSidePanel } from '@/components/CitationSidePanel'
+import { ChatSidebar } from '@/components/ChatSidebar'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import { ArrowLeft, FileText, ShieldAlert, ChevronDown } from 'lucide-react'
+import { ArrowLeft, FileText, ShieldAlert, ChevronDown, PanelLeft } from 'lucide-react'
 
 const EXAMPLE_QUESTIONS = [
   'Who is responsible for HVAC repairs?',
@@ -28,28 +30,54 @@ interface StoreInfo {
   suite_number: string | null
 }
 
+interface DbMessage {
+  id: string
+  role: string
+  content: string
+  citations: Citation[] | null
+}
+
+function dbMessagesToUIMessages(dbMessages: DbMessage[]): UIMessage[] {
+  return dbMessages.map(msg => ({
+    id: msg.id,
+    role: msg.role as 'user' | 'assistant',
+    parts: [{ type: 'text' as const, text: msg.content }],
+    ...(msg.role === 'assistant' && msg.citations?.length
+      ? { metadata: { citations: msg.citations } }
+      : {}),
+  }))
+}
+
 // ── Inner chat interface ───────────────────────────────────────────────────────
-// Keyed on storeId in the parent so it fully remounts (new conversation) when
-// the user switches stores. This ensures the transport always uses the correct
-// store_id and messages from one store don't bleed into another.
 
 interface ChatInterfaceProps {
   storeId: string | null
   store: StoreInfo | null
-  uploadHref: string
+  conversationId: string
+  initialMessages?: UIMessage[]
+  onCitationClick?: (citation: Citation) => void
+  onChatComplete?: () => void
 }
 
-function ChatInterface({ storeId, store, uploadHref }: ChatInterfaceProps) {
+function ChatInterface({
+  storeId,
+  store,
+  conversationId,
+  initialMessages,
+  onCitationClick,
+  onChatComplete,
+}: ChatInterfaceProps) {
   const [input, setInput] = useState('')
   const scrollRef = useRef<HTMLDivElement>(null)
-  const [conversationId] = useState(() => crypto.randomUUID())
   const timestampsRef = useRef<Map<string, Date>>(new Map())
+  const prevStatusRef = useRef<string>('ready')
 
   const { messages, sendMessage, status, error, clearError } = useChat({
     transport: new DefaultChatTransport({
       api: '/api/chat',
       body: { id: conversationId, store_id: storeId },
     }),
+    messages: initialMessages,
   })
 
   const isLoading = status === 'streaming' || status === 'submitted'
@@ -68,6 +96,14 @@ function ChatInterface({ storeId, store, uploadHref }: ChatInterfaceProps) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight
     }
   }, [messages, showTypingIndicator])
+
+  // Notify parent when a chat turn completes (for sidebar refresh)
+  useEffect(() => {
+    if (prevStatusRef.current !== 'ready' && status === 'ready') {
+      onChatComplete?.()
+    }
+    prevStatusRef.current = status
+  }, [status, onChatComplete])
 
   const handleSubmit = () => {
     if (!input.trim() || isLoading) return
@@ -130,6 +166,7 @@ function ChatInterface({ storeId, store, uploadHref }: ChatInterfaceProps) {
                     citations={citations}
                     isStreaming={isLoading && i === messages.length - 1 && message.role === 'assistant'}
                     timestamp={timestampsRef.current.get(message.id)}
+                    onCitationClick={onCitationClick}
                   />
                 )
               })}
@@ -166,7 +203,7 @@ function ChatInterface({ storeId, store, uploadHref }: ChatInterfaceProps) {
   )
 }
 
-// ── Page shell with store selector ────────────────────────────────────────────
+// ── Page shell ────────────────────────────────────────────────────────────────
 
 function ChatPageInner() {
   const searchParams = useSearchParams()
@@ -175,6 +212,13 @@ function ChatPageInner() {
   const [stores, setStores] = useState<StoreInfo[]>([])
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(storeParam)
   const [storesLoaded, setStoresLoaded] = useState(false)
+  const [activeCitation, setActiveCitation] = useState<Citation | null>(null)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  // Conversation management
+  const [activeConversationId, setActiveConversationId] = useState<string>(() => crypto.randomUUID())
+  const [initialMessages, setInitialMessages] = useState<UIMessage[] | undefined>(undefined)
+  const [chatKey, setChatKey] = useState(0)
+  const [sidebarRefresh, setSidebarRefresh] = useState(0)
 
   useEffect(() => {
     fetch('/api/stores')
@@ -182,7 +226,6 @@ function ChatPageInner() {
       .then((data) => {
         const list: StoreInfo[] = data.stores ?? []
         setStores(list)
-        // If no store selected yet, default to the first one
         if (!selectedStoreId && list.length > 0) {
           setSelectedStoreId(list[0].id)
         }
@@ -193,89 +236,179 @@ function ChatPageInner() {
   }, [])
 
   const selectedStore = stores.find((s) => s.id === selectedStoreId) ?? stores[0] ?? null
-  const backHref = selectedStoreId ? `/dashboard?store=${selectedStoreId}` : '/dashboard'
+  const backHref = selectedStoreId ? `/location/${selectedStoreId}` : '/dashboard'
   const uploadHref = selectedStoreId ? `/upload?store=${selectedStoreId}` : '/upload'
 
+  const handleCitationClick = (citation: Citation) => {
+    setActiveCitation(prev =>
+      prev?.chunk_id === citation.chunk_id ? null : citation
+    )
+  }
+
+  const handleNewChat = () => {
+    setActiveConversationId(crypto.randomUUID())
+    setInitialMessages(undefined)
+    setChatKey(k => k + 1)
+    setActiveCitation(null)
+    setSidebarOpen(false)
+  }
+
+  const handleSelectConversation = async (id: string) => {
+    if (id === activeConversationId) { setSidebarOpen(false); return }
+    try {
+      const res = await fetch(`/api/conversations/${id}`)
+      if (res.ok) {
+        const data = await res.json()
+        const uiMessages = dbMessagesToUIMessages(data.messages ?? [])
+        setInitialMessages(uiMessages)
+        setActiveConversationId(id)
+        setChatKey(k => k + 1)
+        setActiveCitation(null)
+        setSidebarOpen(false)
+      }
+    } catch {
+      // Fail silently — user can try again
+    }
+  }
+
+  const handleChatComplete = () => {
+    setSidebarRefresh(s => s + 1)
+  }
+
   return (
-    <div className="flex flex-col h-[100dvh]">
-      {/* Header */}
-      <header className="glass border-b border-white/[0.07] px-4 py-0 flex items-center gap-3 shrink-0">
-        <Link
-          href={backHref}
-          className="text-muted-foreground/80 hover:text-foreground transition-colors p-4"
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </Link>
-
-        <div className="flex-1 py-4 min-w-0">
-          {selectedStore ? (
-            <>
-              <p className="font-bold text-sm leading-tight truncate">{selectedStore.store_name}</p>
-              <p className="text-xs text-muted-foreground/80 leading-tight mt-0.5">
-                {selectedStore.shopping_center_name
-                  ? `${selectedStore.shopping_center_name}${selectedStore.suite_number ? `, Suite ${selectedStore.suite_number}` : ''} · Lease Q&A`
-                  : 'Lease Q&A'}
-              </p>
-            </>
-          ) : (
-            <p className="font-semibold text-sm">Ask Your Lease</p>
-          )}
-        </div>
-
-        {/* Store switcher — only shown when multiple stores exist */}
-        {storesLoaded && stores.length > 1 && (
-          <div className="relative py-2 shrink-0">
-            <select
-              value={selectedStoreId ?? ''}
-              onChange={(e) => setSelectedStoreId(e.target.value)}
-              className="appearance-none text-xs rounded-lg pl-3 pr-7 py-1.5 focus:outline-none cursor-pointer"
-              style={{
-                background: 'rgba(255,255,255,0.06)',
-                border: '1px solid rgba(255,255,255,0.09)',
-              }}
-            >
-              {stores.map((s) => (
-                <option key={s.id} value={s.id} style={{ background: '#0c0e14' }}>
-                  {s.store_name}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground pointer-events-none" />
-          </div>
-        )}
-
-        <div className="flex items-center gap-2 py-4 shrink-0">
-          <Link href="/" className="flex items-center justify-center w-7 h-7 rounded-lg hover:opacity-80 transition-opacity"
-            style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.18)' }}
-          >
-            <FileText className="h-3.5 w-3.5 text-emerald-400" />
-          </Link>
-          <Link href={uploadHref}>
-            <Button variant="ghost" size="sm" className="text-xs text-muted-foreground/85">
-              Docs
-            </Button>
-          </Link>
-        </div>
-      </header>
-
-      {/* Legal disclaimer */}
-      <div
-        className="shrink-0 flex items-center gap-2 px-4 py-2 border-b border-white/[0.05]"
-        style={{ background: 'rgba(245,158,11,0.06)' }}
+    <div className="flex h-[100dvh]">
+      {/* Desktop sidebar */}
+      <div className="hidden md:flex flex-col w-56 shrink-0 border-r border-white/[0.07]"
+        style={{ background: 'rgba(8,10,16,0.95)' }}
       >
-        <ShieldAlert className="h-3.5 w-3.5 text-amber-400/80 shrink-0" />
-        <p className="text-xs text-amber-200/60 leading-tight">
-          LeaseIQ provides informational summaries only — not legal advice. Consult a licensed attorney for legal interpretation.
-        </p>
+        <ChatSidebar
+          storeId={selectedStoreId}
+          activeConversationId={activeConversationId}
+          onNewChat={handleNewChat}
+          onSelectConversation={handleSelectConversation}
+          refreshSignal={sidebarRefresh}
+        />
       </div>
 
-      {/* Chat interface — keyed on selectedStoreId so it remounts (fresh conversation) on store change */}
-      <ChatInterface
-        key={selectedStoreId ?? 'no-store'}
-        storeId={selectedStoreId}
-        store={selectedStore}
-        uploadHref={uploadHref}
-      />
+      {/* Mobile sidebar overlay */}
+      {sidebarOpen && (
+        <div className="md:hidden fixed inset-0 z-30 flex">
+          <div
+            className="w-64 flex flex-col border-r border-white/[0.07]"
+            style={{ background: 'rgba(8,10,16,0.98)' }}
+          >
+            <ChatSidebar
+              storeId={selectedStoreId}
+              activeConversationId={activeConversationId}
+              onNewChat={handleNewChat}
+              onSelectConversation={handleSelectConversation}
+              refreshSignal={sidebarRefresh}
+            />
+          </div>
+          <div className="flex-1" onClick={() => setSidebarOpen(false)} />
+        </div>
+      )}
+
+      {/* Main area */}
+      <div className="flex flex-col flex-1 min-w-0">
+        {/* Header */}
+        <header className="glass border-b border-white/[0.07] px-3 py-0 flex items-center gap-2 shrink-0">
+          {/* Mobile sidebar toggle */}
+          <button
+            onClick={() => setSidebarOpen(o => !o)}
+            className="md:hidden p-3 text-muted-foreground/70 hover:text-foreground transition-colors"
+          >
+            <PanelLeft className="h-4 w-4" />
+          </button>
+
+          <Link
+            href={backHref}
+            className="text-muted-foreground/80 hover:text-foreground transition-colors p-3"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Link>
+
+          <div className="flex-1 py-4 min-w-0">
+            {selectedStore ? (
+              <>
+                <p className="font-bold text-sm leading-tight truncate">{selectedStore.store_name}</p>
+                <p className="text-xs text-muted-foreground/80 leading-tight mt-0.5">
+                  {selectedStore.shopping_center_name
+                    ? `${selectedStore.shopping_center_name}${selectedStore.suite_number ? `, Suite ${selectedStore.suite_number}` : ''} · Lease Q&A`
+                    : 'Lease Q&A'}
+                </p>
+              </>
+            ) : (
+              <p className="font-semibold text-sm">Ask Your Lease</p>
+            )}
+          </div>
+
+          {/* Store switcher */}
+          {storesLoaded && stores.length > 1 && (
+            <div className="relative py-2 shrink-0">
+              <select
+                value={selectedStoreId ?? ''}
+                onChange={(e) => setSelectedStoreId(e.target.value)}
+                className="appearance-none text-xs rounded-lg pl-3 pr-7 py-1.5 focus:outline-none cursor-pointer"
+                style={{
+                  background: 'rgba(255,255,255,0.06)',
+                  border: '1px solid rgba(255,255,255,0.09)',
+                }}
+              >
+                {stores.map((s) => (
+                  <option key={s.id} value={s.id} style={{ background: '#0c0e14' }}>
+                    {s.store_name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground pointer-events-none" />
+            </div>
+          )}
+
+          <div className="flex items-center gap-2 py-4 shrink-0">
+            <Link href="/" className="flex items-center justify-center w-7 h-7 rounded-lg hover:opacity-80 transition-opacity"
+              style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.18)' }}
+            >
+              <FileText className="h-3.5 w-3.5 text-emerald-400" />
+            </Link>
+            <Link href={uploadHref}>
+              <Button variant="ghost" size="sm" className="text-xs text-muted-foreground/85">
+                Docs
+              </Button>
+            </Link>
+          </div>
+        </header>
+
+        {/* Legal disclaimer */}
+        <div
+          className="shrink-0 flex items-center gap-2 px-4 py-2 border-b border-white/[0.05]"
+          style={{ background: 'rgba(245,158,11,0.06)' }}
+        >
+          <ShieldAlert className="h-3.5 w-3.5 text-amber-400/80 shrink-0" />
+          <p className="text-xs text-amber-200/60 leading-tight">
+            LeaseIQ provides informational summaries only — not legal advice. Consult a licensed attorney for legal interpretation.
+          </p>
+        </div>
+
+        {/* Body: chat + optional citation panel */}
+        <div className="flex flex-1 min-h-0">
+          <div className="flex flex-col flex-1 min-w-0 min-h-0">
+            <ChatInterface
+              key={`${selectedStoreId ?? 'no-store'}-${chatKey}`}
+              storeId={selectedStoreId}
+              store={selectedStore}
+              conversationId={activeConversationId}
+              initialMessages={initialMessages}
+              onCitationClick={handleCitationClick}
+              onChatComplete={handleChatComplete}
+            />
+          </div>
+          <CitationSidePanel
+            citation={activeCitation}
+            onClose={() => setActiveCitation(null)}
+          />
+        </div>
+      </div>
     </div>
   )
 }

@@ -134,9 +134,33 @@ export function ObligationMatrixCard({ storeId }: ObligationMatrixCardProps) {
 
   if (loading) {
     return (
-      <div className="glass-card rounded-2xl p-6 flex items-center gap-3 text-sm text-muted-foreground">
-        <Loader2 className="h-4 w-4 animate-spin" />
-        Loading obligation matrix…
+      <div className="glass-card rounded-2xl p-6 space-y-5 animate-pulse">
+        {/* Header skeleton */}
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl shrink-0" style={{ background: 'rgba(255,255,255,0.06)' }} />
+          <div className="space-y-1.5 flex-1">
+            <div className="h-3.5 w-36 rounded-md" style={{ background: 'rgba(255,255,255,0.08)' }} />
+            <div className="h-2.5 w-48 rounded-md" style={{ background: 'rgba(255,255,255,0.05)' }} />
+          </div>
+        </div>
+        {/* Two-column skeleton */}
+        <div className="grid grid-cols-2 gap-4">
+          {[0, 1].map(col => (
+            <div key={col} className="space-y-2">
+              <div className="h-6 w-32 rounded-lg" style={{ background: 'rgba(255,255,255,0.07)' }} />
+              {[0, 1, 2, 3].map(row => (
+                <div
+                  key={row}
+                  className="rounded-lg px-3 py-2.5 space-y-1.5"
+                  style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
+                >
+                  <div className="h-3 rounded" style={{ background: 'rgba(255,255,255,0.07)', width: `${55 + (row * 11) % 30}%` }} />
+                  <div className="h-2.5 rounded" style={{ background: 'rgba(255,255,255,0.04)', width: `${70 + (col * 7) % 25}%` }} />
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
       </div>
     )
   }

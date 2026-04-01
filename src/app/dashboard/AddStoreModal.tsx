@@ -31,9 +31,7 @@ function GlassInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
 export function AddStoreButton() {
   const [open, setOpen] = useState(false)
   const [storeName, setStoreName] = useState('')
-  const [shoppingCenter, setShoppingCenter] = useState('')
   const [suiteNumber, setSuiteNumber] = useState('')
-  const [address, setAddress] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
@@ -48,22 +46,18 @@ export function AddStoreButton() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         store_name: storeName.trim(),
-        shopping_center_name: shoppingCenter.trim() || null,
         suite_number: suiteNumber.trim() || null,
-        address: address.trim() || null,
       }),
     })
     const data = await res.json()
     setLoading(false)
 
     if (!res.ok) {
-      setError(data.error || 'Failed to create store')
+      setError(data.error || 'Failed to create location')
     } else {
       setOpen(false)
       setStoreName('')
-      setShoppingCenter('')
       setSuiteNumber('')
-      setAddress('')
       router.refresh()
     }
   }
@@ -84,7 +78,12 @@ export function AddStoreButton() {
         style={{ background: 'rgba(12,14,20,0.97)', border: '1px solid rgba(255,255,255,0.10)' }}
       >
         <div className="flex items-center justify-between">
-          <h2 className="font-semibold text-base">Add a new location</h2>
+          <div>
+            <h2 className="font-semibold text-base">Add a new location</h2>
+            <p className="text-xs text-muted-foreground/70 mt-0.5">
+              Property details auto-fill after uploading your lease.
+            </p>
+          </div>
           <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors">
             <X className="h-4 w-4" />
           </button>
@@ -93,10 +92,10 @@ export function AddStoreButton() {
         <div className="space-y-3">
           <div>
             <label className="text-xs text-muted-foreground/90 mb-1.5 block">
-              Store name <span className="text-emerald-400">*</span>
+              Name <span className="text-emerald-400">*</span>
             </label>
             <GlassInput
-              placeholder="e.g. Subway — Downtown"
+              placeholder="e.g. Whole Foods — Downtown"
               value={storeName}
               onChange={(e) => setStoreName(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && storeName.trim() && handleSubmit()}
@@ -105,32 +104,13 @@ export function AddStoreButton() {
           </div>
           <div>
             <label className="text-xs text-muted-foreground/90 mb-1.5 block">
-              Shopping center / property
-            </label>
-            <GlassInput
-              placeholder="Westfield Mall"
-              value={shoppingCenter}
-              onChange={(e) => setShoppingCenter(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="text-xs text-muted-foreground/90 mb-1.5 block">
-              Suite / space number
+              Suite / space number <span className="text-muted-foreground/50">(optional)</span>
             </label>
             <GlassInput
               placeholder="Suite 204"
               value={suiteNumber}
               onChange={(e) => setSuiteNumber(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="text-xs text-muted-foreground/90 mb-1.5 block">
-              Address
-            </label>
-            <GlassInput
-              placeholder="123 Main St, City, State"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && storeName.trim() && handleSubmit()}
             />
           </div>
         </div>

@@ -67,26 +67,36 @@ export async function generateObligationMatrix(
   }
 
   // Fallback: if keyword search returns nothing (function not deployed yet),
-  // fetch first 35 chunks and client-side filter for obligation language
+  // fetch chunks from DB and filter for obligation language
   if (chunks.length === 0) {
-    console.log('[Obligations] Keyword search returned 0 results — using DB fallback')
-    const { data: rawChunks } = await admin
+    console.log('[Obligations] Keyword search returned 0 results — using DB fallback for store', storeId)
+    const { data: rawChunks, error: fetchError } = await admin
       .from('document_chunks')
       .select('id, content')
       .eq('tenant_id', tenantId)
       .eq('store_id', storeId)
       .limit(60)
 
-    const relevant = (rawChunks ?? []).filter((c) =>
+    if (fetchError) {
+      console.error('[Obligations] DB fallback fetch error:', fetchError.message)
+    }
+
+    console.log('[Obligations] DB fallback fetched', rawChunks?.length ?? 0, 'chunks')
+
+    const filtered = (rawChunks ?? []).filter((c) =>
       /repair|maintain|responsible|tenant\s+shall|landlord\s+shall|insurance|hvac|structural|pest|janitorial/i.test(
         c.content
       )
     )
-    chunks.push(...relevant.slice(0, 35))
+
+    // Use filtered chunks if any match, otherwise use all available chunks
+    const toUse = filtered.length > 0 ? filtered : (rawChunks ?? [])
+    console.log('[Obligations] Using', toUse.length, 'chunks (filtered:', filtered.length, ')')
+    chunks.push(...toUse.slice(0, 35))
   }
 
   if (chunks.length === 0) {
-    console.warn('[Obligations] No relevant chunks found for store', storeId)
+    console.warn('[Obligations] No chunks found for store', storeId, 'tenant', tenantId)
     return null
   }
 

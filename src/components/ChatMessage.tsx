@@ -13,6 +13,7 @@ interface ChatMessageProps {
   citations?: Citation[]
   isStreaming?: boolean
   timestamp?: Date
+  onCitationClick?: (citation: Citation) => void
 }
 
 function formatTime(date: Date): string {
@@ -257,6 +258,7 @@ export function ChatMessage({
   citations,
   isStreaming,
   timestamp,
+  onCitationClick,
 }: ChatMessageProps) {
   const isUser = role === 'user'
 
@@ -282,7 +284,7 @@ export function ChatMessage({
         )}
 
         {!isUser && citations && citations.length > 0 && (
-          <CitationCard citations={citations} />
+          <CitationCard citations={citations} onCitationClick={onCitationClick} />
         )}
 
         {!isUser && !isStreaming && (

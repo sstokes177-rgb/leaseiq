@@ -1,9 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { FileText, Trash2, Loader2, RefreshCw, Check } from 'lucide-react'
+import {
+  FileText, Trash2, Loader2, RefreshCw, Check,
+  Eye, Download, X, AlertTriangle,
+} from 'lucide-react'
 import type { Document } from '@/types'
 
 const typeLabels: Record<string, string> = {
@@ -14,17 +16,25 @@ const typeLabels: Record<string, string> = {
   side_letter: 'Side Letter',
 }
 
+interface DocWithPath extends Document {
+  file_path: string
+}
+
 interface LeaseDocListProps {
   refreshTrigger?: number
   storeId?: string | null
 }
 
 export function LeaseDocList({ refreshTrigger, storeId }: LeaseDocListProps) {
-  const [documents, setDocuments] = useState<Document[]>([])
+  const [documents, setDocuments] = useState<DocWithPath[]>([])
   const [loading, setLoading] = useState(true)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [reprocessingId, setReprocessingId] = useState<string | null>(null)
   const [reprocessedId, setReprocessedId] = useState<string | null>(null)
+  const [urlLoadingId, setUrlLoadingId] = useState<string | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [previewName, setPreviewName] = useState<string>('')
 
   const fetchDocuments = async () => {
     setLoading(true)
@@ -42,11 +52,52 @@ export function LeaseDocList({ refreshTrigger, storeId }: LeaseDocListProps) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshTrigger, storeId])
 
+  const fetchSignedUrls = async (docId: string) => {
+    setUrlLoadingId(docId)
+    try {
+      const res = await fetch(`/api/documents/signed-url?id=${docId}`)
+      if (!res.ok) return null
+      return await res.json() as { preview_url: string; download_url: string }
+    } finally {
+      setUrlLoadingId(null)
+    }
+  }
+
+  const handlePreview = async (doc: DocWithPath) => {
+    const urls = await fetchSignedUrls(doc.id)
+    if (!urls) return
+    setPreviewName(doc.display_name ?? doc.file_name)
+    setPreviewUrl(urls.preview_url)
+  }
+
+  const handleDownload = async (doc: DocWithPath) => {
+    const urls = await fetchSignedUrls(doc.id)
+    if (!urls) return
+    const a = document.createElement('a')
+    a.href = urls.download_url
+    a.download = doc.file_name
+    a.click()
+  }
+
   const handleDelete = async (id: string) => {
     setDeletingId(id)
+    setConfirmDeleteId(null)
     await fetch(`/api/documents?id=${id}`, { method: 'DELETE' })
     setDocuments((prev) => prev.filter((d) => d.id !== id))
     setDeletingId(null)
+    // Fire-and-forget regeneration after delete
+    if (storeId) {
+      fetch('/api/lease-summary/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ store_id: storeId }),
+      }).catch(() => {})
+      fetch('/api/obligations/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ store_id: storeId }),
+      }).catch(() => {})
+    }
   }
 
   const handleReprocess = async (id: string) => {
@@ -84,68 +135,157 @@ export function LeaseDocList({ refreshTrigger, storeId }: LeaseDocListProps) {
   }
 
   return (
-    <div className="space-y-2">
-      {documents.map((doc) => (
+    <>
+      <div className="space-y-2">
+        {documents.map((doc) => {
+          const isDeleting = deletingId === doc.id
+          const isProcessing = reprocessingId === doc.id
+          const isLoadingUrl = urlLoadingId === doc.id
+          const isBusy = isDeleting || isProcessing || isLoadingUrl
+          const isConfirming = confirmDeleteId === doc.id
+          const uploadDate = new Date(doc.uploaded_at).toLocaleDateString('en-US', {
+            month: 'short', day: 'numeric', year: 'numeric',
+          })
+
+          return (
+            <div
+              key={doc.id}
+              className="flex items-start gap-3 p-3 rounded-xl border border-white/[0.08] bg-white/[0.03]"
+            >
+              <div
+                className="flex items-center justify-center w-8 h-8 rounded-lg shrink-0 mt-0.5"
+                style={{ background: 'rgba(16,185,129,0.10)', border: '1px solid rgba(16,185,129,0.15)' }}
+              >
+                <FileText className="h-4 w-4 text-emerald-400" />
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate leading-tight">
+                  {doc.display_name ?? doc.file_name}
+                </p>
+                <div className="flex items-center gap-2 flex-wrap mt-1">
+                  {doc.display_name && (
+                    <span className="text-[11px] text-muted-foreground/60 truncate max-w-[160px]">
+                      {doc.file_name}
+                    </span>
+                  )}
+                  <span className="text-[11px] text-muted-foreground/50">{uploadDate}</span>
+                  <span
+                    className="text-[11px] px-1.5 py-0.5 rounded border"
+                    style={{ background: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.09)', color: 'rgba(255,255,255,0.55)' }}
+                  >
+                    {typeLabels[doc.document_type] ?? doc.document_type.replace(/_/g, ' ')}
+                  </span>
+                </div>
+              </div>
+
+              {/* Actions */}
+              {isConfirming ? (
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <span className="text-xs text-muted-foreground/80 flex items-center gap-1">
+                    <AlertTriangle className="h-3 w-3 text-amber-400" /> Delete?
+                  </span>
+                  <button
+                    onClick={() => handleDelete(doc.id)}
+                    className="text-xs font-semibold text-red-400 hover:text-red-300 px-1.5 py-0.5 rounded transition-colors"
+                  >
+                    Yes
+                  </button>
+                  <button
+                    onClick={() => setConfirmDeleteId(null)}
+                    className="text-xs text-muted-foreground/70 hover:text-foreground px-1.5 py-0.5 rounded transition-colors"
+                  >
+                    No
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-0.5 shrink-0">
+                  {/* Preview */}
+                  <button
+                    onClick={() => handlePreview(doc)}
+                    disabled={isBusy}
+                    title="Preview document"
+                    className="p-1.5 rounded-lg text-muted-foreground/60 hover:text-white/80 hover:bg-white/[0.06] transition-colors disabled:opacity-40"
+                  >
+                    {isLoadingUrl ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Eye className="h-3.5 w-3.5" />
+                    )}
+                  </button>
+
+                  {/* Download */}
+                  <button
+                    onClick={() => handleDownload(doc)}
+                    disabled={isBusy}
+                    title="Download document"
+                    className="p-1.5 rounded-lg text-muted-foreground/60 hover:text-white/80 hover:bg-white/[0.06] transition-colors disabled:opacity-40"
+                  >
+                    <Download className="h-3.5 w-3.5" />
+                  </button>
+
+                  {/* Re-process */}
+                  <button
+                    onClick={() => handleReprocess(doc.id)}
+                    disabled={isBusy}
+                    title="Re-process document (rebuild search index)"
+                    className="p-1.5 rounded-lg text-muted-foreground/60 hover:text-emerald-400 hover:bg-emerald-500/[0.08] transition-colors disabled:opacity-40"
+                  >
+                    {isProcessing ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : reprocessedId === doc.id ? (
+                      <Check className="h-3.5 w-3.5 text-emerald-400" />
+                    ) : (
+                      <RefreshCw className="h-3.5 w-3.5" />
+                    )}
+                  </button>
+
+                  {/* Delete */}
+                  <button
+                    onClick={() => setConfirmDeleteId(doc.id)}
+                    disabled={isBusy}
+                    title="Delete document"
+                    className="p-1.5 rounded-lg text-muted-foreground/60 hover:text-red-400 hover:bg-red-500/[0.08] transition-colors disabled:opacity-40"
+                  >
+                    {isDeleting ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-3.5 w-3.5" />
+                    )}
+                  </button>
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Preview modal */}
+      {previewUrl && (
         <div
-          key={doc.id}
-          className="flex items-center gap-3 p-3 rounded-xl border border-border/60 bg-background/50"
+          className="fixed inset-0 z-50 flex flex-col bg-black/80 backdrop-blur-sm"
+          onClick={(e) => { if (e.target === e.currentTarget) setPreviewUrl(null) }}
         >
-          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 shrink-0">
-            <FileText className="h-4 w-4 text-primary" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">
-              {doc.display_name ?? doc.file_name}
-            </p>
-            {doc.display_name && (
-              <p className="text-xs text-muted-foreground truncate">{doc.file_name}</p>
-            )}
-            {!doc.display_name && (
-              <p className="text-xs text-muted-foreground">
-                {new Date(doc.uploaded_at).toLocaleDateString()}
-              </p>
-            )}
-          </div>
-          <Badge variant="secondary" className="text-xs shrink-0">
-            {typeLabels[doc.document_type] ?? doc.document_type}
-          </Badge>
-
-          {/* Re-process button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 shrink-0 text-muted-foreground hover:text-emerald-400 transition-colors"
-            onClick={() => handleReprocess(doc.id)}
-            disabled={reprocessingId === doc.id || deletingId === doc.id}
-            title="Re-process document (rebuild search index)"
-            aria-label="Re-process document"
+          <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.08]"
+            style={{ background: 'rgba(12,14,20,0.98)' }}
           >
-            {reprocessingId === doc.id ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : reprocessedId === doc.id ? (
-              <Check className="h-3.5 w-3.5 text-emerald-400" />
-            ) : (
-              <RefreshCw className="h-3.5 w-3.5" />
-            )}
-          </Button>
-
-          {/* Delete button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 shrink-0 text-muted-foreground hover:text-destructive"
-            onClick={() => handleDelete(doc.id)}
-            disabled={deletingId === doc.id || reprocessingId === doc.id}
-            aria-label="Delete document"
-          >
-            {deletingId === doc.id ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <Trash2 className="h-3.5 w-3.5" />
-            )}
-          </Button>
+            <p className="text-sm font-medium truncate max-w-[calc(100%-3rem)]">{previewName}</p>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 shrink-0"
+              onClick={() => setPreviewUrl(null)}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+          <iframe
+            src={previewUrl}
+            className="flex-1 w-full border-0"
+            title={previewName}
+          />
         </div>
-      ))}
-    </div>
+      )}
+    </>
   )
 }

@@ -6,6 +6,7 @@ import type { Citation } from '@/types'
 
 interface CitationCardProps {
   citations: Citation[]
+  onCitationClick?: (citation: Citation) => void
 }
 
 const DOC_TYPE_CONFIG: Record<string, { label: string; pillCls: string }> = {
@@ -42,7 +43,13 @@ function getDocConfig(docType?: string) {
 
 // ── Individual citation pill ──────────────────────────────────────────────────
 
-function CitationPill({ citation }: { citation: Citation }) {
+function CitationPill({
+  citation,
+  onCitationClick,
+}: {
+  citation: Citation
+  onCitationClick?: (citation: Citation) => void
+}) {
   const [open, setOpen] = useState(false)
   const cfg = getDocConfig(citation.document_type)
 
@@ -50,6 +57,17 @@ function CitationPill({ citation }: { citation: Citation }) {
   const pageLabel = citation.page_number ? `p.${citation.page_number}` : null
   const detailLabel = [sectionLabel, pageLabel].filter(Boolean).join(' · ')
   const pillText = detailLabel || cfg.label
+
+  if (onCitationClick) {
+    return (
+      <button
+        onClick={() => onCitationClick(citation)}
+        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium border transition-opacity hover:opacity-90 ${cfg.pillCls}`}
+      >
+        <span className="truncate max-w-[200px]">{pillText}</span>
+      </button>
+    )
+  }
 
   return (
     <div className="inline-block">
@@ -110,7 +128,7 @@ function groupCitations(citations: Citation[]): DocGroup[] {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export function CitationCard({ citations }: CitationCardProps) {
+export function CitationCard({ citations, onCitationClick }: CitationCardProps) {
   if (citations.length === 0) return null
 
   const groups = groupCitations(citations)
@@ -135,7 +153,7 @@ export function CitationCard({ citations }: CitationCardProps) {
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {group.citations.map((c, i) => (
-                  <CitationPill key={i} citation={c} />
+                  <CitationPill key={i} citation={c} onCitationClick={onCitationClick} />
                 ))}
               </div>
             </div>

@@ -107,9 +107,59 @@ export function LeaseSummaryCard({ storeId }: LeaseSummaryCardProps) {
   // ── Loading state ────────────────────────────────────────────────────────────
   if (loading) {
     return (
-      <div className="glass-card rounded-2xl p-6 flex items-center gap-3 text-sm text-muted-foreground">
-        <Loader2 className="h-4 w-4 animate-spin" />
-        Loading lease summary…
+      <div className="glass-card rounded-2xl p-6 space-y-5 animate-pulse">
+        {/* Header skeleton */}
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl shrink-0" style={{ background: 'rgba(255,255,255,0.06)' }} />
+          <div className="space-y-1.5 flex-1">
+            <div className="h-3.5 w-28 rounded-md" style={{ background: 'rgba(255,255,255,0.08)' }} />
+            <div className="h-2.5 w-44 rounded-md" style={{ background: 'rgba(255,255,255,0.05)' }} />
+          </div>
+        </div>
+        {/* Parties skeleton */}
+        <div
+          className="rounded-xl px-4 py-3 grid grid-cols-2 gap-3"
+          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
+        >
+          {[0, 1].map(i => (
+            <div key={i} className="space-y-1.5">
+              <div className="h-2 w-12 rounded" style={{ background: 'rgba(255,255,255,0.06)' }} />
+              <div className="h-3.5 w-32 rounded-md" style={{ background: 'rgba(255,255,255,0.08)' }} />
+            </div>
+          ))}
+        </div>
+        {/* Term + type skeleton */}
+        <div className="grid grid-cols-3 gap-3">
+          <div
+            className="col-span-2 rounded-xl px-4 py-3 space-y-2"
+            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
+          >
+            <div className="h-2 w-16 rounded" style={{ background: 'rgba(255,255,255,0.06)' }} />
+            <div className="h-3.5 w-48 rounded-md" style={{ background: 'rgba(255,255,255,0.08)' }} />
+          </div>
+          <div
+            className="rounded-xl px-4 py-3 space-y-2"
+            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
+          >
+            <div className="h-2 w-14 rounded" style={{ background: 'rgba(255,255,255,0.06)' }} />
+            <div className="h-3.5 w-20 rounded-md" style={{ background: 'rgba(255,255,255,0.08)' }} />
+          </div>
+        </div>
+        {/* Financials skeleton */}
+        <div
+          className="rounded-xl px-4 py-3 space-y-3"
+          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
+        >
+          <div className="h-2 w-20 rounded" style={{ background: 'rgba(255,255,255,0.06)' }} />
+          <div className="grid grid-cols-2 gap-3">
+            {[0, 1, 2, 3].map(i => (
+              <div key={i} className="space-y-1.5">
+                <div className="h-2 w-16 rounded" style={{ background: 'rgba(255,255,255,0.06)' }} />
+                <div className="h-3 w-28 rounded" style={{ background: 'rgba(255,255,255,0.08)' }} />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     )
   }

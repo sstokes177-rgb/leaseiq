@@ -1,8 +1,24 @@
 import { NextRequest } from 'next/server'
-import { streamText, convertToModelMessages, type UIMessage, type TextUIPart } from 'ai'
+import { streamText, generateText, convertToModelMessages, type UIMessage, type TextUIPart } from 'ai'
 import { anthropic } from '@ai-sdk/anthropic'
 import { createServerSupabaseClient, createAdminSupabaseClient } from '@/lib/supabase'
 import { buildRAGContext } from '@/lib/ragChain'
+
+async function generateConversationTitle(question: string, answer: string): Promise<string | null> {
+  try {
+    const { text } = await generateText({
+      model: anthropic('claude-haiku-4-5-20251001'),
+      maxOutputTokens: 20,
+      messages: [{
+        role: 'user',
+        content: `Write a 4-6 word title for this lease Q&A conversation. Return ONLY the title, no punctuation.\n\nQuestion: ${question.slice(0, 200)}\nAnswer: ${answer.slice(0, 300)}`,
+      }],
+    })
+    return text.trim().slice(0, 80)
+  } catch {
+    return null
+  }
+}
 
 function getMessageText(message: UIMessage): string {
   return message.parts
@@ -82,17 +98,31 @@ export async function POST(request: NextRequest) {
         if (conversationId && text) {
           try {
             const adminSupabase = createAdminSupabaseClient()
-            const { error: convErr } = await adminSupabase
+            // Upsert conversation (safe if it already exists)
+            await adminSupabase
               .from('conversations')
-              .insert({ id: conversationId, tenant_id: user.id, store_id: storeId ?? null })
-            if (convErr) {
-              console.error('[Chat] Failed to save conversation:', convErr.message)
-            } else {
-              await adminSupabase.from('messages').insert([
-                { conversation_id: conversationId, role: 'user', content: userText },
-                { conversation_id: conversationId, role: 'assistant', content: text, citations },
-              ])
-            }
+              .upsert({ id: conversationId, tenant_id: user.id, store_id: storeId ?? null }, { onConflict: 'id', ignoreDuplicates: true })
+            // Always save this message pair
+            const { error: msgErr } = await adminSupabase.from('messages').insert([
+              { conversation_id: conversationId, role: 'user', content: userText },
+              { conversation_id: conversationId, role: 'assistant', content: text, citations },
+            ])
+            if (msgErr) console.error('[Chat] Failed to save messages:', msgErr.message)
+            // Auto-title: generate if conversation has no title yet (fire-and-forget)
+            generateConversationTitle(userText, text).then(async (title) => {
+              if (!title) return
+              const { data: existing } = await adminSupabase
+                .from('conversations')
+                .select('title')
+                .eq('id', conversationId)
+                .maybeSingle()
+              if (existing && !existing.title) {
+                await adminSupabase
+                  .from('conversations')
+                  .update({ title })
+                  .eq('id', conversationId)
+              }
+            }).catch(() => {})
           } catch (err) {
             console.error('[Chat] Failed to save conversation:', err)
           }
@@ -116,15 +146,21 @@ export async function POST(request: NextRequest) {
             if (conversationId && text) {
               try {
                 const adminSupabase = createAdminSupabaseClient()
-                const { error: convErr } = await adminSupabase
+                await adminSupabase
                   .from('conversations')
-                  .insert({ id: conversationId, tenant_id: user.id, store_id: storeId ?? null })
-                if (!convErr) {
-                  await adminSupabase.from('messages').insert([
-                    { conversation_id: conversationId, role: 'user', content: userText },
-                    { conversation_id: conversationId, role: 'assistant', content: text, citations },
-                  ])
-                }
+                  .upsert({ id: conversationId, tenant_id: user.id, store_id: storeId ?? null }, { onConflict: 'id', ignoreDuplicates: true })
+                await adminSupabase.from('messages').insert([
+                  { conversation_id: conversationId, role: 'user', content: userText },
+                  { conversation_id: conversationId, role: 'assistant', content: text, citations },
+                ])
+                generateConversationTitle(userText, text).then(async (title) => {
+                  if (!title) return
+                  const { data: existing } = await adminSupabase
+                    .from('conversations').select('title').eq('id', conversationId).maybeSingle()
+                  if (existing && !existing.title) {
+                    await adminSupabase.from('conversations').update({ title }).eq('id', conversationId)
+                  }
+                }).catch(() => {})
               } catch (saveErr) {
                 console.error('[Chat] Failed to save conversation:', saveErr)
               }

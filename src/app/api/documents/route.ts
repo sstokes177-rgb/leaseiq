@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
 
   let query = supabase
     .from('documents')
-    .select('id, file_name, document_type, display_name, store_id, uploaded_at')
+    .select('id, file_name, file_path, document_type, display_name, store_id, uploaded_at')
     .eq('tenant_id', user.id)
     .order('uploaded_at', { ascending: false })
 

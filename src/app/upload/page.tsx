@@ -43,7 +43,7 @@ export default async function UploadPage({
     <div className="min-h-screen">
       <header className="glass border-b border-white/[0.07] px-4 sm:px-6 py-4 flex items-center gap-3">
         <Link
-          href={activeStore ? `/dashboard?store=${activeStore.id}` : '/dashboard'}
+          href={activeStore ? `/location/${activeStore.id}` : '/dashboard'}
           className="text-muted-foreground hover:text-foreground transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
