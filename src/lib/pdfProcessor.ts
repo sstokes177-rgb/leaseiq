@@ -10,6 +10,7 @@ export interface TextChunk {
 // Section headings commonly found in commercial leases
 const SECTION_PATTERNS = [
   /^(ARTICLE|SECTION|EXHIBIT|ADDENDUM|SCHEDULE|AMENDMENT)\s+[\dIVXA-Z]+/i,
+  /^\d+\.\d+[\s.]/, // "9.1 " or "9.1." numbered subsections
   /^\d+\.\s+[A-Z]/,
   /^[A-Z]{2,}[\s:]/,
 ]
@@ -28,8 +29,8 @@ function splitIntoChunks(
   text: string,
   documentName: string,
   documentType: string,
-  targetTokens = 600,
-  overlapTokens = 80
+  targetTokens = 800,
+  overlapTokens = 150
 ): TextChunk[] {
   const targetChars = targetTokens * 4
   const overlapChars = overlapTokens * 4
@@ -47,8 +48,9 @@ function splitIntoChunks(
     const heading = detectSectionHeading(line)
     if (heading) {
       if (currentChunk.length > overlapChars) {
+        const body = currentChunk.trim()
         chunks.push({
-          content: currentChunk.trim(),
+          content: currentHeading ? `[Section: ${currentHeading}]\n${body}` : body,
           metadata: {
             document_name: documentName,
             document_type: documentType,
@@ -66,8 +68,9 @@ function splitIntoChunks(
     charCount += line.length + 1
 
     if (currentChunk.length >= targetChars) {
+      const body = currentChunk.trim()
       chunks.push({
-        content: currentChunk.trim(),
+        content: currentHeading ? `[Section: ${currentHeading}]\n${body}` : body,
         metadata: {
           document_name: documentName,
           document_type: documentType,
@@ -81,8 +84,9 @@ function splitIntoChunks(
   }
 
   if (currentChunk.trim().length > 100) {
+    const body = currentChunk.trim()
     chunks.push({
-      content: currentChunk.trim(),
+      content: currentHeading ? `[Section: ${currentHeading}]\n${body}` : body,
       metadata: {
         document_name: documentName,
         document_type: documentType,

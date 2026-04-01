@@ -166,7 +166,7 @@ export default async function DashboardPage({
   return (
     <div className="min-h-screen">
       {/* Header */}
-      <header className="glass border-b border-white/[0.07] px-6 py-4 flex items-center justify-between">
+      <header className="glass border-b border-white/[0.07] px-4 sm:px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-5">
           <Link href="/" className="flex items-center gap-2.5 group">
             <div
@@ -196,7 +196,7 @@ export default async function DashboardPage({
         </form>
       </header>
 
-      <main className="max-w-4xl mx-auto px-6 py-12 space-y-10">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-12 space-y-10">
         {/* Welcome */}
         <div className="flex items-end justify-between gap-4">
           <div>

@@ -1,4 +1,4 @@
-import { retrieveRelevantChunks, buildContextFromChunks, type RetrievedChunk } from './vectorStore'
+import { retrieveRelevantChunks, keywordSearchChunks, buildContextFromChunks, type RetrievedChunk } from './vectorStore'
 import { buildLeasePrompt } from './prompts'
 import type { Citation } from '@/types'
 
@@ -8,12 +8,11 @@ export interface RAGResult {
   hasContext: boolean
 }
 
-// ── Topic expansion ───────────────────────────────────────────────────────────
+// ── Topic expansion (vector) ──────────────────────────────────────────────────
 // When a question is situational/emotional, the vector similarity may be low
 // even though relevant chunks exist. We detect the underlying topic and run
-// a targeted second search to surface those chunks.
+// a targeted second VECTOR search to surface those chunks.
 
-// Maps a canonical search phrase to trigger words found in the user's message
 const TOPIC_TRIGGERS: Array<{ query: string; triggers: string[] }> = [
   { query: 'parking spaces assignment',          triggers: ['parking', 'park', 'ticket', 'spot', 'stall', 'vehicle'] },
   { query: 'HVAC heating cooling maintenance',   triggers: ['hvac', 'ac', 'air condition', 'heat', 'cooling', 'furnace', 'temperature', 'hot', 'cold', 'broke', 'broken'] },
@@ -44,6 +43,102 @@ function extractTopicQuery(text: string): string | null {
   return null
 }
 
+// ── Keyword (ILIKE) search terms ──────────────────────────────────────────────
+// Maps topic triggers to lease terminology stems. The stems are passed to
+// keyword_search_documents for full-text ILIKE matching, catching chunks that
+// vector similarity may miss (e.g. "Assignment and Subletting" section when
+// the question says "can I sublease?").
+
+const KEYWORD_MAP: Array<{ triggers: string[]; searchTerms: string[] }> = [
+  {
+    triggers: ['sublease', 'sublet', 'rent out my space', 'rent out the space', 'sell my business', 'sell the business', 'transfer my lease', 'assign'],
+    searchTerms: ['subleas', 'sublet', 'assignment'],
+  },
+  {
+    triggers: ['hvac', 'air condition', 'heating', 'cooling', 'furnace', 'ventilat', 'temperature'],
+    searchTerms: ['hvac', 'air condition', 'ventilat'],
+  },
+  {
+    triggers: ['repair', 'broken', 'fix', 'maintenance', 'damage', 'leak', 'flood', 'pest', 'mold', 'maintain'],
+    searchTerms: ['repair', 'maintain', 'condition', 'restore'],
+  },
+  {
+    triggers: ['rent', 'base rent', 'monthly payment', 'how much do i pay', 'payment', 'late fee', 'overdue'],
+    searchTerms: ['base rent', 'additional rent', 'late charge'],
+  },
+  {
+    triggers: ['sign', 'signage', 'banner', 'advertis', 'logo', 'facade', 'storefront'],
+    searchTerms: ['sign', 'banner', 'facade'],
+  },
+  {
+    triggers: ['cam', 'common area', 'operating expense', 'nnn', 'triple net', 'pass-through', 'reconcil'],
+    searchTerms: ['common area', 'operating expense', 'pass-through'],
+  },
+  {
+    triggers: ['insurance', 'insur', 'liability', 'coverage', 'claim', 'sued'],
+    searchTerms: ['insurance', 'liability', 'coverage'],
+  },
+  {
+    triggers: ['terminat', 'cancel', 'break the lease', 'early exit', 'get out', 'close the store', 'shut down', 'closing'],
+    searchTerms: ['terminat', 'surrender', 'cancel'],
+  },
+  {
+    triggers: ['renew', 'renewal', 'extend', 'extension', 'option to renew', 'expire'],
+    searchTerms: ['renewal', 'option', 'extend'],
+  },
+  {
+    triggers: ['default', 'evict', 'breach', 'violation', 'cure period', 'kicked out'],
+    searchTerms: ['default', 'breach', 'remedy', 'cure'],
+  },
+  {
+    triggers: ['alteration', 'improvement', 'remodel', 'renovate', 'build out', 'construction', 'demo'],
+    searchTerms: ['alteration', 'improvement', 'modif'],
+  },
+  {
+    triggers: ['parking', 'park', 'vehicle', 'garage', 'spot', 'stall'],
+    searchTerms: ['parking', 'vehicle'],
+  },
+  {
+    triggers: ['deposit', 'security deposit'],
+    searchTerms: ['security deposit', 'deposit'],
+  },
+  {
+    triggers: ['permitted use', 'exclusive', 'restrict', 'allowed to sell', 'can i sell', 'competitor'],
+    searchTerms: ['permitted use', 'exclusive', 'restrict'],
+  },
+  {
+    triggers: ['hours', 'operating hours', 'business hours', 'open', 'schedule'],
+    searchTerms: ['hours of operation', 'business hours', 'operating hours'],
+  },
+  {
+    triggers: ['holdover', 'month to month', 'expired lease', 'stay past'],
+    searchTerms: ['holdover'],
+  },
+  {
+    triggers: ['utilities', 'electric', 'water', 'gas', 'utility bill', 'meter'],
+    searchTerms: ['utilities', 'electric', 'water'],
+  },
+]
+
+/**
+ * Extract keyword search terms from the user's question by matching
+ * against known lease topic triggers. Returns up to 6 unique stems.
+ */
+function extractKeywords(text: string): string[] {
+  const lower = text.toLowerCase()
+  const terms = new Set<string>()
+
+  for (const { triggers, searchTerms } of KEYWORD_MAP) {
+    if (triggers.some((t) => lower.includes(t))) {
+      searchTerms.forEach((t) => terms.add(t))
+    }
+  }
+
+  return [...terms].slice(0, 6)
+}
+
+// ── Chunk deduplication ───────────────────────────────────────────────────────
+
 function deduplicateChunks(primary: RetrievedChunk[], secondary: RetrievedChunk[]): RetrievedChunk[] {
   const seen = new Set(primary.map((c) => c.id))
   const merged = [...primary]
@@ -64,28 +159,53 @@ export async function buildRAGContext(
   tenantId: string,
   storeId?: string | null
 ): Promise<RAGResult> {
-  // Primary search — use the full question text
-  let chunks = await retrieveRelevantChunks(question, tenantId, 8, storeId)
+  // ── Step 1: Primary vector search ────────────────────────────────────────────
+  let chunks = await retrieveRelevantChunks(question, tenantId, 12, storeId)
 
   // If store-scoped returns nothing, fall back to tenant-wide
   if (chunks.length === 0 && storeId != null) {
     console.log('[RAG] Store-scoped search returned 0 chunks — falling back to tenant-wide search')
-    chunks = await retrieveRelevantChunks(question, tenantId, 8, null)
+    chunks = await retrieveRelevantChunks(question, tenantId, 12, null)
   }
 
-  // If results are sparse (< 3), run a second search using extracted topic keywords.
-  // This catches situational/emotional questions whose vector similarity is low
-  // even though directly relevant chunks exist.
+  // ── Step 2: Keyword (ILIKE) hybrid search — always runs ───────────────────
+  // Catches chunks that vector similarity misses (e.g. "Assignment and
+  // Subletting" section when question says "can I sublease my space?").
+  const keywords = extractKeywords(question)
+
+  if (keywords.length > 0) {
+    console.log(`[RAG] Keyword search terms: ${keywords.join(', ')}`)
+
+    // Run all keyword searches in parallel, with store-scope + tenant-wide fallback
+    const keywordResults = await Promise.all(
+      keywords.map(async (kw) => {
+        const results = await keywordSearchChunks(kw, tenantId, 8, storeId ?? null)
+        // If store-scoped keyword search returns nothing, try tenant-wide
+        if (results.length === 0 && storeId != null) {
+          return keywordSearchChunks(kw, tenantId, 8, null)
+        }
+        return results
+      })
+    )
+
+    const allKeywordChunks = keywordResults.flat()
+    if (allKeywordChunks.length > 0) {
+      const before = chunks.length
+      chunks = deduplicateChunks(chunks, allKeywordChunks)
+      console.log(`[RAG] Keyword search added ${chunks.length - before} unique chunks (total: ${chunks.length})`)
+    }
+  }
+
+  // ── Step 3: Topic expansion vector search (when results still sparse) ───────
   if (chunks.length < 3) {
     const topicQuery = extractTopicQuery(question)
     if (topicQuery) {
       console.log(`[RAG] Sparse results (${chunks.length}) — running topic expansion search: "${topicQuery}"`)
-      const topicChunks = await retrieveRelevantChunks(topicQuery, tenantId, 8, storeId ?? null)
+      const topicChunks = await retrieveRelevantChunks(topicQuery, tenantId, 12, storeId ?? null)
 
-      // If topic search also got 0 with store scope, try tenant-wide for it too
       const finalTopicChunks =
         topicChunks.length === 0 && storeId != null
-          ? await retrieveRelevantChunks(topicQuery, tenantId, 8, null)
+          ? await retrieveRelevantChunks(topicQuery, tenantId, 12, null)
           : topicChunks
 
       if (finalTopicChunks.length > 0) {
@@ -108,7 +228,9 @@ export async function buildRAGContext(
     }
   }
 
-  const { contextText, citations } = buildContextFromChunks(chunks)
+  // Cap at 16 chunks to stay within context budget
+  const finalChunks = chunks.slice(0, 16)
+  const { contextText, citations } = buildContextFromChunks(finalChunks)
 
   return {
     systemPrompt: buildLeasePrompt(contextText),

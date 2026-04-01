@@ -1,6 +1,11 @@
+'use client'
+
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import { CitationCard } from './CitationCard'
 import type { Citation } from '@/types'
 import { cn } from '@/lib/utils'
+import type { ReactNode, ComponentPropsWithoutRef } from 'react'
 
 interface ChatMessageProps {
   role: 'user' | 'assistant'
@@ -82,7 +87,7 @@ function InlineTokens({ tokens }: { tokens: Token[] }) {
 
         if (tok.t === 'bold')
           return (
-            <strong key={i} className="font-semibold text-white/95">
+            <strong key={i} className="font-semibold text-emerald-400">
               {tok.v}
             </strong>
           )
@@ -120,9 +125,104 @@ function InlineTokens({ tokens }: { tokens: Token[] }) {
   )
 }
 
-// ── Response content renderer ─────────────────────────────────────────────────
+// Apply tokenizer to a string child, preserving non-string nodes as-is
+function processText(text: string) {
+  return <InlineTokens tokens={tokenize(text)} />
+}
+
+// Recursively process React children — apply tokenizer to text nodes
+function processChildren(children: ReactNode): ReactNode {
+  if (typeof children === 'string') return processText(children)
+  if (Array.isArray(children)) return children.map((child, i) => {
+    if (typeof child === 'string') return <span key={i}>{processText(child)}</span>
+    return child
+  })
+  return children
+}
+
+// Extract plain text from React children for pattern detection
+function getTextContent(children: ReactNode): string {
+  if (typeof children === 'string') return children
+  if (Array.isArray(children)) return children.map(getTextContent).join('')
+  return ''
+}
 
 const SUMMARY_RE = /^(in short[:\s]|bottom line[:\s]|summary[:\s])/i
+
+// ── React-markdown custom components ─────────────────────────────────────────
+
+function mdP({ children }: ComponentPropsWithoutRef<'p'>) {
+  const text = getTextContent(children)
+  const isSummary = SUMMARY_RE.test(text)
+
+  if (isSummary) {
+    return (
+      <div
+        className="rounded-xl px-4 py-3 my-2"
+        style={{
+          background: 'rgba(16,185,129,0.08)',
+          border: '1px solid rgba(16,185,129,0.22)',
+        }}
+      >
+        <p className="text-sm leading-[1.7] font-medium text-emerald-100/90">
+          {processChildren(children)}
+        </p>
+      </div>
+    )
+  }
+
+  return (
+    <p className="text-sm leading-[1.7] text-white/90 mb-3 last:mb-0">
+      {processChildren(children)}
+    </p>
+  )
+}
+
+function mdStrong({ children }: ComponentPropsWithoutRef<'strong'>) {
+  return (
+    <strong className="font-semibold text-emerald-400">
+      {processChildren(children)}
+    </strong>
+  )
+}
+
+function mdH1({ children }: ComponentPropsWithoutRef<'h1'>) {
+  return <h1 className="text-base font-bold text-white/95 mt-4 mb-2 first:mt-0">{processChildren(children)}</h1>
+}
+function mdH2({ children }: ComponentPropsWithoutRef<'h2'>) {
+  return <h2 className="text-sm font-bold text-white/90 mt-3 mb-1.5 first:mt-0">{processChildren(children)}</h2>
+}
+function mdH3({ children }: ComponentPropsWithoutRef<'h3'>) {
+  return <h3 className="text-sm font-semibold text-white/85 mt-2 mb-1 first:mt-0">{processChildren(children)}</h3>
+}
+
+function mdUl({ children }: ComponentPropsWithoutRef<'ul'>) {
+  return <ul className="list-disc list-outside pl-5 my-2 space-y-1 text-sm text-white/90">{children}</ul>
+}
+function mdOl({ children }: ComponentPropsWithoutRef<'ol'>) {
+  return <ol className="list-decimal list-outside pl-5 my-2 space-y-1 text-sm text-white/90">{children}</ol>
+}
+function mdLi({ children }: ComponentPropsWithoutRef<'li'>) {
+  return <li className="leading-[1.65]">{processChildren(children)}</li>
+}
+
+function mdHr() {
+  return <hr className="my-3 border-white/[0.10]" />
+}
+
+const MD_COMPONENTS = {
+  p: mdP,
+  strong: mdStrong,
+  h1: mdH1,
+  h2: mdH2,
+  h3: mdH3,
+  ul: mdUl,
+  ol: mdOl,
+  li: mdLi,
+  hr: mdHr,
+}
+
+// ── Response content renderer ─────────────────────────────────────────────────
 
 function LeaseResponseContent({
   content,
@@ -131,59 +231,20 @@ function LeaseResponseContent({
   content: string
   isStreaming?: boolean
 }) {
-  const paragraphs = content.split(/\n\n+/).filter(p => p.trim().length > 0)
-
-  if (paragraphs.length === 0) {
+  if (!content.trim()) {
     return (
       <span className="inline-block w-1.5 h-[1.1em] align-middle bg-current opacity-60 animate-pulse rounded-sm" />
     )
   }
 
   return (
-    <div className="space-y-3">
-      {paragraphs.map((para, i) => {
-        const trimmed = para.trim()
-        const isSummary = SUMMARY_RE.test(trimmed)
-        const isLast = i === paragraphs.length - 1
-        const lines = trimmed.split('\n')
-
-        const renderLines = () =>
-          lines.map((line, j) => (
-            <span key={j}>
-              {j > 0 && <br />}
-              <InlineTokens tokens={tokenize(line)} />
-            </span>
-          ))
-
-        if (isSummary) {
-          return (
-            <div
-              key={i}
-              className="rounded-xl px-4 py-3"
-              style={{
-                background: 'rgba(16,185,129,0.08)',
-                border: '1px solid rgba(16,185,129,0.22)',
-              }}
-            >
-              <p className="text-sm leading-[1.65] font-medium text-emerald-100/90">
-                {renderLines()}
-                {isStreaming && isLast && (
-                  <span className="inline-block w-1.5 h-[1.1em] ml-0.5 align-middle bg-current opacity-60 animate-pulse rounded-sm" />
-                )}
-              </p>
-            </div>
-          )
-        }
-
-        return (
-          <p key={i} className="text-sm leading-[1.65] text-white/90">
-            {renderLines()}
-            {isStreaming && isLast && (
-              <span className="inline-block w-1.5 h-[1.1em] ml-0.5 align-middle bg-current opacity-60 animate-pulse rounded-sm" />
-            )}
-          </p>
-        )
-      })}
+    <div>
+      <ReactMarkdown remarkPlugins={[remarkGfm]} components={MD_COMPONENTS}>
+        {content}
+      </ReactMarkdown>
+      {isStreaming && (
+        <span className="inline-block w-1.5 h-[1.1em] ml-0.5 align-middle bg-white/60 opacity-60 animate-pulse rounded-sm" />
+      )}
     </div>
   )
 }

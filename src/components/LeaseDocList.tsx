@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { FileText, Trash2, Loader2 } from 'lucide-react'
+import { FileText, Trash2, Loader2, RefreshCw, Check } from 'lucide-react'
 import type { Document } from '@/types'
 
 const typeLabels: Record<string, string> = {
@@ -23,6 +23,8 @@ export function LeaseDocList({ refreshTrigger, storeId }: LeaseDocListProps) {
   const [documents, setDocuments] = useState<Document[]>([])
   const [loading, setLoading] = useState(true)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [reprocessingId, setReprocessingId] = useState<string | null>(null)
+  const [reprocessedId, setReprocessedId] = useState<string | null>(null)
 
   const fetchDocuments = async () => {
     setLoading(true)
@@ -45,6 +47,23 @@ export function LeaseDocList({ refreshTrigger, storeId }: LeaseDocListProps) {
     await fetch(`/api/documents?id=${id}`, { method: 'DELETE' })
     setDocuments((prev) => prev.filter((d) => d.id !== id))
     setDeletingId(null)
+  }
+
+  const handleReprocess = async (id: string) => {
+    setReprocessingId(id)
+    try {
+      const res = await fetch('/api/documents/reprocess', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ document_id: id }),
+      })
+      if (res.ok) {
+        setReprocessedId(id)
+        setTimeout(() => setReprocessedId(null), 2500)
+      }
+    } finally {
+      setReprocessingId(null)
+    }
   }
 
   if (loading) {
@@ -90,12 +109,33 @@ export function LeaseDocList({ refreshTrigger, storeId }: LeaseDocListProps) {
           <Badge variant="secondary" className="text-xs shrink-0">
             {typeLabels[doc.document_type] ?? doc.document_type}
           </Badge>
+
+          {/* Re-process button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 shrink-0 text-muted-foreground hover:text-emerald-400 transition-colors"
+            onClick={() => handleReprocess(doc.id)}
+            disabled={reprocessingId === doc.id || deletingId === doc.id}
+            title="Re-process document (rebuild search index)"
+            aria-label="Re-process document"
+          >
+            {reprocessingId === doc.id ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : reprocessedId === doc.id ? (
+              <Check className="h-3.5 w-3.5 text-emerald-400" />
+            ) : (
+              <RefreshCw className="h-3.5 w-3.5" />
+            )}
+          </Button>
+
+          {/* Delete button */}
           <Button
             variant="ghost"
             size="icon"
             className="h-7 w-7 shrink-0 text-muted-foreground hover:text-destructive"
             onClick={() => handleDelete(doc.id)}
-            disabled={deletingId === doc.id}
+            disabled={deletingId === doc.id || reprocessingId === doc.id}
             aria-label="Delete document"
           >
             {deletingId === doc.id ? (

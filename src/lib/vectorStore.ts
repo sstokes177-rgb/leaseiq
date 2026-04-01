@@ -38,12 +38,12 @@ export interface RetrievedChunk {
   similarity: number
 }
 
-const MATCH_THRESHOLD = 0.20
+const MATCH_THRESHOLD = 0.15
 
 export async function retrieveRelevantChunks(
   question: string,
   tenantId: string,
-  matchCount = 8,
+  matchCount = 12,
   storeId?: string | null
 ): Promise<RetrievedChunk[]> {
   const supabase = createAdminSupabaseClient()
@@ -88,6 +88,42 @@ export async function retrieveRelevantChunks(
     const pb = docTypePriority[b.metadata?.document_type ?? ''] ?? 5
     return pa - pb
   })
+}
+
+/**
+ * Keyword (ILIKE) search for a single term. Requires the keyword_search_documents
+ * SQL function to be deployed. Fails silently (returns []) if the function doesn't
+ * exist yet, so the system degrades gracefully before the migration is applied.
+ */
+export async function keywordSearchChunks(
+  keyword: string,
+  tenantId: string,
+  matchCount = 8,
+  storeId?: string | null
+): Promise<RetrievedChunk[]> {
+  if (!keyword.trim()) return []
+  const supabase = createAdminSupabaseClient()
+
+  try {
+    const { data, error } = await supabase.rpc('keyword_search_documents', {
+      search_query: keyword,
+      p_tenant_id: tenantId,
+      p_store_id: storeId ?? null,
+      match_count: matchCount,
+    })
+
+    if (error) {
+      console.warn(`[RAG] Keyword search error for "${keyword}":`, error.message)
+      return []
+    }
+
+    const results = (data as RetrievedChunk[]) ?? []
+    console.log(`[RAG] Keyword search "${keyword}": ${results.length} results`)
+    return results
+  } catch (err) {
+    console.warn(`[RAG] Keyword search threw for "${keyword}":`, err)
+    return []
+  }
 }
 
 /** Human-readable label for a document type shown in context and citations. */

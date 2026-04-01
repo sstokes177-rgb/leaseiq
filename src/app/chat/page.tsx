@@ -197,7 +197,7 @@ function ChatPageInner() {
   const uploadHref = selectedStoreId ? `/upload?store=${selectedStoreId}` : '/upload'
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-[100dvh]">
       {/* Header */}
       <header className="glass border-b border-white/[0.07] px-4 py-0 flex items-center gap-3 shrink-0">
         <Link
