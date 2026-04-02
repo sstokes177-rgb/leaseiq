@@ -71,28 +71,119 @@ function parseSummaryForEscalation(summary: LeaseSummaryData): EscalationYear[] 
   return years
 }
 
+function buildYearsFromSchedule(
+  schedule: Record<string, unknown>,
+  summary: Record<string, unknown>
+): EscalationYear[] {
+  const currentYear = new Date().getFullYear()
+
+  // Parse start/end from summary for date range
+  const startStr = summary.lease_start_date as string | undefined
+  const endStr = summary.lease_end_date as string | undefined
+  const baseRentStr = summary.base_rent_monthly as string | undefined
+
+  const startDate = startStr ? new Date(startStr) : null
+  const endDate = endStr ? new Date(endStr) : null
+  const startYear = startDate && !isNaN(startDate.getTime()) ? startDate.getFullYear() : currentYear
+  const endYear = endDate && !isNaN(endDate.getTime()) ? endDate.getFullYear() : startYear + 10
+
+  const baseRent = baseRentStr ? parseFloat(String(baseRentStr).replace(/[^0-9.-]/g, '')) : 0
+
+  const type = schedule.type as string
+
+  // Step schedule — use steps directly
+  if (type === 'step_schedule' && Array.isArray(schedule.steps)) {
+    const steps = schedule.steps as { year?: number; monthly_rent?: number; effective_date?: string }[]
+    return steps.map((step, i) => {
+      const year = step.year || (startYear + i)
+      return {
+        year,
+        monthlyRent: step.monthly_rent || 0,
+        annualRent: (step.monthly_rent || 0) * 12,
+        escalationPct: null,
+        effectiveDate: step.effective_date || '',
+        isCurrent: year === currentYear,
+      }
+    })
+  }
+
+  // Percentage or fixed_amount — compute year over year
+  const totalYears = Math.min(endYear - startYear + 1, 20)
+  if (totalYears < 1 || baseRent <= 0) return []
+
+  const annualPct = typeof schedule.annual_percentage === 'number' ? schedule.annual_percentage : 0
+  const fixedIncrease = typeof schedule.annual_fixed_increase === 'number' ? schedule.annual_fixed_increase : 0
+
+  const years: EscalationYear[] = []
+  let rent = baseRent
+
+  for (let i = 0; i < totalYears; i++) {
+    const year = startYear + i
+    if (i > 0) {
+      if (type === 'fixed_amount' && fixedIncrease > 0) {
+        rent = rent + fixedIncrease
+      } else if (annualPct > 0) {
+        rent = rent * (1 + annualPct / 100)
+      }
+    }
+    const pct = i > 0 && annualPct > 0 ? annualPct : null
+    years.push({
+      year,
+      monthlyRent: Math.round(rent * 100) / 100,
+      annualRent: Math.round(rent * 12 * 100) / 100,
+      escalationPct: pct,
+      effectiveDate: startDate
+        ? `${startDate.toLocaleString('en-US', { month: 'short' })} ${year}`
+        : `${year}`,
+      isCurrent: year === currentYear,
+    })
+  }
+
+  return years
+}
+
 export function RentEscalationTimeline({ storeId }: RentEscalationTimelineProps) {
   const [years, setYears] = useState<EscalationYear[]>([])
   const [loading, setLoading] = useState(true)
+  const [description, setDescription] = useState<string | null>(null)
+  const [article, setArticle] = useState<string | null>(null)
 
   useEffect(() => {
-    const fetchSummary = async () => {
+    const fetchData = async () => {
       try {
-        const res = await fetch(`/api/lease-summary?store_id=${storeId}`)
+        const res = await fetch(`/api/rent-escalation?store_id=${storeId}`)
         if (res.ok) {
           const data = await res.json()
-          const summary = data.summary?.summary_data as LeaseSummaryData | null
-          if (summary) {
-            setYears(parseSummaryForEscalation(summary))
+          if (data.schedule && data.summary) {
+            const built = buildYearsFromSchedule(data.schedule, data.summary)
+            if (built.length > 0) {
+              setYears(built)
+            } else if (data.summary) {
+              setYears(parseSummaryForEscalation(data.summary as LeaseSummaryData))
+            }
+          } else if (data.summary) {
+            setYears(parseSummaryForEscalation(data.summary as LeaseSummaryData))
           }
+          if (data.schedule?.description) setDescription(data.schedule.description)
+          if (data.schedule?.article) setArticle(data.schedule.article)
         }
       } catch {
-        // Fail silently
+        // Fall back to lease summary only
+        try {
+          const res = await fetch(`/api/lease-summary?store_id=${storeId}`)
+          if (res.ok) {
+            const data = await res.json()
+            const summary = data.summary?.summary_data as LeaseSummaryData | null
+            if (summary) setYears(parseSummaryForEscalation(summary))
+          }
+        } catch {
+          // Fail silently
+        }
       } finally {
         setLoading(false)
       }
     }
-    fetchSummary()
+    fetchData()
   }, [storeId])
 
   if (loading) {
@@ -111,6 +202,8 @@ export function RentEscalationTimeline({ storeId }: RentEscalationTimelineProps)
 
   if (years.length === 0) return null
 
+  const maxRent = Math.max(...years.map((y) => y.monthlyRent))
+
   return (
     <div className="glass-card rounded-2xl p-6 space-y-5">
       <div className="flex items-center gap-3">
@@ -126,48 +219,82 @@ export function RentEscalationTimeline({ storeId }: RentEscalationTimelineProps)
         </div>
       </div>
 
+      {/* Escalation description */}
+      {(description || article) && (
+        <div
+          className="rounded-lg px-3.5 py-2.5 text-xs text-white/55 leading-relaxed"
+          style={{ background: 'rgba(59,130,246,0.05)', border: '1px solid rgba(59,130,246,0.12)' }}
+        >
+          {description}
+          {article && (
+            <span className="ml-1.5 text-[10px] text-white/30">
+              — {article}
+            </span>
+          )}
+        </div>
+      )}
+
       <div className="space-y-1.5">
-        {years.map((y) => {
+        {years.map((y, i) => {
           const isPast = y.year < new Date().getFullYear()
-          const isFuture = y.year > new Date().getFullYear()
 
           return (
             <div
               key={y.year}
-              className={`rounded-lg px-3 py-2 flex items-center gap-3 transition-opacity ${isPast ? 'opacity-50' : ''}`}
+              className={`rounded-lg px-4 py-3 flex items-center gap-4 transition-all ${isPast ? 'opacity-45' : ''}`}
               style={{
-                background: y.isCurrent ? 'rgba(59,130,246,0.08)' : 'rgba(255,255,255,0.02)',
-                border: y.isCurrent ? '1px solid rgba(59,130,246,0.20)' : '1px solid rgba(255,255,255,0.05)',
+                background: y.isCurrent ? 'rgba(59,130,246,0.10)' : 'rgba(255,255,255,0.02)',
+                border: y.isCurrent ? '1px solid rgba(59,130,246,0.22)' : '1px solid rgba(255,255,255,0.05)',
               }}
             >
-              <div className="flex items-center gap-2 w-20 shrink-0">
-                <Calendar className={`h-3 w-3 ${y.isCurrent ? 'text-blue-400' : 'text-white/25'}`} />
-                <span className={`text-xs font-semibold ${y.isCurrent ? 'text-blue-400' : 'text-white/60'}`}>
+              {/* Year label */}
+              <div className="w-12 shrink-0 text-center">
+                <span className={`text-xs font-bold ${y.isCurrent ? 'text-blue-400' : 'text-white/50'}`}>
                   {y.year}
                 </span>
               </div>
-              <div className="flex-1 flex items-center justify-between gap-2">
-                <span className={`text-xs ${y.isCurrent ? 'text-white/90 font-semibold' : 'text-white/70'}`}>
+
+              {/* Visual bar */}
+              <div className="flex-1 min-w-0">
+                <div className="h-2 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.04)' }}>
+                  <div
+                    className="h-full rounded-full"
+                    style={{
+                      width: `${maxRent > 0 ? (y.monthlyRent / maxRent) * 100 : 100}%`,
+                      background: y.isCurrent
+                        ? 'linear-gradient(90deg, rgba(59,130,246,0.6), rgba(59,130,246,0.9))'
+                        : 'linear-gradient(90deg, rgba(255,255,255,0.08), rgba(255,255,255,0.15))',
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Amounts */}
+              <div className="text-right shrink-0 w-32">
+                <span className={`text-xs font-semibold ${y.isCurrent ? 'text-white' : 'text-white/70'}`}>
                   ${y.monthlyRent.toLocaleString(undefined, { minimumFractionDigits: 2 })}/mo
                 </span>
-                <span className="text-[11px] text-white/40">
+                <span className="text-[10px] text-white/30 ml-2">
                   ${y.annualRent.toLocaleString(undefined, { maximumFractionDigits: 0 })}/yr
                 </span>
               </div>
-              <div className="w-16 text-right">
+
+              {/* Change indicator */}
+              <div className="w-14 text-right shrink-0">
                 {y.escalationPct != null && y.escalationPct > 0 ? (
-                  <span className="text-[10px] font-medium text-amber-400/70">+{y.escalationPct}%</span>
-                ) : y.escalationPct === null ? (
+                  <span className="text-[10px] font-medium text-amber-400/80">+{y.escalationPct}%</span>
+                ) : y.escalationPct === null && i > 0 ? (
+                  <span className="text-[10px] text-white/25">&mdash;</span>
+                ) : (
                   <span className="text-[10px] text-white/35">Base</span>
-                ) : null}
+                )}
               </div>
+
+              {/* Current badge */}
               {y.isCurrent && (
-                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-400 border border-blue-500/25 shrink-0">
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-blue-500/15 text-blue-400 border border-blue-500/25 shrink-0">
                   Current
                 </span>
-              )}
-              {isFuture && !y.isCurrent && (
-                <span className="w-[52px]" />
               )}
             </div>
           )

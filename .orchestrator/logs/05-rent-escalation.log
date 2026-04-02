@@ -1,0 +1,18 @@
+Build passes cleanly. The new `/api/rent-escalation` route is listed and all existing routes are intact.
+
+Here's what was done:
+
+**Created:** `src/app/api/rent-escalation/route.ts`
+- Authenticated GET endpoint that searches lease chunks for rent escalation keywords
+- Uses Claude Haiku to extract structured escalation schedules (percentage, fixed amount, step schedule, CPI)
+- Returns both the detailed schedule and summary data, falling back gracefully if no chunks exist
+
+**Modified:** `src/components/RentEscalationTimeline.tsx`
+- New `buildYearsFromSchedule()` function handles step schedules, fixed dollar increases, and percentage escalations from the detailed extraction
+- Fetches from `/api/rent-escalation` first, falls back to `/api/lease-summary` on error
+- Added description/article display showing escalation terms and lease section reference
+- Visual bars showing relative rent amounts per year
+- Enhanced row layout with year label, progress bar, monthly/annual amounts, change indicator, and current year badge
+- Past years dimmed at 45% opacity
+
+**Verified:** `src/app/location/[id]/page.tsx` already renders `<RentEscalationTimeline storeId={id} />` at line 201.
