@@ -6,10 +6,16 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import {
   MessageSquare, Upload, FileText, ArrowRight, ArrowLeft,
-  Calendar, AlertTriangle, AlertCircle, MapPin, Building2,
+  Calendar, AlertTriangle, AlertCircle, MapPin, Building2, Info,
 } from 'lucide-react'
 import { LeaseSummaryCard } from '@/components/LeaseSummaryCard'
 import { ObligationMatrixCard } from '@/components/ObligationMatrixCard'
+import { CamAnalysisCard } from '@/components/CamAnalysisCard'
+import { CamReconciliationCard } from '@/components/CamReconciliationCard'
+import { PercentageRentCard } from '@/components/PercentageRentCard'
+import { OccupancyCostCard } from '@/components/OccupancyCostCard'
+import { RentEscalationTimeline } from '@/components/RentEscalationTimeline'
+import { LeaseClauseCard } from '@/components/LeaseClauseCard'
 
 function daysUntil(dateStr: string): number {
   const today = new Date()
@@ -96,7 +102,7 @@ export default async function LocationPage({
   if (!store) notFound()
 
   let documents: { id: string; file_name: string; document_type: string; display_name: string | null; store_id: string | null; uploaded_at: string }[] = []
-  let criticalDates: { id: string; date_type: string; date_value: string | null; description: string; store_id: string | null }[] = []
+  let criticalDates: { id: string; date_type: string; date_value: string | null; description: string; store_id: string | null; alert_days_before: number }[] = []
 
   try {
     const [docsRes, datesRes] = await Promise.all([
@@ -109,12 +115,12 @@ export default async function LocationPage({
         .limit(5),
       supabase
         .from('critical_dates')
-        .select('id, date_type, date_value, description, store_id')
+        .select('id, date_type, date_value, description, store_id, alert_days_before')
         .eq('tenant_id', user.id)
         .eq('store_id', id)
         .not('date_value', 'is', null)
         .order('date_value', { ascending: true })
-        .limit(8),
+        .limit(12),
     ])
     documents = docsRes.data ?? []
     criticalDates = datesRes.data ?? []
@@ -192,6 +198,23 @@ export default async function LocationPage({
 
         {/* Obligation Matrix */}
         {hasDocuments && <ObligationMatrixCard storeId={id} />}
+
+        {/* CAM Intelligence */}
+        {hasDocuments && <CamAnalysisCard storeId={id} />}
+        {hasDocuments && <CamReconciliationCard storeId={id} />}
+
+        {/* Financial Tools */}
+        {hasDocuments && <OccupancyCostCard storeId={id} />}
+        {hasDocuments && <RentEscalationTimeline storeId={id} />}
+        {hasDocuments && <PercentageRentCard storeId={id} />}
+
+        {/* Monitoring */}
+        {hasDocuments && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <LeaseClauseCard storeId={id} clauseType="co-tenancy" />
+            <LeaseClauseCard storeId={id} clauseType="exclusive-use" />
+          </div>
+        )}
 
         {/* Action cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

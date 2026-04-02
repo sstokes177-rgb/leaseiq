@@ -96,6 +96,9 @@ export default async function DashboardPage() {
             <Link href="/dashboard" className="text-sm text-foreground/90 font-medium px-3 py-1.5 rounded-lg bg-white/[0.06]">
               Dashboard
             </Link>
+            <Link href="/settings" className="text-sm text-muted-foreground/70 hover:text-foreground/90 font-medium px-3 py-1.5 rounded-lg hover:bg-white/[0.04] transition-colors">
+              Settings
+            </Link>
           </nav>
         </div>
         <form action="/api/auth/signout" method="POST">
