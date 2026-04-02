@@ -119,7 +119,7 @@ export function UploadPageClient({ stores, activeStoreId, isTenantAdmin }: Uploa
       {/* CTA to chat */}
       <div className="text-center pt-2">
         <Link href={activeStore ? `/chat?store=${activeStore.id}` : '/chat'}>
-          <Button className="gap-2 px-6 h-10">
+          <Button className="gap-2 px-6 h-11 w-full sm:w-auto">
             <MessageSquare className="h-4 w-4" />
             Ask questions about this store
           </Button>

@@ -1,0 +1,17 @@
+All done. Build passes cleanly. Here's a summary of all changes:
+
+**globals.css** — Added `pb-safe` class for iOS safe area, `overflow-x: hidden` on html/body to prevent horizontal scroll, and `max-width: 100%` on images.
+
+**LandingPage.tsx** — Changed all `px-6` to `px-4 sm:px-6` across nav, hero, features, how-it-works, example questions, CTA, and footer sections. Reduced hero headline from `text-[2.8rem]` to `text-3xl` on mobile. Made CTA banner padding responsive (`px-5 py-10 sm:px-8 sm:py-14`).
+
+**dashboard/page.tsx** — Added CSS-only hamburger menu (`<details>/<summary>`) with Menu icon for mobile, containing Dashboard, Settings, and Sign out links. Desktop nav and sign out hidden on mobile. Made welcome section `flex-wrap` for proper wrapping.
+
+**location/[id]/page.tsx** — Added same hamburger menu pattern with Dashboard, Settings, and Sign out links. Desktop sign out hidden on mobile.
+
+**chat/page.tsx** — Added `pb-safe` class to chat input area for iPhone safe area. Made message area padding responsive (`px-3 sm:px-4`).
+
+**upload/client.tsx** — Made CTA button full-width on mobile (`w-full sm:w-auto`) with `h-11` for tappable target size.
+
+**SettingsClient.tsx** — Made save button full-width on mobile (`w-full sm:w-auto`) and centered (`justify-center`).
+
+**DashboardGrid.tsx**, **onboarding/client.tsx**, **login/page.tsx** — Already mobile-friendly (proper `grid-cols-1`, `max-w-sm`, `px-4`, `w-full` buttons). No changes needed.

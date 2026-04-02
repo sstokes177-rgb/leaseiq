@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import {
   MessageSquare, Upload, FileText, ArrowRight, ArrowLeft,
-  MapPin, Building2,
+  MapPin, Building2, Menu,
 } from 'lucide-react'
 import { LeaseSummaryCard } from '@/components/LeaseSummaryCard'
 import { ObligationMatrixCard } from '@/components/ObligationMatrixCard'
@@ -78,11 +78,26 @@ export default async function LocationPage({
           </div>
           <span className="font-bold text-base tracking-tight">LeaseIQ</span>
         </div>
-        <form action="/api/auth/signout" method="POST">
+        <form action="/api/auth/signout" method="POST" className="hidden sm:block">
           <button className="text-sm text-muted-foreground/85 hover:text-foreground transition-colors">
             Sign out
           </button>
         </form>
+        {/* Mobile hamburger menu */}
+        <details className="sm:hidden relative">
+          <summary className="list-none cursor-pointer p-2 text-muted-foreground">
+            <Menu className="h-5 w-5" />
+          </summary>
+          <div className="absolute right-0 top-full mt-1 w-44 rounded-xl glass-card p-2 z-50">
+            <Link href="/dashboard" className="block px-3 py-2.5 text-sm rounded-lg hover:bg-white/[0.06] transition-colors">Dashboard</Link>
+            <Link href="/settings" className="block px-3 py-2.5 text-sm rounded-lg hover:bg-white/[0.06] transition-colors">Settings</Link>
+            <form action="/api/auth/signout" method="POST">
+              <button className="w-full text-left px-3 py-2.5 text-sm rounded-lg hover:bg-white/[0.06] text-muted-foreground transition-colors">
+                Sign out
+              </button>
+            </form>
+          </div>
+        </details>
       </header>
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-10 space-y-8">

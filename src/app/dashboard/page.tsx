@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase'
 import Link from 'next/link'
 import {
-  FileText, Sparkles, Building2,
+  FileText, Sparkles, Building2, Menu,
 } from 'lucide-react'
 import { AddStoreButton } from './AddStoreModal'
 import { DashboardGrid } from '@/components/DashboardGrid'
@@ -102,17 +102,32 @@ export default async function DashboardPage() {
             </Link>
           </nav>
         </div>
-        <form action="/api/auth/signout" method="POST">
+        <form action="/api/auth/signout" method="POST" className="hidden sm:block">
           <button className="text-sm text-muted-foreground/85 hover:text-foreground transition-colors">
             Sign out
           </button>
         </form>
+        {/* Mobile hamburger menu */}
+        <details className="sm:hidden relative">
+          <summary className="list-none cursor-pointer p-2 text-muted-foreground">
+            <Menu className="h-5 w-5" />
+          </summary>
+          <div className="absolute right-0 top-full mt-1 w-44 rounded-xl glass-card p-2 z-50">
+            <Link href="/dashboard" className="block px-3 py-2.5 text-sm rounded-lg bg-white/[0.06]">Dashboard</Link>
+            <Link href="/settings" className="block px-3 py-2.5 text-sm rounded-lg hover:bg-white/[0.06] transition-colors">Settings</Link>
+            <form action="/api/auth/signout" method="POST">
+              <button className="w-full text-left px-3 py-2.5 text-sm rounded-lg hover:bg-white/[0.06] text-muted-foreground transition-colors">
+                Sign out
+              </button>
+            </form>
+          </div>
+        </details>
       </header>
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-12 space-y-10">
         {/* Welcome */}
-        <div className="flex items-end justify-between gap-4">
-          <div>
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div className="min-w-0">
             <div className="flex items-center gap-2 mb-1">
               <Sparkles className="h-4 w-4 text-emerald-400/60" />
               <span className="text-xs font-medium text-emerald-400/70 uppercase tracking-widest">

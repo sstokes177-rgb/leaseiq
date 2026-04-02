@@ -140,7 +140,7 @@ function ChatInterface({
     <>
       {/* Messages */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto scroll-smooth">
-        <div className="max-w-2xl mx-auto px-4 py-6 space-y-3">
+        <div className="max-w-2xl mx-auto px-3 sm:px-4 py-6 space-y-3">
           {messages.length === 0 ? (
             <div className="space-y-10 py-4">
               <div className="text-center py-10">
@@ -214,7 +214,7 @@ function ChatInterface({
       )}
 
       {/* Input */}
-      <div className="glass border-t border-white/[0.07] px-4 py-4 shrink-0">
+      <div className="glass border-t border-white/[0.07] px-4 py-4 shrink-0 pb-safe">
         <div className="max-w-2xl mx-auto">
           <ChatInput value={input} onChange={setInput} onSubmit={handleSubmit} isLoading={isLoading} />
           <p className="text-xs text-muted-foreground/65 text-center mt-2">

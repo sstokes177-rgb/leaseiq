@@ -215,11 +215,11 @@ export function SettingsClient({ email }: SettingsClientProps) {
       </div>
 
       {/* Save Button */}
-      <div className="flex justify-end">
+      <div className="flex sm:justify-end">
         <button
           onClick={handleSave}
           disabled={saving}
-          className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-50"
+          className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-2.5 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-50"
           style={{
             background: saved
               ? 'rgba(16,185,129,0.3)'

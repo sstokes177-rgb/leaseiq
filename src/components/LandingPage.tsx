@@ -173,7 +173,7 @@ export function LandingPage({ isAuthenticated = false }: { isAuthenticated?: boo
       {/* ── Nav ─────────────────────────────────────────────── */}
       <nav className="sticky top-0 z-50 border-b border-white/[0.06]"
         style={{ background: 'rgba(26,29,37,0.80)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
-        <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="flex items-center justify-center w-7 h-7 rounded-lg"
               style={{ background: 'linear-gradient(135deg,rgba(16,185,129,0.25),rgba(20,184,166,0.15))', border: '1px solid rgba(16,185,129,0.25)' }}>
@@ -202,7 +202,7 @@ export function LandingPage({ isAuthenticated = false }: { isAuthenticated?: boo
       </nav>
 
       {/* ── Hero ─────────────────────────────────────────────── */}
-      <section className="max-w-6xl mx-auto px-6 pt-20 pb-24 sm:pt-28 sm:pb-32 grid lg:grid-cols-2 gap-14 lg:gap-20 items-center">
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 pt-20 pb-24 sm:pt-28 sm:pb-32 grid lg:grid-cols-2 gap-14 lg:gap-20 items-center">
         <div className="space-y-8">
           {/* Badge */}
           <div className="anim-hero-1 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium"
@@ -212,7 +212,7 @@ export function LandingPage({ isAuthenticated = false }: { isAuthenticated?: boo
           </div>
 
           {/* Headline */}
-          <h1 className="anim-hero-2 text-[2.8rem] sm:text-5xl lg:text-[3.4rem] font-extrabold leading-[1.10] tracking-tight">
+          <h1 className="anim-hero-2 text-3xl sm:text-5xl lg:text-[3.4rem] font-extrabold leading-[1.10] tracking-tight">
             Your lease,<br />
             <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
               finally explained.
@@ -258,7 +258,7 @@ export function LandingPage({ isAuthenticated = false }: { isAuthenticated?: boo
 
       {/* ── Features ─────────────────────────────────────────── */}
       <section id="features" className="border-t border-white/[0.06] py-24 sm:py-32">
-        <div className="max-w-6xl mx-auto px-6">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="text-center mb-14">
             <p className="text-xs font-semibold text-emerald-400/70 uppercase tracking-widest mb-3">Features</p>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Everything you need to understand your lease</h2>
@@ -275,7 +275,7 @@ export function LandingPage({ isAuthenticated = false }: { isAuthenticated?: boo
 
       {/* ── How It Works ─────────────────────────────────────── */}
       <section className="border-t border-white/[0.06] py-24 sm:py-32">
-        <div className="max-w-5xl mx-auto px-6">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6">
           <div className="text-center mb-14">
             <p className="text-xs font-semibold text-emerald-400/70 uppercase tracking-widest mb-3">How it works</p>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Up and running in minutes</h2>
@@ -303,7 +303,7 @@ export function LandingPage({ isAuthenticated = false }: { isAuthenticated?: boo
 
       {/* ── Example Questions ────────────────────────────────── */}
       <section className="border-t border-white/[0.06] py-24 sm:py-32">
-        <div className="max-w-5xl mx-auto px-6">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6">
           <div className="text-center mb-14">
             <p className="text-xs font-semibold text-emerald-400/70 uppercase tracking-widest mb-3">Real questions</p>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Ask what you actually need to know</h2>
@@ -326,8 +326,8 @@ export function LandingPage({ isAuthenticated = false }: { isAuthenticated?: boo
 
       {/* ── CTA Banner ───────────────────────────────────────── */}
       <section className="border-t border-white/[0.06] py-24 sm:py-32">
-        <div className="max-w-3xl mx-auto px-6 text-center">
-          <div className="glass-card rounded-3xl px-8 py-14 relative overflow-hidden">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
+          <div className="glass-card rounded-3xl px-5 py-10 sm:px-8 sm:py-14 relative overflow-hidden">
             {/* BG glow */}
             <div className="absolute inset-0 -z-10"
               style={{ background: 'radial-gradient(ellipse at 50% 80%, rgba(16,185,129,0.07) 0%, transparent 60%)' }} />
@@ -363,7 +363,7 @@ export function LandingPage({ isAuthenticated = false }: { isAuthenticated?: boo
 
       {/* ── Footer ───────────────────────────────────────────── */}
       <footer className="border-t border-white/[0.06] py-10 mt-auto">
-        <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-md flex items-center justify-center"
               style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.20)' }}>
