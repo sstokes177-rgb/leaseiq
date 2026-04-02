@@ -32,7 +32,7 @@ export default async function SettingsPage() {
           >
             <FileText className="h-4 w-4 text-emerald-400" />
           </div>
-          <span className="font-bold text-base tracking-tight">LeaseIQ</span>
+          <span className="font-bold text-base tracking-tight">ClauseIQ</span>
         </div>
         <Link href="/dashboard" className="text-sm text-muted-foreground/85 hover:text-foreground transition-colors">
           Dashboard

@@ -30,7 +30,7 @@ export default async function PMDashboardPage() {
               style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.25), rgba(20,184,166,0.15))', border: '1px solid rgba(16,185,129,0.2)' }}>
               <FileText className="h-4 w-4 text-emerald-400" />
             </div>
-            <span className="font-bold text-base tracking-tight">LeaseIQ</span>
+            <span className="font-bold text-base tracking-tight">ClauseIQ</span>
           </Link>
           <nav className="hidden sm:flex items-center gap-1">
             <span className="text-sm text-foreground/90 font-medium px-3 py-1.5 rounded-lg bg-white/[0.06]">

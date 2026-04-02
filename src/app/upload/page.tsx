@@ -65,7 +65,7 @@ export default async function UploadPage({
           >
             <FileSearch className="h-3.5 w-3.5 text-emerald-400" />
           </div>
-          <span className="hidden sm:block text-sm font-bold tracking-tight text-foreground/80">LeaseIQ</span>
+          <span className="hidden sm:block text-sm font-bold tracking-tight text-foreground/80">ClauseIQ</span>
         </Link>
       </header>
 

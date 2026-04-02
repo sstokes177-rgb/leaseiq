@@ -76,7 +76,7 @@ export default async function LocationPage({
           >
             <FileText className="h-4 w-4 text-emerald-400" />
           </div>
-          <span className="font-bold text-base tracking-tight">LeaseIQ</span>
+          <span className="font-bold text-base tracking-tight">ClauseIQ</span>
         </div>
         <form action="/api/auth/signout" method="POST" className="hidden sm:block">
           <button className="text-sm text-muted-foreground/85 hover:text-foreground transition-colors">

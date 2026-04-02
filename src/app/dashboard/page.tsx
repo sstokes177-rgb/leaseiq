@@ -91,7 +91,7 @@ export default async function DashboardPage() {
             >
               <FileText className="h-4 w-4 text-emerald-400" />
             </div>
-            <span className="font-bold text-base tracking-tight">LeaseIQ</span>
+            <span className="font-bold text-base tracking-tight">ClauseIQ</span>
           </Link>
           <nav className="hidden sm:flex items-center gap-1">
             <Link href="/dashboard" className="text-sm text-foreground/90 font-medium px-3 py-1.5 rounded-lg bg-white/[0.06]">

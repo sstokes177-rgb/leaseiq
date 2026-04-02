@@ -112,7 +112,7 @@ export default function LoginPage() {
             style={{ background: 'linear-gradient(135deg,rgba(16,185,129,0.18),rgba(20,184,166,0.12))', border: '1px solid rgba(16,185,129,0.22)' }}>
             <FileSearch className="h-7 w-7 text-emerald-400" />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight">LeaseIQ</h1>
+          <h1 className="text-2xl font-bold tracking-tight">ClauseIQ</h1>
           <p className="text-sm text-muted-foreground mt-1.5 font-light">
             Sign in to your account
           </p>
@@ -123,7 +123,7 @@ export default function LoginPage() {
         </Suspense>
 
         <p className="text-center text-xs text-muted-foreground/65 px-4 leading-relaxed">
-          LeaseIQ provides informational summaries only. Not a substitute for legal advice.
+          ClauseIQ provides informational summaries only. Not a substitute for legal advice.
         </p>
       </div>
     </div>

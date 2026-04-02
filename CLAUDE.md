@@ -1,6 +1,6 @@
 @AGENTS.md
 
-# LeaseIQ — Project Context for Claude Code
+# ClauseIQ — Project Context for Claude Code
 
 ## What this project is
 A Next.js 16 web app where commercial retail tenants upload their lease PDFs

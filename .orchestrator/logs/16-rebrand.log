@@ -1,0 +1,19 @@
+Build succeeded with no errors. All 14 files have been updated:
+
+**Files modified (LeaseIQ → ClauseIQ):**
+1. `CLAUDE.md` — project title
+2. `package.json` — name field (`leaseiq` → `clauseiq`)
+3. `src/app/layout.tsx` — metadata title
+4. `src/app/dashboard/page.tsx` — header logo
+5. `src/app/location/[id]/page.tsx` — header logo
+6. `src/app/settings/page.tsx` — header logo
+7. `src/app/upload/page.tsx` — header logo
+8. `src/app/login/page.tsx` — logo + disclaimer
+9. `src/app/onboarding/client.tsx` — welcome text (2 occurrences)
+10. `src/app/pm-dashboard/page.tsx` — header logo
+11. `src/app/pm-dashboard/client.tsx` — invite description
+12. `src/components/LandingPage.tsx` — nav, questions section, CTA, footer logo, footer disclaimer, copyright (6 occurrences)
+13. `src/lib/i18n.ts` — English + Spanish disclaimers
+14. `src/lib/pdfExport.ts` — PDF headers, footers, filenames (6 occurrences)
+
+**Total: 27 occurrences replaced across 14 files. Build passes cleanly.**
