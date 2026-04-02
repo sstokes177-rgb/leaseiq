@@ -1,12 +1,14 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Loader2, RefreshCw, FileText, Calendar, DollarSign, Building2 } from 'lucide-react'
+import { Loader2, RefreshCw, FileText, Calendar, DollarSign, Building2, Download } from 'lucide-react'
 import type { LeaseSummaryData } from '@/types'
+import { exportLeaseSummary } from '@/lib/pdfExport'
 import { useLanguage } from './LanguageProvider'
 
 interface LeaseSummaryCardProps {
   storeId: string
+  storeName?: string
 }
 
 function Field({ label, value }: { label: string; value: string | null | undefined }) {
@@ -60,7 +62,7 @@ function DaysRemaining({ dateStr }: { dateStr: string | null }) {
   )
 }
 
-export function LeaseSummaryCard({ storeId }: LeaseSummaryCardProps) {
+export function LeaseSummaryCard({ storeId, storeName = 'Lease' }: LeaseSummaryCardProps) {
   const { t } = useLanguage()
   const [summary, setSummary] = useState<LeaseSummaryData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -214,15 +216,25 @@ export function LeaseSummaryCard({ storeId }: LeaseSummaryCardProps) {
             <p className="text-xs text-muted-foreground/60">{t('summary.aiExtracted')}</p>
           </div>
         </div>
-        <button
-          onClick={handleGenerate}
-          disabled={generating}
-          title={t('summary.regenerate')}
-          className="flex items-center gap-1.5 text-xs text-muted-foreground/60 hover:text-white/70 transition-colors shrink-0 disabled:opacity-40"
-        >
-          {generating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
-          {generating ? t('summary.regenerating') : t('summary.regenerate')}
-        </button>
+        <div className="flex items-center gap-3 shrink-0">
+          <button
+            onClick={() => exportLeaseSummary(summary, storeName)}
+            title="Download as PDF"
+            className="flex items-center gap-1.5 text-xs text-muted-foreground/60 hover:text-white/70 transition-colors shrink-0"
+          >
+            <Download className="h-3.5 w-3.5" />
+            PDF
+          </button>
+          <button
+            onClick={handleGenerate}
+            disabled={generating}
+            title={t('summary.regenerate')}
+            className="flex items-center gap-1.5 text-xs text-muted-foreground/60 hover:text-white/70 transition-colors shrink-0 disabled:opacity-40"
+          >
+            {generating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+            {generating ? t('summary.regenerating') : t('summary.regenerate')}
+          </button>
+        </div>
       </div>
 
       {/* Top: Parties */}

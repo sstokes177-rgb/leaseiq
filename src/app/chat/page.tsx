@@ -12,7 +12,8 @@ import { CitationSidePanel } from '@/components/CitationSidePanel'
 import { ChatSidebar } from '@/components/ChatSidebar'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import { ArrowLeft, FileText, ShieldAlert, ChevronDown, PanelLeft } from 'lucide-react'
+import { ArrowLeft, FileText, ShieldAlert, ChevronDown, PanelLeft, Download } from 'lucide-react'
+import { exportChatHistory } from '@/lib/pdfExport'
 import { useLanguage } from '@/components/LanguageProvider'
 
 const EXAMPLE_QUESTIONS = [
@@ -67,6 +68,7 @@ interface ChatInterfaceProps {
   initialMessages?: UIMessage[]
   onCitationClick?: (citation: Citation) => void
   onChatComplete?: () => void
+  messagesRef?: React.MutableRefObject<UIMessage[]>
 }
 
 function ChatInterface({
@@ -76,6 +78,7 @@ function ChatInterface({
   initialMessages,
   onCitationClick,
   onChatComplete,
+  messagesRef,
 }: ChatInterfaceProps) {
   const [input, setInput] = useState('')
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -102,7 +105,8 @@ function ChatInterface({
         timestampsRef.current.set(msg.id, new Date())
       }
     }
-  }, [messages])
+    if (messagesRef) messagesRef.current = messages
+  }, [messages, messagesRef])
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -241,6 +245,7 @@ function ChatPageInner() {
   const [initialMessages, setInitialMessages] = useState<UIMessage[] | undefined>(undefined)
   const [chatKey, setChatKey] = useState(0)
   const [sidebarRefresh, setSidebarRefresh] = useState(0)
+  const chatMessagesRef = useRef<UIMessage[]>([])
 
   useEffect(() => {
     fetch('/api/stores')
@@ -396,6 +401,21 @@ function ChatPageInner() {
           )}
 
           <div className="flex items-center gap-2 py-4 shrink-0">
+            <button
+              onClick={() => {
+                const msgs = chatMessagesRef.current
+                if (msgs.length === 0) return
+                const chatMessages = msgs.map(m => ({
+                  role: m.role,
+                  content: m.parts.filter(isTextUIPart).map(p => p.text).join(''),
+                }))
+                exportChatHistory(chatMessages, selectedStore?.store_name ?? 'Lease')
+              }}
+              title="Download chat as PDF"
+              className="text-muted-foreground/50 hover:text-emerald-400 transition-colors p-2"
+            >
+              <Download className="h-4 w-4" />
+            </button>
             <Link href="/" className="flex items-center justify-center w-7 h-7 rounded-lg hover:opacity-80 transition-opacity"
               style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.18)' }}
             >
@@ -429,6 +449,7 @@ function ChatPageInner() {
               store={selectedStore}
               conversationId={activeConversationId}
               initialMessages={initialMessages}
+              messagesRef={chatMessagesRef}
               onCitationClick={handleCitationClick}
               onChatComplete={handleChatComplete}
             />

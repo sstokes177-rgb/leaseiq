@@ -1,0 +1,14 @@
+Build passes cleanly. Here's a summary of what was done:
+
+**Installed:** `jspdf`
+
+**Created:** `src/lib/pdfExport.ts` — Three export functions:
+- `exportLeaseSummary()` — Generates a branded PDF with parties, lease term, financials, and permitted use sections
+- `exportChatHistory()` — Exports chat Q&A with role labels and pagination
+- `exportObligationMatrix()` — Table-style PDF with color-coded responsibility columns
+
+**Modified:**
+- `src/components/LeaseSummaryCard.tsx` — Added `storeName` prop + PDF download button next to Regenerate
+- `src/components/ObligationMatrixCard.tsx` — Added `storeName` prop + PDF download button next to Regenerate
+- `src/app/chat/page.tsx` — Added download button in header, using a `messagesRef` to bridge messages from `ChatInterface` to the parent header
+- `src/app/location/[id]/page.tsx` — Passes `storeName={store.store_name}` to both cards

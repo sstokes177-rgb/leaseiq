@@ -20,6 +20,7 @@
     "ai": "^6.0.140",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "jspdf": "^4.2.1",
     "langchain": "^0.3.37",
     "lucide-react": "^1.7.0",
     "mammoth": "^1.12.0",

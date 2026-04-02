@@ -112,10 +112,10 @@ export default async function LocationPage({
         </div>
 
         {/* Lease Summary */}
-        {hasDocuments && <LeaseSummaryCard storeId={id} />}
+        {hasDocuments && <LeaseSummaryCard storeId={id} storeName={store.store_name} />}
 
         {/* Obligation Matrix */}
-        {hasDocuments && <ObligationMatrixCard storeId={id} />}
+        {hasDocuments && <ObligationMatrixCard storeId={id} storeName={store.store_name} />}
 
         {/* CAM Intelligence */}
         {hasDocuments && <CamAnalysisCard storeId={id} />}
