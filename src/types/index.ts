@@ -160,16 +160,17 @@ export interface CamAnalysis {
 // CAM Reconciliation
 export interface CamOvercharge {
   item: string
-  amount: string
+  billed_amount: string
+  expected_amount: string
+  difference: string
   reason: string
-  article: string
 }
 
 export interface CamReconciliationData {
-  total_billed: string
+  total_billed: string | null
   potential_overcharges: CamOvercharge[]
-  total_potential_savings: string
-  recommendation: string
+  total_potential_savings: string | null
+  recommendation: string | null
 }
 
 export interface CamReconciliation {

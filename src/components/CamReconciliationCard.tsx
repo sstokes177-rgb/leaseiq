@@ -1,70 +1,71 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Loader2, Upload, AlertTriangle, CheckCircle2, FileSearch, DollarSign } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { Loader2, Upload, Receipt, AlertTriangle, CheckCircle2 } from 'lucide-react'
 import type { CamReconciliationData } from '@/types'
 
 interface CamReconciliationCardProps {
   storeId: string
 }
 
+interface ReconciliationRecord {
+  id: string
+  file_name: string | null
+  reconciliation_data: CamReconciliationData
+  created_at: string
+}
+
 export function CamReconciliationCard({ storeId }: CamReconciliationCardProps) {
-  const [result, setResult] = useState<CamReconciliationData | null>(null)
-  const [pastResults, setPastResults] = useState<{ reconciliation_data: CamReconciliationData; file_name: string; created_at: string }[]>([])
+  const [records, setRecords] = useState<ReconciliationRecord[]>([])
+  const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
+  const fileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    const fetchPast = async () => {
-      try {
-        const res = await fetch(`/api/cam-reconciliation?store_id=${storeId}`)
-        if (res.ok) {
-          const data = await res.json()
-          setPastResults(data.reconciliations ?? [])
-        }
-      } catch {
-        // Fail silently
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchPast()
+    fetch(`/api/cam-reconciliation?store_id=${storeId}`)
+      .then(r => r.json())
+      .then(data => setRecords(data.reconciliations ?? []))
+      .catch(() => {})
+      .finally(() => setLoading(false))
   }, [storeId])
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+  const handleUpload = async () => {
+    const file = fileRef.current?.files?.[0]
     if (!file) return
 
     setUploading(true)
     setError(null)
-    setResult(null)
-
-    const formData = new FormData()
-    formData.append('file', file)
-    formData.append('store_id', storeId)
-
     try {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('store_id', storeId)
+
       const res = await fetch('/api/cam-reconciliation', {
         method: 'POST',
         body: formData,
       })
       const data = await res.json()
+
       if (res.ok && data.reconciliation) {
-        setResult(data.reconciliation)
+        setRecords(prev => [{
+          id: crypto.randomUUID(),
+          file_name: data.file_name,
+          reconciliation_data: data.reconciliation,
+          created_at: new Date().toISOString(),
+        }, ...prev])
+        if (fileRef.current) fileRef.current.value = ''
       } else {
-        setError(data.error ?? 'Could not analyze reconciliation statement.')
+        setError(data.error ?? 'Analysis failed')
       }
     } catch {
       setError('Network error. Please try again.')
     } finally {
       setUploading(false)
-      // Reset file input
-      e.target.value = ''
     }
   }
 
-  const activeResult = result ?? pastResults[0]?.reconciliation_data ?? null
+  const latestResult = records[0]?.reconciliation_data ?? null
 
   return (
     <div className="glass-card rounded-2xl p-6 space-y-5">
@@ -72,9 +73,9 @@ export function CamReconciliationCard({ storeId }: CamReconciliationCardProps) {
       <div className="flex items-center gap-3">
         <div
           className="flex items-center justify-center w-9 h-9 rounded-xl shrink-0"
-          style={{ background: 'rgba(239,68,68,0.10)', border: '1px solid rgba(239,68,68,0.20)' }}
+          style={{ background: 'rgba(245,158,11,0.10)', border: '1px solid rgba(245,158,11,0.20)' }}
         >
-          <FileSearch className="h-4 w-4 text-red-400" />
+          <Receipt className="h-4 w-4 text-amber-400" />
         </div>
         <div>
           <p className="font-semibold text-sm">CAM Reconciliation Check</p>
@@ -83,46 +84,70 @@ export function CamReconciliationCard({ storeId }: CamReconciliationCardProps) {
       </div>
 
       {/* Upload area */}
-      <label
-        className={`flex items-center justify-center gap-2 rounded-xl px-4 py-3 cursor-pointer transition-colors ${
-          uploading ? 'opacity-50 pointer-events-none' : 'hover:bg-white/[0.04]'
-        }`}
+      <div
+        className="rounded-xl px-4 py-3"
         style={{ background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.12)' }}
       >
-        {uploading ? (
-          <>
-            <Loader2 className="h-4 w-4 text-amber-400 animate-spin" />
-            <span className="text-sm text-amber-400">Analyzing statement…</span>
-          </>
-        ) : (
-          <>
-            <Upload className="h-4 w-4 text-muted-foreground/60" />
-            <span className="text-sm text-muted-foreground/70">Upload CAM reconciliation statement (PDF)</span>
-          </>
-        )}
-        <input
-          type="file"
-          accept=".pdf,.doc,.docx"
-          onChange={handleUpload}
-          className="hidden"
-          disabled={uploading}
-        />
-      </label>
+        <div className="flex items-center gap-3">
+          <label
+            className={`flex-1 flex items-center gap-2 cursor-pointer ${uploading ? 'opacity-50 pointer-events-none' : ''}`}
+          >
+            <Upload className="h-4 w-4 text-muted-foreground/60 shrink-0" />
+            <span className="text-sm text-muted-foreground/70 truncate">
+              {fileRef.current?.files?.[0]?.name ?? 'Choose CAM reconciliation statement (PDF)'}
+            </span>
+            <input
+              ref={fileRef}
+              type="file"
+              accept=".pdf"
+              onChange={() => {
+                // Force re-render to show file name
+                setError(null)
+              }}
+              className="hidden"
+              disabled={uploading}
+            />
+          </label>
+          <button
+            onClick={handleUpload}
+            disabled={uploading}
+            className="shrink-0 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+            style={{ background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.25)', color: 'rgb(251,191,36)' }}
+          >
+            {uploading ? (
+              <span className="flex items-center gap-1.5">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                Analyzing…
+              </span>
+            ) : (
+              'Analyze'
+            )}
+          </button>
+        </div>
+      </div>
 
       {error && (
         <p className="text-xs text-red-400/80">{error}</p>
       )}
 
-      {/* Results */}
-      {loading && !activeResult && (
+      {/* Loading skeleton */}
+      {loading && !latestResult && (
         <div className="animate-pulse space-y-2">
           <div className="h-3 w-48 rounded" style={{ background: 'rgba(255,255,255,0.06)' }} />
           <div className="h-3 w-32 rounded" style={{ background: 'rgba(255,255,255,0.05)' }} />
         </div>
       )}
 
-      {activeResult && (
+      {/* Results */}
+      {latestResult && (
         <div className="space-y-4">
+          {/* File name and date */}
+          {records[0]?.file_name && (
+            <p className="text-[10px] text-white/30">
+              {records[0].file_name} — {new Date(records[0].created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+            </p>
+          )}
+
           {/* Summary row */}
           <div
             className="rounded-xl px-4 py-3 flex items-center justify-between gap-4"
@@ -130,52 +155,48 @@ export function CamReconciliationCard({ storeId }: CamReconciliationCardProps) {
           >
             <div>
               <p className="text-[10px] font-semibold text-white/35 uppercase tracking-widest mb-0.5">Total Billed</p>
-              <p className="text-sm font-semibold text-white/85">{activeResult.total_billed}</p>
+              <p className="text-sm font-semibold text-white/85">{latestResult.total_billed ?? 'N/A'}</p>
             </div>
             <div className="text-right">
               <p className="text-[10px] font-semibold text-white/35 uppercase tracking-widest mb-0.5">Potential Savings</p>
-              <p className={`text-sm font-bold ${activeResult.potential_overcharges.length > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
-                {activeResult.total_potential_savings}
+              <p className={`text-sm font-bold ${latestResult.potential_overcharges.length > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
+                {latestResult.total_potential_savings ?? '$0'}
               </p>
             </div>
           </div>
 
           {/* Overcharges table */}
-          {activeResult.potential_overcharges.length > 0 ? (
+          {latestResult.potential_overcharges.length > 0 ? (
             <div>
               <div className="flex items-center gap-1.5 mb-2">
                 <AlertTriangle className="h-3.5 w-3.5 text-amber-400" />
                 <p className="text-[10px] font-semibold text-amber-400/80 uppercase tracking-widest">
-                  Potential Overcharges ({activeResult.potential_overcharges.length})
+                  Potential Overcharges ({latestResult.potential_overcharges.length})
                 </p>
               </div>
               <div className="space-y-2">
-                {activeResult.potential_overcharges.map((charge, i) => (
+                {latestResult.potential_overcharges.map((charge, i) => (
                   <div
                     key={i}
                     className="rounded-lg px-3 py-2.5"
                     style={{ background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.15)' }}
                   >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-semibold text-amber-300">{charge.item}</p>
-                        <p className="text-[11px] text-white/50 mt-0.5">{charge.reason}</p>
+                    <p className="text-xs font-semibold text-amber-300 mb-1.5">{charge.item}</p>
+                    <div className="grid grid-cols-3 gap-2 mb-1.5">
+                      <div>
+                        <p className="text-[10px] text-white/30 uppercase tracking-wider">Billed</p>
+                        <p className="text-xs font-medium text-red-400">{charge.billed_amount}</p>
                       </div>
-                      <div className="text-right shrink-0">
-                        <p className="text-xs font-bold text-red-400 flex items-center gap-1">
-                          <DollarSign className="h-3 w-3" />
-                          {charge.amount}
-                        </p>
-                        {charge.article && (
-                          <span
-                            className="inline-block text-[10px] font-medium px-1.5 py-0.5 rounded mt-1"
-                            style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.25)', color: 'rgb(52,211,153)' }}
-                          >
-                            {charge.article}
-                          </span>
-                        )}
+                      <div>
+                        <p className="text-[10px] text-white/30 uppercase tracking-wider">Expected</p>
+                        <p className="text-xs font-medium text-emerald-400">{charge.expected_amount}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-white/30 uppercase tracking-wider">Difference</p>
+                        <p className="text-xs font-bold text-red-400">{charge.difference}</p>
                       </div>
                     </div>
+                    <p className="text-[11px] text-white/50">{charge.reason}</p>
                   </div>
                 ))}
               </div>
@@ -188,15 +209,46 @@ export function CamReconciliationCard({ storeId }: CamReconciliationCardProps) {
           )}
 
           {/* Recommendation */}
-          {activeResult.recommendation && (
+          {latestResult.recommendation && (
             <div
               className="rounded-xl px-4 py-3"
               style={{ background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.15)' }}
             >
               <p className="text-[10px] font-semibold text-indigo-400/80 uppercase tracking-widest mb-1">Recommendation</p>
-              <p className="text-xs text-white/70 leading-relaxed">{activeResult.recommendation}</p>
+              <p className="text-xs text-white/70 leading-relaxed">{latestResult.recommendation}</p>
             </div>
           )}
+        </div>
+      )}
+
+      {/* History */}
+      {records.length > 1 && (
+        <div>
+          <p className="text-[10px] font-semibold text-white/35 uppercase tracking-widest mb-2">Previous Analyses</p>
+          <div className="space-y-1.5">
+            {records.slice(1).map((rec) => (
+              <div
+                key={rec.id}
+                className="flex items-center justify-between gap-3 rounded-lg px-3 py-2"
+                style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}
+              >
+                <div className="min-w-0">
+                  <p className="text-xs text-white/60 truncate">{rec.file_name ?? 'Statement'}</p>
+                  <p className="text-[10px] text-white/30">
+                    {new Date(rec.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </p>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className={`text-xs font-semibold ${rec.reconciliation_data.potential_overcharges.length > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
+                    {rec.reconciliation_data.total_potential_savings ?? '$0'}
+                  </p>
+                  <p className="text-[10px] text-white/30">
+                    {rec.reconciliation_data.potential_overcharges.length} issue{rec.reconciliation_data.potential_overcharges.length !== 1 ? 's' : ''}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 

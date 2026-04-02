@@ -1,0 +1,22 @@
+All done. Build passes cleanly. Here's a summary of changes:
+
+**`src/types/index.ts`** — Updated `CamOvercharge` fields from `{amount, article}` to `{billed_amount, expected_amount, difference}`. Made `CamReconciliationData` fields nullable.
+
+**`src/app/api/cam-reconciliation/route.ts`** — Rewrote the POST handler:
+- Switched from `claude-haiku` to `claude-sonnet-4-6` for better analysis quality
+- Uses `pdf-parse` directly instead of `processDocument` (simpler, matches spec)
+- Expanded prompt with detailed overcharge detection criteria (capital improvements, admin fees, CAM caps, proportionate share errors, etc.)
+- Updated JSON schema to return `billed_amount`/`expected_amount`/`difference` per overcharge
+- Increased `maxOutputTokens` to 1500
+- Returns `file_name` in response
+- GET handler unchanged (was already correct)
+
+**`src/components/CamReconciliationCard.tsx`** — Enhanced the UI:
+- Icon changed to amber `Receipt` (was red `FileSearch`)
+- Added separate file picker + "Analyze" button (was auto-upload on change)
+- Each overcharge now shows a 3-column grid: Billed (red), Expected (green), Difference (red)
+- Shows statement file name and date above results
+- Added "Previous Analyses" history section showing past reconciliations with savings and issue counts
+- New uploads prepend to records list immediately
+
+**Location page** — Already had `<CamReconciliationCard>` rendered, no changes needed.
