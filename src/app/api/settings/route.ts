@@ -9,13 +9,13 @@ export async function GET() {
   try {
     const { data: profile } = await supabase
       .from('tenant_profiles')
-      .select('*')
+      .select('company_name, role, language_preference, notification_prefs, display_theme')
       .eq('id', user.id)
       .maybeSingle()
 
     return NextResponse.json({
       profile: profile ?? null,
-      email: user.email,
+      email: user.email ?? '',
     })
   } catch {
     return NextResponse.json({ profile: null, email: user.email })
@@ -39,6 +39,8 @@ export async function PUT(request: NextRequest) {
   if (Object.keys(updates).length === 0) {
     return NextResponse.json({ error: 'No fields to update' }, { status: 400 })
   }
+
+  updates.updated_at = new Date().toISOString()
 
   const { error } = await admin
     .from('tenant_profiles')

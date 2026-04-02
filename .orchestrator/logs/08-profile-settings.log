@@ -1,0 +1,16 @@
+All done. Here's what was verified and changed:
+
+**`src/app/settings/page.tsx`** — Already correct. Auth check, LeaseIQ header with glass styling, back arrow to dashboard, renders `<SettingsClient email={...} />`.
+
+**`src/app/api/settings/route.ts`** — Two fixes:
+- GET: Narrowed `select('*')` to specific columns (`company_name, role, language_preference, notification_prefs, display_theme`) and added `?? ''` fallback on email
+- PUT: Added `updated_at` timestamp to every update
+
+**`src/app/settings/SettingsClient.tsx`** — Rewrote to match spec:
+- Profile section with `glass-input` class and Mail icon for read-only email
+- Language section with flag emojis and grid layout
+- Notifications with correct keys (`critical_dates`, `lease_expiry`, `cam_reconciliation`, `weekly_summary`) and descriptions for each toggle
+- Gradient save button with saved/saving states
+- Removed unused Team/Display sections and `/api/team` dependency
+
+Build passes cleanly.
