@@ -1,0 +1,14 @@
+Build passes. Here's a summary of what was verified and fixed:
+
+**Verified (already correct):**
+- `LeaseClauseCard.tsx` — All three states (loading, not found, found) render correctly with proper icons, colors, fields, and article citation badges
+- `location/[id]/page.tsx` — Both clause cards rendered in a 2-column grid at line 205-210
+- `vectorStore.ts` — `keywordSearchChunks` function exists
+
+**Fixed in `src/app/api/lease-clauses/route.ts`:**
+1. **Added store ownership verification** — was missing, allowing any authenticated user to query any store
+2. **Enhanced keywords** — more comprehensive search terms (e.g., "opening co-tenancy", "operating co-tenancy", "radius restriction")
+3. **Improved Claude prompts** — added context explaining what co-tenancy/exclusive use clauses are, better field descriptions with examples
+4. **Graceful error handling** — returns a "not found" clause object instead of a 500 error on extraction failure
+5. **Fixed fallback logic** — no longer sends all chunks to Claude when no pattern matches; only sends filtered relevant chunks
+6. **Moved constants to module scope** — `CLAUSE_KEYWORDS` and `CLAUDE_PROMPTS` are now top-level constants
