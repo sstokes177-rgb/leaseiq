@@ -129,12 +129,20 @@ ${contextText.slice(0, 22000)}`,
 
     // Update store's asset_class if detected
     if (asset_class) {
-      await admin
-        .from('stores')
-        .update({ asset_class })
-        .eq('id', storeId)
-        .eq('tenant_id', tenantId)
-      console.log(`[LeaseSummary] Auto-detected asset_class: ${asset_class} for store ${storeId}`)
+      const validClasses = ['Retail', 'Office', 'Industrial', 'Mixed-Use', 'Medical', 'Restaurant', 'Grocery', 'Other']
+      const normalized = validClasses.find(v => v.toLowerCase() === asset_class.toLowerCase()) ?? null
+      if (normalized) {
+        const { error: storeErr } = await admin
+          .from('stores')
+          .update({ asset_class: normalized })
+          .eq('id', storeId)
+          .eq('tenant_id', tenantId)
+        if (storeErr) {
+          console.error('[LeaseSummary] Failed to update store asset_class:', storeErr.message)
+        } else {
+          console.log(`[LeaseSummary] Auto-detected asset_class: ${normalized} for store ${storeId}`)
+        }
+      }
     }
   } catch (err) {
     console.error('[LeaseSummary] DB write failed:', err)

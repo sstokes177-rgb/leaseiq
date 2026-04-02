@@ -75,24 +75,20 @@ export async function generateObligationMatrix(
       .select('id, content')
       .eq('tenant_id', tenantId)
       .eq('store_id', storeId)
-      .limit(60)
+      .limit(35)
 
     if (fetchError) {
       console.error('[Obligations] DB fallback fetch error:', fetchError.message)
     }
 
-    console.log('[Obligations] DB fallback fetched', rawChunks?.length ?? 0, 'chunks')
+    const toUse = rawChunks ?? []
+    console.log('[Obligations] DB fallback fetched', toUse.length, 'chunks for store', storeId)
 
-    const filtered = (rawChunks ?? []).filter((c) =>
-      /repair|maintain|responsible|tenant\s+shall|landlord\s+shall|insurance|hvac|structural|pest|janitorial/i.test(
-        c.content
-      )
-    )
+    if (toUse.length === 0) {
+      console.warn('[Obligations] No chunks found — store_id:', storeId, 'tenant_id:', tenantId)
+    }
 
-    // Use filtered chunks if any match, otherwise use all available chunks
-    const toUse = filtered.length > 0 ? filtered : (rawChunks ?? [])
-    console.log('[Obligations] Using', toUse.length, 'chunks (filtered:', filtered.length, ')')
-    chunks.push(...toUse.slice(0, 35))
+    chunks.push(...toUse)
   }
 
   if (chunks.length === 0) {

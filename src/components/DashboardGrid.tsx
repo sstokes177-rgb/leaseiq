@@ -107,11 +107,12 @@ export function DashboardGrid({ stores }: DashboardGridProps) {
       )
     }
 
-    // State filter
+    // State filter — use word boundary to avoid matching substrings (e.g. "CA" in "CALIFORNIA")
     if (stateFilter) {
+      const stateRe = new RegExp(`\\b${stateFilter}\\b`)
       result = result.filter(s => {
         if (!s.address) return false
-        return s.address.includes(stateFilter)
+        return stateRe.test(s.address)
       })
     }
 
@@ -120,11 +121,19 @@ export function DashboardGrid({ stores }: DashboardGridProps) {
       result = result.filter(s => s.asset_class === assetFilter)
     }
 
-    // Status filter
+    // Status filter — handle null and invalid date strings
     if (statusFilter === 'active') {
-      result = result.filter(s => !s.lease_expiry || new Date(s.lease_expiry) > new Date())
+      result = result.filter(s => {
+        if (!s.lease_expiry) return true
+        const d = new Date(s.lease_expiry)
+        return isNaN(d.getTime()) || d > new Date()
+      })
     } else if (statusFilter === 'expired') {
-      result = result.filter(s => s.lease_expiry && new Date(s.lease_expiry) <= new Date())
+      result = result.filter(s => {
+        if (!s.lease_expiry) return false
+        const d = new Date(s.lease_expiry)
+        return !isNaN(d.getTime()) && d <= new Date()
+      })
     }
 
     // Sort

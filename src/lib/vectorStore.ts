@@ -58,10 +58,10 @@ export async function retrieveRelevantChunks(
 
   console.log(`[RAG] Calling match_documents — store_id=${storeId ?? 'null'}, threshold=${MATCH_THRESHOLD}, count=${matchCount}`)
 
-  const { data, error } = await supabase.rpc('match_documents', {
+  const { data, error } = await supabase.rpc('match_document_chunks', {
     query_embedding: embStr,
-    p_tenant_id: tenantId,
-    p_store_id: storeId ?? null,
+    match_tenant_id: tenantId,
+    match_store_id: storeId ?? null,
     match_threshold: MATCH_THRESHOLD,
     match_count: matchCount,
   })
@@ -150,27 +150,28 @@ function cleanExcerpt(content: string, minLength = 300): string {
   const text = content.trim()
   if (text.length <= minLength) return text
 
-  let raw = text.slice(0, minLength + 50) // grab a bit extra to find word boundary
-
-  // Trim start: if the chunk begins mid-word (no capital, no sentence start), skip to next word
-  const startsClean = /^[A-Z"(\d]/.test(raw) || /^[.!?]\s/.test(text.slice(0, 2))
+  let start = 0
   let prefix = ''
-  if (!startsClean) {
-    const firstSpace = raw.indexOf(' ')
-    if (firstSpace > 0 && firstSpace < 30) {
-      raw = raw.slice(firstSpace + 1)
-      prefix = '...'
+
+  // If text starts mid-word (lowercase after no sentence boundary), skip to first word boundary
+  if (/^[a-z]/.test(text)) {
+    const firstSpace = text.indexOf(' ')
+    if (firstSpace > 0 && firstSpace < 40) {
+      start = firstSpace + 1
+      prefix = '…'
     }
   }
 
-  // Trim end: find last complete word boundary
+  let raw = text.slice(start, start + minLength + 60)
   let suffix = ''
-  if (text.length > raw.length) {
-    const lastSpace = raw.lastIndexOf(' ')
-    if (lastSpace > minLength - 50) {
-      raw = raw.slice(0, lastSpace)
+
+  // Trim to last complete word boundary
+  if (start + raw.length < text.length) {
+    const lastBoundary = raw.search(/[\s.,;:!?]\S*$/)
+    if (lastBoundary > minLength - 80) {
+      raw = raw.slice(0, lastBoundary + 1).trimEnd()
     }
-    suffix = '...'
+    suffix = '…'
   }
 
   return prefix + raw + suffix

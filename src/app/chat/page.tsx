@@ -71,6 +71,7 @@ function ChatInterface({
   const scrollRef = useRef<HTMLDivElement>(null)
   const timestampsRef = useRef<Map<string, Date>>(new Map())
   const prevStatusRef = useRef<string>('ready')
+  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined)
 
   const { messages, sendMessage, status, error, clearError } = useChat({
     transport: new DefaultChatTransport({
@@ -93,14 +94,15 @@ function ChatInterface({
 
   useEffect(() => {
     if (scrollRef.current) {
-      const el = scrollRef.current
-      // Only auto-scroll if user is near the bottom (within 150px)
-      const isNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 150
-      if (isNearBottom) {
-        requestAnimationFrame(() => {
+      clearTimeout(scrollTimeoutRef.current)
+      scrollTimeoutRef.current = setTimeout(() => {
+        const el = scrollRef.current
+        if (!el) return
+        const isNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 150
+        if (isNearBottom) {
           el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
-        })
-      }
+        }
+      }, 80)
     }
   }, [messages, showTypingIndicator])
 

@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     .maybeSingle()
 
   if (error) {
-    // Table may not exist yet — return null gracefully
+    console.error('[LeaseSummary] GET error:', error.message)
     return NextResponse.json({ summary: null })
   }
 

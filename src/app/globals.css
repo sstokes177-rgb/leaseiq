@@ -242,7 +242,8 @@ body::after {
 
 /* ─── Smooth streaming content ─── */
 .streaming-content {
-  overflow: hidden;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .streaming-content > p,
@@ -253,12 +254,12 @@ body::after {
 .streaming-content > h2,
 .streaming-content > h3,
 .streaming-content > hr {
-  animation: stream-in 0.2s ease-out both;
+  animation: stream-in 0.15s ease-out both;
 }
 
 @keyframes stream-in {
   from {
-    opacity: 0.4;
+    opacity: 0.6;
   }
   to {
     opacity: 1;

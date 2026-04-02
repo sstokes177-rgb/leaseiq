@@ -1,0 +1,32 @@
+All 9 bugs fixed. TypeScript check and build both pass cleanly. Here's a summary:
+
+### Bug 1/4 (Critical): Chat History & Cross-Location Data Leak
+**`src/lib/vectorStore.ts`** — The code called `supabase.rpc('match_documents', { p_tenant_id, p_store_id })` but the SQL function is `match_document_chunks` with parameters `match_tenant_id` and `match_store_id`. This caused:
+- Vector search to fail entirely (wrong function name)
+- Store-scoped filtering to not apply (wrong parameter names defaulting to NULL)
+- Fixed both the function name and all parameter names
+
+### Bug 2: Lease Summary Disappearing
+**`src/app/api/lease-summary/route.ts`** — Added error logging instead of silently returning `{ summary: null }` on any error
+
+### Bug 3: Obligation Matrix "Upload Documents First"
+**`src/lib/obligationMatrix.ts`** — Removed the regex filter that required obligation-specific language in the fallback path. Now sends ALL chunks (up to 35) when keyword search fails, with better logging for debugging
+
+### Bug 5: Citation Excerpts Mid-Word
+**`src/lib/vectorStore.ts`** — Rewrote `cleanExcerpt()` with better word boundary detection:
+- Start: detects mid-word starts (lowercase first char) and skips to next word boundary with `…` prefix
+- End: trims to last punctuation/space boundary instead of just last space
+
+### Bug 6: Streaming Glitchiness
+- **`src/app/globals.css`** — Changed `overflow: hidden` to `overflow-wrap: break-word`, reduced animation from 0.2s→0.15s, raised start opacity from 0.4→0.6
+- **`src/app/chat/page.tsx`** — Replaced `requestAnimationFrame` scroll with debounced 80ms `setTimeout` to reduce scroll jank during streaming
+
+### Bug 7: Dashboard Filters
+**`src/components/DashboardGrid.tsx`** — State filter now uses `\b` word boundary regex to prevent "CA" matching "CALIFORNIA". Status filter now handles `null` and `NaN` dates gracefully
+
+### Bug 8: Document Preview
+- Created **`src/components/DocumentListItem.tsx`** — client component with click-to-preview via signed URLs
+- **`src/app/location/[id]/page.tsx`** — Replaced static document divs with `<DocumentListItem>`, removed unused `DOC_TYPE_LABELS`
+
+### Bug 9: Asset Class Auto-Detection
+**`src/lib/leaseSummary.ts`** — Added normalization of Claude's asset_class response against valid values, plus error logging if the store update fails
