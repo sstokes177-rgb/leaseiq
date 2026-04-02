@@ -1,0 +1,11 @@
+All done. Here's what was implemented:
+
+**Modified files:**
+- `src/app/onboarding/client.tsx` — Added a two-step onboarding flow: first a role selector ("Retail Tenant" / "Property Manager" cards), then the existing company name input. Role is saved to `tenant_profiles` and PM users are routed to `/pm-dashboard`.
+- `src/app/dashboard/page.tsx` — Added redirect: if `profile.role === 'property_manager'`, redirect to `/pm-dashboard`.
+
+**Created files:**
+- `src/app/pm-dashboard/page.tsx` — Server component that authenticates, verifies PM role, and renders the dashboard shell with frosted header.
+- `src/app/pm-dashboard/client.tsx` — Client component with stats cards (Properties / Active Tenants / Pending Invitations), tenant invite form with privacy note, properties list, and invitation status list. Uses existing `/api/stores` and `/api/team` endpoints.
+
+Build passes with no errors.

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { createBrowserSupabaseClient } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
-import { FileSearch, ArrowRight, Loader2 } from 'lucide-react'
+import { FileSearch, ArrowRight, Loader2, Building2, Users } from 'lucide-react'
 
 const inputStyle = {
   background: 'rgba(255,255,255,0.06)',
@@ -29,7 +29,11 @@ function GlassInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
   )
 }
 
+type UserRole = 'individual' | 'property_manager'
+
 export function OnboardingClient({ userId }: { userId: string }) {
+  const [step, setStep] = useState<'role' | 'name'>('role')
+  const [role, setRole] = useState<UserRole | null>(null)
   const [companyName, setCompanyName] = useState('')
   const [loading, setLoading] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
@@ -43,12 +47,13 @@ export function OnboardingClient({ userId }: { userId: string }) {
       const { error } = await supabase.from('tenant_profiles').upsert({
         id: userId,
         company_name: skip ? null : (companyName.trim() || null),
+        role: role ?? 'individual',
       })
       if (error) {
         setSaveError('Could not save your profile. Please try again.')
         return
       }
-      router.push('/dashboard')
+      router.push(role === 'property_manager' ? '/pm-dashboard' : '/dashboard')
     } catch {
       setSaveError('An unexpected error occurred. Please try again.')
     } finally {
@@ -69,49 +74,109 @@ export function OnboardingClient({ userId }: { userId: string }) {
           >
             <FileSearch className="h-7 w-7 text-emerald-400" />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight">One quick step</h1>
-          <p className="text-sm text-muted-foreground mt-1.5 font-light">
-            What should we call you or your company?
-          </p>
+          {step === 'role' ? (
+            <>
+              <h1 className="text-2xl font-bold tracking-tight">Welcome to LeaseIQ</h1>
+              <p className="text-sm text-muted-foreground mt-1.5 font-light">
+                Tell us how you'll be using LeaseIQ
+              </p>
+            </>
+          ) : (
+            <>
+              <h1 className="text-2xl font-bold tracking-tight">One quick step</h1>
+              <p className="text-sm text-muted-foreground mt-1.5 font-light">
+                What should we call you or your company?
+              </p>
+            </>
+          )}
         </div>
 
-        <div className="glass-card rounded-2xl p-7 space-y-5">
-          <div>
-            <label className="text-xs text-muted-foreground/90 mb-1.5 block">
-              Name or company name
-            </label>
-            <GlassInput
-              type="text"
-              placeholder="e.g. Sunrise Bakery or Jane Smith"
-              value={companyName}
-              onChange={(e) => setCompanyName(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && companyName.trim() && save()}
-              autoFocus
-            />
+        {step === 'role' ? (
+          <div className="space-y-5">
+            <p className="text-[10px] font-semibold text-white/35 uppercase tracking-widest">
+              I am a...
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <button
+                onClick={() => setRole('individual')}
+                className={`glass-card rounded-2xl p-6 text-left transition-all ${
+                  role === 'individual' ? 'ring-1 ring-emerald-500/40' : ''
+                }`}
+                style={{
+                  background: role === 'individual' ? 'rgba(16,185,129,0.08)' : undefined,
+                  borderColor: role === 'individual' ? 'rgba(16,185,129,0.25)' : undefined,
+                }}
+              >
+                <Building2 className="h-8 w-8 text-emerald-400 mb-3" />
+                <p className="font-semibold text-base">Retail Tenant</p>
+                <p className="text-xs text-muted-foreground/70 mt-1">
+                  I lease space and want to understand my lease terms
+                </p>
+              </button>
+              <button
+                onClick={() => setRole('property_manager')}
+                className={`glass-card rounded-2xl p-6 text-left transition-all ${
+                  role === 'property_manager' ? 'ring-1 ring-emerald-500/40' : ''
+                }`}
+                style={{
+                  background: role === 'property_manager' ? 'rgba(16,185,129,0.08)' : undefined,
+                  borderColor: role === 'property_manager' ? 'rgba(16,185,129,0.25)' : undefined,
+                }}
+              >
+                <Users className="h-8 w-8 text-blue-400 mb-3" />
+                <p className="font-semibold text-base">Property Manager</p>
+                <p className="text-xs text-muted-foreground/70 mt-1">
+                  I manage properties and want to onboard my tenants
+                </p>
+              </button>
+            </div>
+            <Button
+              onClick={() => setStep('name')}
+              disabled={!role}
+              className="w-full h-10"
+            >
+              Continue <ArrowRight className="h-4 w-4 ml-1" />
+            </Button>
           </div>
+        ) : (
+          <div className="glass-card rounded-2xl p-7 space-y-5">
+            <div>
+              <label className="text-xs text-muted-foreground/90 mb-1.5 block">
+                Name or company name
+              </label>
+              <GlassInput
+                type="text"
+                placeholder="e.g. Sunrise Bakery or Jane Smith"
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && companyName.trim() && save()}
+                autoFocus
+              />
+            </div>
 
-          {saveError && <p className="text-sm text-red-400">{saveError}</p>}
+            {saveError && <p className="text-sm text-red-400">{saveError}</p>}
 
-          <Button
-            onClick={() => save()}
-            disabled={loading || !companyName.trim()}
-            className="w-full h-10"
-          >
-            {loading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <>Continue <ArrowRight className="h-4 w-4 ml-1" /></>
-            )}
-          </Button>
+            <Button
+              onClick={() => save()}
+              disabled={loading || !companyName.trim()}
+              className="w-full h-10"
+            >
+              {loading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <>Continue <ArrowRight className="h-4 w-4 ml-1" /></>
+              )}
+            </Button>
 
-          <button
-            onClick={() => save(true)}
-            disabled={loading}
-            className="w-full text-xs text-muted-foreground/80 hover:text-foreground transition-colors text-center"
-          >
-            Skip for now
-          </button>
-        </div>
+            <button
+              onClick={() => save(true)}
+              disabled={loading}
+              className="w-full text-xs text-muted-foreground/80 hover:text-foreground transition-colors text-center"
+            >
+              Skip for now
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )
