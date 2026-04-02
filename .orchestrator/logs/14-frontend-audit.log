@@ -1,0 +1,26 @@
+## Frontend Audit Complete
+
+### Audit Summary
+
+**Read & audited:** 9 pages, 30 components, 1 layout, 1 globals.css, 24 API routes, 1 types file.
+
+### Issues Found & Fixed
+
+**1. Upload page store selector bug** (`src/app/upload/page.tsx:76`)
+- **Issue:** Store selector only showed for `tenant_admin` role, but onboarding only assigns `individual` or `property_manager`. Individual users with multiple stores couldn't switch stores on the upload page.
+- **Fix:** Changed `isTenantAdmin={profile.role === 'tenant_admin'}` to `isTenantAdmin={storeList.length > 1}` — now shows the store selector whenever the user has multiple stores.
+
+### Everything Else Verified Clean
+
+| Audit Area | Status |
+|---|---|
+| **Page Load** — imports, types, directives, `force-dynamic` | All correct |
+| **Buttons & Links** — every link/button on every page | All resolve correctly |
+| **Visual Consistency** — gradient, glass-card, headers, accents | Consistent across all pages |
+| **Text Readability** — label/value contrast, disclaimers | No readability issues |
+| **Form Validation** — required fields, disable during submit, feedback | All forms handle properly |
+| **Component States** — loading skeletons, empty states, error states | All components handle all states |
+| **Error Handling** — try/catch, user-friendly messages, auth redirects | Properly handled |
+| **Performance** — no `console.log` in client code, useEffect deps present | Clean |
+| **TypeScript** — `tsc --noEmit` | Zero errors |
+| **Build** — `next build` | Compiled successfully, all 33 routes generated |

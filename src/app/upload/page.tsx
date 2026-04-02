@@ -73,7 +73,7 @@ export default async function UploadPage({
         <UploadPageClient
           stores={storeList}
           activeStoreId={activeStore?.id ?? null}
-          isTenantAdmin={profile.role === 'tenant_admin'}
+          isTenantAdmin={storeList.length > 1}
         />
       </main>
     </div>
