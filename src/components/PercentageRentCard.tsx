@@ -47,7 +47,7 @@ export function PercentageRentCard({ storeId }: PercentageRentCardProps) {
       const res = await fetch('/api/percentage-rent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ store_id: storeId }),
+        body: JSON.stringify({ store_id: storeId, action: 'extract_config' }),
       })
       const data = await res.json()
       if (res.ok) {
@@ -142,6 +142,7 @@ export function PercentageRentCard({ storeId }: PercentageRentCardProps) {
   const overBreakpoint = Math.max(0, totalSales - breakpoint)
   const projectedOver = Math.max(0, projectedAnnual - breakpoint)
   const estimatedPctRent = projectedOver * (percentage / 100)
+  const actualPctRent = overBreakpoint * (percentage / 100)
   const progressPct = breakpoint > 0 ? Math.min(100, (totalSales / breakpoint) * 100) : 0
 
   return (
@@ -195,6 +196,22 @@ export function PercentageRentCard({ storeId }: PercentageRentCardProps) {
               }}
             />
           </div>
+        </div>
+      )}
+
+      {/* Percentage Rent Due alert */}
+      {overBreakpoint > 0 && (
+        <div
+          className="rounded-xl px-4 py-3"
+          style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.20)' }}
+        >
+          <p className="text-xs font-semibold text-red-400">Percentage Rent Due</p>
+          <p className="text-lg font-bold text-red-300 mt-1">
+            ${actualPctRent.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </p>
+          <p className="text-[11px] text-red-300/60 mt-1">
+            {percentage}% &times; ${overBreakpoint.toLocaleString()} overage
+          </p>
         </div>
       )}
 

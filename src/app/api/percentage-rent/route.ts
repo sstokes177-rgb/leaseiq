@@ -77,11 +77,15 @@ export async function POST(request: NextRequest) {
         year: Number(year),
         gross_sales: Number(gross_sales),
       },
-      { onConflict: 'store_id,month,year' }
+      { onConflict: 'store_id,tenant_id,month,year' }
     )
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
     return NextResponse.json({ success: true })
+  }
+
+  if (action !== 'extract_config') {
+    return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
   }
 
   // Extract percentage rent config from lease

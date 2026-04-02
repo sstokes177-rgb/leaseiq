@@ -1,0 +1,14 @@
+All done. Here's a summary of what was verified and fixed:
+
+### Verified (no changes needed)
+- **`src/types/index.ts`** — `PercentageRentEntry` and `PercentageRentConfig` types correct, match DB schema
+- **`supabase/migrations/003_cam_and_features.sql`** — Both tables exist with correct columns (`analysis_data JSONB`, not `config_data`)
+- **`src/app/location/[id]/page.tsx`** — `<PercentageRentCard storeId={id} />` rendered when documents exist (line 202)
+
+### Fixed in `src/app/api/percentage-rent/route.ts`
+1. **Bug fix**: `onConflict` for `save_entry` upsert changed from `'store_id,month,year'` to `'store_id,tenant_id,month,year'` to match the DB unique constraint
+2. **Guard added**: Extraction now requires explicit `action === 'extract_config'` instead of being an ungated fallthrough
+
+### Enhanced in `src/components/PercentageRentCard.tsx`
+1. `handleExtract` now sends `action: 'extract_config'` to match the new API guard
+2. Added red **"Percentage Rent Due"** alert box that appears when YTD sales exceed the breakpoint, showing actual percentage rent owed with overage breakdown
