@@ -60,6 +60,22 @@ export async function POST(request: NextRequest) {
   console.log(`[Chat] Question received: "${userText.slice(0, 100)}"`)
   console.log(`[Chat] Store ID: ${storeId ?? 'null'} | User: ${user.id}`)
 
+  // Fetch user's language preference
+  let languagePreference = 'en'
+  try {
+    const adminSupabase = createAdminSupabaseClient()
+    const { data: profile } = await adminSupabase
+      .from('tenant_profiles')
+      .select('language_preference')
+      .eq('id', user.id)
+      .maybeSingle()
+    if (profile?.language_preference) {
+      languagePreference = profile.language_preference
+    }
+  } catch {
+    // Default to English
+  }
+
   let systemPrompt: string
   let citations: import('@/types').Citation[]
   try {
@@ -69,6 +85,11 @@ export async function POST(request: NextRequest) {
   } catch (err) {
     console.error('[Chat] RAG context build failed:', err)
     return new Response('Search failed. Please try again.', { status: 500 })
+  }
+
+  // Append Spanish instruction if user prefers Spanish
+  if (languagePreference === 'es') {
+    systemPrompt += '\n\nIMPORTANT: The user prefers Spanish. You MUST respond entirely in Spanish. Use clear, professional Spanish. Translate all lease terminology appropriately (e.g., "tenant" = "arrendatario", "landlord" = "arrendador", "lease" = "contrato de arrendamiento").'
   }
 
   const modelMessages = await convertToModelMessages(messages)

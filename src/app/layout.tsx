@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
+import { ClientProviders } from "@/components/ClientProviders";
 
 const plusJakarta = Plus_Jakarta_Sans({
   variable: "--font-sans",
@@ -43,7 +44,7 @@ export default function RootLayout({
           }} />
         </div>
         <div className="relative flex flex-col min-h-full" style={{ zIndex: 1 }}>
-          {children}
+          <ClientProviders>{children}</ClientProviders>
         </div>
       </body>
     </html>

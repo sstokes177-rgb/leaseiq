@@ -7,6 +7,7 @@ import { CitationCard } from './CitationCard'
 import type { Citation } from '@/types'
 import { cn } from '@/lib/utils'
 import type { ReactNode, ComponentPropsWithoutRef } from 'react'
+import { useLanguage } from './LanguageProvider'
 
 interface ChatMessageProps {
   role: 'user' | 'assistant'
@@ -376,6 +377,7 @@ export function ChatMessage({
   timestamp,
   onCitationClick,
 }: ChatMessageProps) {
+  const { t } = useLanguage()
   const isUser = role === 'user'
 
   const citationCtx: CitationCtx | null = (citations && citations.length > 0 && onCitationClick)
@@ -411,8 +413,7 @@ export function ChatMessage({
 
         {!isUser && !isStreaming && (
           <p className="mt-2.5 pt-2.5 border-t border-white/[0.07] text-[11px] text-white/40 italic leading-relaxed">
-            Informational summary based on your uploaded documents — not legal advice. Consult an
-            attorney for legal interpretation.
+            {t('chat.responseDisclaimer')}
           </p>
         )}
       </div>

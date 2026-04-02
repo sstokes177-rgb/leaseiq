@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Loader2, RefreshCw, FileText, Calendar, DollarSign, Building2 } from 'lucide-react'
 import type { LeaseSummaryData } from '@/types'
+import { useLanguage } from './LanguageProvider'
 
 interface LeaseSummaryCardProps {
   storeId: string
@@ -60,6 +61,7 @@ function DaysRemaining({ dateStr }: { dateStr: string | null }) {
 }
 
 export function LeaseSummaryCard({ storeId }: LeaseSummaryCardProps) {
+  const { t } = useLanguage()
   const [summary, setSummary] = useState<LeaseSummaryData | null>(null)
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(false)
@@ -176,8 +178,8 @@ export function LeaseSummaryCard({ storeId }: LeaseSummaryCardProps) {
             <FileText className="h-4 w-4 text-emerald-400" />
           </div>
           <div>
-            <p className="font-semibold text-sm">Lease Summary</p>
-            <p className="text-xs text-muted-foreground/80">Key terms extracted from your documents</p>
+            <p className="font-semibold text-sm">{t('summary.title')}</p>
+            <p className="text-xs text-muted-foreground/80">{t('summary.subtitle')}</p>
           </div>
         </div>
         {error && (
@@ -189,7 +191,7 @@ export function LeaseSummaryCard({ storeId }: LeaseSummaryCardProps) {
           className="flex items-center gap-2 text-sm font-medium text-emerald-400/80 hover:text-emerald-300 transition-colors disabled:opacity-50"
         >
           {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-          {generating ? 'Generating summary…' : 'Generate lease summary'}
+          {generating ? t('summary.generating') : t('summary.generate')}
         </button>
       </div>
     )
@@ -208,18 +210,18 @@ export function LeaseSummaryCard({ storeId }: LeaseSummaryCardProps) {
             <FileText className="h-4 w-4 text-emerald-400" />
           </div>
           <div className="min-w-0">
-            <p className="font-semibold text-sm">Lease Summary</p>
-            <p className="text-xs text-muted-foreground/60">AI-extracted from your documents</p>
+            <p className="font-semibold text-sm">{t('summary.title')}</p>
+            <p className="text-xs text-muted-foreground/60">{t('summary.aiExtracted')}</p>
           </div>
         </div>
         <button
           onClick={handleGenerate}
           disabled={generating}
-          title="Regenerate summary"
+          title={t('summary.regenerate')}
           className="flex items-center gap-1.5 text-xs text-muted-foreground/60 hover:text-white/70 transition-colors shrink-0 disabled:opacity-40"
         >
           {generating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
-          {generating ? 'Regenerating…' : 'Regenerate'}
+          {generating ? t('summary.regenerating') : t('summary.regenerate')}
         </button>
       </div>
 
@@ -229,11 +231,11 @@ export function LeaseSummaryCard({ storeId }: LeaseSummaryCardProps) {
         style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
       >
         <div>
-          <p className="text-[10px] font-semibold text-white/35 uppercase tracking-widest mb-0.5">Tenant</p>
+          <p className="text-[10px] font-semibold text-white/35 uppercase tracking-widest mb-0.5">{t('summary.tenant')}</p>
           <p className="text-sm font-semibold text-emerald-300">{summary.tenant_name ?? '—'}</p>
         </div>
         <div>
-          <p className="text-[10px] font-semibold text-white/35 uppercase tracking-widest mb-0.5">Landlord</p>
+          <p className="text-[10px] font-semibold text-white/35 uppercase tracking-widest mb-0.5">{t('summary.landlord')}</p>
           <p className="text-sm font-medium text-white/80">{summary.landlord_name ?? '—'}</p>
         </div>
         {summary.property_address && (
@@ -255,7 +257,7 @@ export function LeaseSummaryCard({ storeId }: LeaseSummaryCardProps) {
         >
           <div className="flex items-center gap-2">
             <Calendar className="h-3.5 w-3.5 text-white/30 shrink-0" />
-            <p className="text-[10px] font-semibold text-white/35 uppercase tracking-widest">Lease Term</p>
+            <p className="text-[10px] font-semibold text-white/35 uppercase tracking-widest">{t('summary.leaseTerm')}</p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <p className="text-sm text-white/80">
@@ -268,8 +270,8 @@ export function LeaseSummaryCard({ storeId }: LeaseSummaryCardProps) {
           className="rounded-xl px-4 py-3 space-y-2"
           style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
         >
-          <Field label="Lease Type" value={summary.lease_type} />
-          {summary.square_footage && <Field label="Square Footage" value={summary.square_footage} />}
+          <Field label={t('summary.leaseType')} value={summary.lease_type} />
+          {summary.square_footage && <Field label={t('summary.sqft')} value={summary.square_footage} />}
         </div>
       </div>
 
@@ -280,26 +282,26 @@ export function LeaseSummaryCard({ storeId }: LeaseSummaryCardProps) {
       >
         <div className="flex items-center gap-2">
           <DollarSign className="h-3.5 w-3.5 text-white/30 shrink-0" />
-          <p className="text-[10px] font-semibold text-white/35 uppercase tracking-widest">Financials</p>
+          <p className="text-[10px] font-semibold text-white/35 uppercase tracking-widest">{t('summary.financials')}</p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <Field label="Base Rent" value={summary.base_rent_monthly} />
-          <Field label="Security Deposit" value={summary.security_deposit} />
-          <Field label="Rent Escalation" value={summary.rent_escalation} />
-          <Field label="Renewal Options" value={summary.renewal_options} />
+          <Field label={t('summary.baseRent')} value={summary.base_rent_monthly} />
+          <Field label={t('summary.securityDeposit')} value={summary.security_deposit} />
+          <Field label={t('summary.rentEscalation')} value={summary.rent_escalation} />
+          <Field label={t('summary.renewalOptions')} value={summary.renewal_options} />
         </div>
       </div>
 
       {/* Permitted Use */}
       {summary.permitted_use && (
         <div>
-          <p className="text-[10px] font-semibold text-white/35 uppercase tracking-widest mb-1">Permitted Use</p>
+          <p className="text-[10px] font-semibold text-white/35 uppercase tracking-widest mb-1">{t('summary.permittedUse')}</p>
           <p className="text-xs text-white/65 leading-relaxed">{summary.permitted_use}</p>
         </div>
       )}
 
       <p className="text-[10px] text-white/25 italic">
-        AI-extracted summary — verify key terms against your actual lease documents.
+        {t('summary.verifyNote')}
       </p>
     </div>
   )

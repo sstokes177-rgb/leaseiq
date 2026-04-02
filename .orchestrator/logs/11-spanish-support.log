@@ -1,0 +1,18 @@
+Build passes. Here's a summary of everything implemented:
+
+**Files created (3):**
+- `src/lib/i18n.ts` — Translation dictionary with 80+ keys in English and Spanish, plus `t()` helper
+- `src/components/LanguageProvider.tsx` — React context that fetches language preference from `/api/settings` on mount, provides `lang`, `setLang`, and `t()` to all client components
+- `src/components/ClientProviders.tsx` — Client wrapper to use in the server-rendered layout
+
+**Files modified (9):**
+- `src/app/layout.tsx` — Wrapped children with `<ClientProviders>`
+- `src/app/api/chat/route.ts` — Fetches user's `language_preference` from `tenant_profiles` and appends Spanish instruction to the system prompt when `es`
+- `src/app/chat/page.tsx` — Uses `useLanguage()` for all UI text, adds `EXAMPLE_QUESTIONS_ES` array, translates disclaimer, grounded-in text, and example questions header
+- `src/components/ChatMessage.tsx` — Translates the response disclaimer
+- `src/components/LeaseSummaryCard.tsx` — All labels (Tenant, Landlord, Lease Term, Financials, etc.) use `t()`
+- `src/components/ObligationMatrixCard.tsx` — All labels use `t()`
+- `src/components/CamAnalysisCard.tsx` — All labels use `t()`
+- `src/components/DashboardGrid.tsx` — Search placeholder and document count text use `t()`
+- `src/app/onboarding/client.tsx` — Added language toggle (English/Spanish buttons) and saves `language_preference` during onboarding
+- `src/app/settings/SettingsClient.tsx` — All section headers and save button use `t()`, syncs language change to global context on save

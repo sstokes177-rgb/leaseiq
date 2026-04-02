@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Loader2, RefreshCw, Receipt, AlertCircle, ShieldCheck, Clock } from 'lucide-react'
 import type { CamAnalysisData } from '@/types'
+import { useLanguage } from './LanguageProvider'
 
 interface CamAnalysisCardProps {
   storeId: string
@@ -20,6 +21,7 @@ function Field({ label, value }: { label: string; value: string | null | undefin
 }
 
 export function CamAnalysisCard({ storeId }: CamAnalysisCardProps) {
+  const { t } = useLanguage()
   const [analysis, setAnalysis] = useState<CamAnalysisData | null>(null)
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(false)
@@ -97,8 +99,8 @@ export function CamAnalysisCard({ storeId }: CamAnalysisCardProps) {
             <Receipt className="h-4 w-4 text-amber-400" />
           </div>
           <div>
-            <p className="font-semibold text-sm">CAM Charge Analysis</p>
-            <p className="text-xs text-muted-foreground/80">Common area maintenance details</p>
+            <p className="font-semibold text-sm">{t('cam.title')}</p>
+            <p className="text-xs text-muted-foreground/80">{t('cam.subtitle')}</p>
           </div>
         </div>
         {error && <p className="text-xs text-red-400/80 mb-3">{error}</p>}
@@ -108,7 +110,7 @@ export function CamAnalysisCard({ storeId }: CamAnalysisCardProps) {
           className="flex items-center gap-2 text-sm font-medium text-amber-400/80 hover:text-amber-300 transition-colors disabled:opacity-50"
         >
           {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-          {generating ? 'Analyzing CAM charges…' : 'Analyze CAM charges'}
+          {generating ? t('cam.generating') : t('cam.generate')}
         </button>
       </div>
     )
@@ -144,7 +146,7 @@ export function CamAnalysisCard({ storeId }: CamAnalysisCardProps) {
               analysis.audit_window_days <= 30 ? 'text-red-400' :
               analysis.audit_window_days <= 90 ? 'text-amber-400' : 'text-emerald-300'
             }`}>
-              {analysis.audit_window_days}-Day CAM Objection Window
+              {analysis.audit_window_days}-{t('common.days')} {t('cam.objectionWindow')}
             </p>
             <p className="text-xs text-white/60 mt-1 leading-relaxed">
               After receiving the annual CAM reconciliation statement, you have {analysis.audit_window_days} days
@@ -164,18 +166,18 @@ export function CamAnalysisCard({ storeId }: CamAnalysisCardProps) {
             <Receipt className="h-4 w-4 text-amber-400" />
           </div>
           <div className="min-w-0">
-            <p className="font-semibold text-sm">CAM Charge Analysis</p>
-            <p className="text-xs text-muted-foreground/60">AI-extracted from your lease</p>
+            <p className="font-semibold text-sm">{t('cam.title')}</p>
+            <p className="text-xs text-muted-foreground/60">{t('summary.aiExtracted')}</p>
           </div>
         </div>
         <button
           onClick={handleGenerate}
           disabled={generating}
-          title="Regenerate CAM analysis"
+          title={t('summary.regenerate')}
           className="flex items-center gap-1.5 text-xs text-muted-foreground/60 hover:text-white/70 transition-colors shrink-0 disabled:opacity-40"
         >
           {generating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
-          {generating ? 'Regenerating…' : 'Regenerate'}
+          {generating ? t('summary.regenerating') : t('summary.regenerate')}
         </button>
       </div>
 
@@ -184,16 +186,16 @@ export function CamAnalysisCard({ storeId }: CamAnalysisCardProps) {
         className="rounded-xl px-4 py-3 grid grid-cols-2 sm:grid-cols-3 gap-3"
         style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
       >
-        <Field label="Pro-rata Share" value={analysis.proportionate_share_pct} />
-        <Field label="Admin Fee" value={analysis.admin_fee_pct} />
-        <Field label="CAM Cap" value={analysis.cam_cap} />
+        <Field label={t('cam.proRataShare')} value={analysis.proportionate_share_pct} />
+        <Field label={t('cam.adminFee')} value={analysis.admin_fee_pct} />
+        <Field label={t('cam.camCap')} value={analysis.cam_cap} />
         {analysis.audit_window_days != null && (
           <div className="flex items-center gap-2">
             <Clock className="h-3.5 w-3.5 text-white/30 shrink-0" />
-            <Field label="Audit Window" value={`${analysis.audit_window_days} days`} />
+            <Field label={t('cam.auditWindow')} value={`${analysis.audit_window_days} ${t('common.days')}`} />
           </div>
         )}
-        <Field label="Escalation Limit" value={analysis.escalation_limit} />
+        <Field label={t('cam.escalationLimit')} value={analysis.escalation_limit} />
       </div>
 
       {/* Included items */}
@@ -201,7 +203,7 @@ export function CamAnalysisCard({ storeId }: CamAnalysisCardProps) {
         <div>
           <div className="flex items-center gap-1.5 mb-2">
             <ShieldCheck className="h-3.5 w-3.5 text-emerald-400/60" />
-            <p className="text-[10px] font-semibold text-white/35 uppercase tracking-widest">Included in CAM</p>
+            <p className="text-[10px] font-semibold text-white/35 uppercase tracking-widest">{t('cam.included')}</p>
           </div>
           <div className="flex flex-wrap gap-1.5">
             {analysis.included_items.map((item, i) => (
@@ -220,7 +222,7 @@ export function CamAnalysisCard({ storeId }: CamAnalysisCardProps) {
       {/* Excluded items */}
       {analysis.excluded_items.length > 0 && (
         <div>
-          <p className="text-[10px] font-semibold text-white/35 uppercase tracking-widest mb-2">Excluded from CAM</p>
+          <p className="text-[10px] font-semibold text-white/35 uppercase tracking-widest mb-2">{t('cam.excluded')}</p>
           <div className="flex flex-wrap gap-1.5">
             {analysis.excluded_items.map((item, i) => (
               <span

@@ -4,12 +4,14 @@ import { useState, useEffect } from 'react'
 import {
   User, Mail, Globe, Bell, Loader2, Check,
 } from 'lucide-react'
+import { useLanguage } from '@/components/LanguageProvider'
 
 interface SettingsClientProps {
   email: string
 }
 
 export function SettingsClient({ email }: SettingsClientProps) {
+  const { t, lang: globalLang, setLang: setGlobalLang } = useLanguage()
   const [companyName, setCompanyName] = useState('')
   const [language, setLanguage] = useState('en')
   const [notifications, setNotifications] = useState({
@@ -52,6 +54,8 @@ export function SettingsClient({ email }: SettingsClientProps) {
         }),
       })
       if (res.ok) {
+        // Sync language to global context
+        setGlobalLang(language as 'en' | 'es')
         setSaved(true)
         setTimeout(() => setSaved(false), 2500)
       }
@@ -85,8 +89,8 @@ export function SettingsClient({ email }: SettingsClientProps) {
             <User className="h-4 w-4 text-emerald-400" />
           </div>
           <div>
-            <p className="font-semibold text-sm">Profile</p>
-            <p className="text-xs text-muted-foreground/60">Your account information</p>
+            <p className="font-semibold text-sm">{t('settings.profile')}</p>
+            <p className="text-xs text-muted-foreground/60">{t('settings.profileDesc')}</p>
           </div>
         </div>
 
@@ -94,7 +98,7 @@ export function SettingsClient({ email }: SettingsClientProps) {
           {/* Company Name */}
           <div>
             <label className="text-[10px] font-semibold text-white/35 uppercase tracking-widest mb-1.5 block">
-              Company / Name
+              {t('settings.companyName')}
             </label>
             <input
               type="text"
@@ -108,7 +112,7 @@ export function SettingsClient({ email }: SettingsClientProps) {
           {/* Email (read-only) */}
           <div>
             <label className="text-[10px] font-semibold text-white/35 uppercase tracking-widest mb-1.5 block">
-              Email
+              {t('settings.email')}
             </label>
             <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl"
               style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
@@ -127,8 +131,8 @@ export function SettingsClient({ email }: SettingsClientProps) {
             <Globe className="h-4 w-4 text-blue-400" />
           </div>
           <div>
-            <p className="font-semibold text-sm">Language</p>
-            <p className="text-xs text-muted-foreground/60">Choose your preferred language</p>
+            <p className="font-semibold text-sm">{t('settings.language')}</p>
+            <p className="text-xs text-muted-foreground/60">{t('settings.languageDesc')}</p>
           </div>
         </div>
 
@@ -171,8 +175,8 @@ export function SettingsClient({ email }: SettingsClientProps) {
             <Bell className="h-4 w-4 text-amber-400" />
           </div>
           <div>
-            <p className="font-semibold text-sm">Notifications</p>
-            <p className="text-xs text-muted-foreground/60">Choose what alerts you receive</p>
+            <p className="font-semibold text-sm">{t('settings.notifications')}</p>
+            <p className="text-xs text-muted-foreground/60">{t('settings.notificationsDesc')}</p>
           </div>
         </div>
 
@@ -224,11 +228,11 @@ export function SettingsClient({ email }: SettingsClientProps) {
           }}
         >
           {saving ? (
-            <><Loader2 className="h-4 w-4 animate-spin" /> Saving...</>
+            <><Loader2 className="h-4 w-4 animate-spin" /> {t('settings.saving')}</>
           ) : saved ? (
-            <><Check className="h-4 w-4" /> Saved</>
+            <><Check className="h-4 w-4" /> {t('settings.saved')}</>
           ) : (
-            'Save Changes'
+            t('settings.save')
           )}
         </button>
       </div>

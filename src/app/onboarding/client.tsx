@@ -5,6 +5,7 @@ import { createBrowserSupabaseClient } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
 import { FileSearch, ArrowRight, Loader2, Building2, Users } from 'lucide-react'
+import { useLanguage } from '@/components/LanguageProvider'
 
 const inputStyle = {
   background: 'rgba(255,255,255,0.06)',
@@ -39,6 +40,7 @@ export function OnboardingClient({ userId }: { userId: string }) {
   const [saveError, setSaveError] = useState<string | null>(null)
   const router = useRouter()
   const supabase = createBrowserSupabaseClient()
+  const { lang, setLang } = useLanguage()
 
   const save = async (skip = false) => {
     setLoading(true)
@@ -48,6 +50,7 @@ export function OnboardingClient({ userId }: { userId: string }) {
         id: userId,
         company_name: skip ? null : (companyName.trim() || null),
         role: role ?? 'individual',
+        language_preference: lang,
       })
       if (error) {
         setSaveError('Could not save your profile. Please try again.')
@@ -73,6 +76,24 @@ export function OnboardingClient({ userId }: { userId: string }) {
             }}
           >
             <FileSearch className="h-7 w-7 text-emerald-400" />
+          </div>
+          <div className="flex gap-2 justify-center mb-6">
+            <button
+              onClick={() => setLang('en')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                lang === 'en' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'text-white/40 hover:text-white/60'
+              }`}
+            >
+              {'\ud83c\uddfa\ud83c\uddf8'} English
+            </button>
+            <button
+              onClick={() => setLang('es')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                lang === 'es' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'text-white/40 hover:text-white/60'
+              }`}
+            >
+              {'\ud83c\uddea\ud83c\uddf8'} Espa\u00f1ol
+            </button>
           </div>
           {step === 'role' ? (
             <>

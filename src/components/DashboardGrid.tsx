@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { Building2, MapPin, Search, X, Sparkles, Loader2 } from 'lucide-react'
+import { useLanguage } from './LanguageProvider'
 
 interface StoreWithCount {
   id: string
@@ -72,6 +73,7 @@ function AssetClassBadge({ storeId, assetClass, docCount }: { storeId: string; a
 }
 
 export function DashboardGrid({ stores }: DashboardGridProps) {
+  const { t } = useLanguage()
   const [search, setSearch] = useState('')
   const [stateFilter, setStateFilter] = useState('')
   const [assetFilter, setAssetFilter] = useState('')
@@ -175,7 +177,7 @@ export function DashboardGrid({ stores }: DashboardGridProps) {
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search locations by name, address, city..."
+          placeholder={t('dashboard.searchPlaceholder')}
           className="flex-1 bg-transparent px-3 py-3 text-sm placeholder:text-muted-foreground/40 focus:outline-none"
         />
         {search && (
@@ -282,8 +284,8 @@ export function DashboardGrid({ stores }: DashboardGridProps) {
               <div className="flex items-center gap-2 flex-wrap">
                 <p className="text-xs text-muted-foreground/70">
                   {store.doc_count === 0
-                    ? 'No documents yet'
-                    : `${store.doc_count} document${store.doc_count !== 1 ? 's' : ''}`}
+                    ? t('dashboard.noDocuments')
+                    : `${store.doc_count} ${t('dashboard.documents')}`}
                 </p>
                 <AssetClassBadge storeId={store.id} assetClass={store.asset_class} docCount={store.doc_count} />
               </div>

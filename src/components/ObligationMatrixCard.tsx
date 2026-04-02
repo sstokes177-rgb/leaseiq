@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Loader2, RefreshCw, ClipboardList } from 'lucide-react'
 import type { ObligationItem } from '@/types'
+import { useLanguage } from './LanguageProvider'
 
 interface ObligationMatrixCardProps {
   storeId: string
@@ -87,6 +88,7 @@ function ObligationColumn({
 }
 
 export function ObligationMatrixCard({ storeId }: ObligationMatrixCardProps) {
+  const { t } = useLanguage()
   const [obligations, setObligations] = useState<ObligationItem[] | null>(null)
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(false)
@@ -176,8 +178,8 @@ export function ObligationMatrixCard({ storeId }: ObligationMatrixCardProps) {
             <ClipboardList className="h-4 w-4 text-indigo-400" />
           </div>
           <div>
-            <p className="font-semibold text-sm">Obligation Matrix</p>
-            <p className="text-xs text-muted-foreground/80">Who is responsible for what</p>
+            <p className="font-semibold text-sm">{t('obligations.title')}</p>
+            <p className="text-xs text-muted-foreground/80">{t('obligations.subtitle')}</p>
           </div>
         </div>
         {error && <p className="text-xs text-red-400/80 mb-3">{error}</p>}
@@ -187,7 +189,7 @@ export function ObligationMatrixCard({ storeId }: ObligationMatrixCardProps) {
           className="flex items-center gap-2 text-sm font-medium text-indigo-400/80 hover:text-indigo-300 transition-colors disabled:opacity-50"
         >
           {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-          {generating ? 'Analyzing lease obligations…' : 'Generate obligation matrix'}
+          {generating ? t('obligations.generating') : t('obligations.generate')}
         </button>
       </div>
     )
@@ -210,39 +212,39 @@ export function ObligationMatrixCard({ storeId }: ObligationMatrixCardProps) {
             <ClipboardList className="h-4 w-4 text-indigo-400" />
           </div>
           <div>
-            <p className="font-semibold text-sm">Obligation Matrix</p>
-            <p className="text-xs text-muted-foreground/60">AI-extracted from your lease documents</p>
+            <p className="font-semibold text-sm">{t('obligations.title')}</p>
+            <p className="text-xs text-muted-foreground/60">{t('summary.aiExtracted')}</p>
           </div>
         </div>
         <button
           onClick={handleGenerate}
           disabled={generating}
-          title="Regenerate matrix"
+          title={t('summary.regenerate')}
           className="flex items-center gap-1.5 text-xs text-muted-foreground/60 hover:text-white/70 transition-colors shrink-0 disabled:opacity-40"
         >
           {generating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
-          {generating ? 'Regenerating…' : 'Regenerate'}
+          {generating ? t('summary.regenerating') : t('summary.regenerate')}
         </button>
       </div>
 
       {/* Two-column: Tenant / Landlord */}
       {(tenantItems.length > 0 || landlordItems.length > 0) && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <ObligationColumn title="Your Responsibility" items={tenantItems} responsible="Tenant" />
-          <ObligationColumn title="Landlord's Responsibility" items={landlordItems} responsible="Landlord" />
+          <ObligationColumn title={t('obligations.yourResp')} items={tenantItems} responsible="Tenant" />
+          <ObligationColumn title={t('obligations.landlordResp')} items={landlordItems} responsible="Landlord" />
         </div>
       )}
 
       {/* Shared */}
       {sharedItems.length > 0 && (
-        <ObligationColumn title="Shared" items={sharedItems} responsible="Shared" />
+        <ObligationColumn title={t('obligations.shared')} items={sharedItems} responsible="Shared" />
       )}
 
       {/* Not Addressed */}
       {naItems.length > 0 && (
         <div>
           <p className="text-[10px] font-semibold text-white/25 uppercase tracking-widest mb-2">
-            Not addressed in lease ({naItems.length})
+            {t('obligations.notAddressed')} ({naItems.length})
           </p>
           <div className="flex flex-wrap gap-1.5">
             {naItems.map((item, i) => (

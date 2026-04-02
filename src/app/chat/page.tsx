@@ -13,6 +13,7 @@ import { ChatSidebar } from '@/components/ChatSidebar'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { ArrowLeft, FileText, ShieldAlert, ChevronDown, PanelLeft } from 'lucide-react'
+import { useLanguage } from '@/components/LanguageProvider'
 
 const EXAMPLE_QUESTIONS = [
   'Who is responsible for HVAC repairs?',
@@ -21,6 +22,15 @@ const EXAMPLE_QUESTIONS = [
   'When is my next rent increase and by how much?',
   'Can I put a sign on my storefront?',
   "What happens if I'm late on rent?",
+]
+
+const EXAMPLE_QUESTIONS_ES = [
+  '\u00bfQui\u00e9n es responsable de las reparaciones de HVAC?',
+  '\u00bfPuedo subarrendar parte de mi espacio?',
+  '\u00bfCu\u00e1les son mis opciones de terminaci\u00f3n anticipada?',
+  '\u00bfCu\u00e1ndo es mi pr\u00f3ximo aumento de renta y por cu\u00e1nto?',
+  '\u00bfPuedo poner un letrero en mi fachada?',
+  '\u00bfQu\u00e9 pasa si me atraso en la renta?',
 ]
 
 interface StoreInfo {
@@ -72,6 +82,8 @@ function ChatInterface({
   const timestampsRef = useRef<Map<string, Date>>(new Map())
   const prevStatusRef = useRef<string>('ready')
   const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined)
+  const { lang, t } = useLanguage()
+  const exampleQuestions = lang === 'es' ? EXAMPLE_QUESTIONS_ES : EXAMPLE_QUESTIONS
 
   const { messages, sendMessage, status, error, clearError } = useChat({
     transport: new DefaultChatTransport({
@@ -137,19 +149,19 @@ function ChatInterface({
                 >
                   <FileText className="h-8 w-8 text-emerald-400" />
                 </div>
-                <h2 className="font-bold text-xl">Ask anything about your lease</h2>
+                <h2 className="font-bold text-xl">{t('chat.askAnything')}</h2>
                 <p className="text-sm text-muted-foreground mt-2 max-w-xs mx-auto font-light leading-relaxed">
                   {store
-                    ? `Answers are grounded in documents for ${store.store_name}.`
-                    : 'Questions are answered using the exact language from your uploaded documents.'}
+                    ? `${t('chat.groundedIn')} ${store.store_name}.`
+                    : t('chat.groundedGeneral')}
                 </p>
               </div>
               <div>
                 <p className="text-xs font-semibold text-muted-foreground/75 uppercase tracking-widest mb-3">
-                  Example questions
+                  {t('chat.exampleQuestions')}
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {EXAMPLE_QUESTIONS.map((q) => (
+                  {exampleQuestions.map((q) => (
                     <button
                       key={q}
                       onClick={() => { sendMessage({ text: q }) }}
@@ -203,8 +215,8 @@ function ChatInterface({
           <ChatInput value={input} onChange={setInput} onSubmit={handleSubmit} isLoading={isLoading} />
           <p className="text-xs text-muted-foreground/65 text-center mt-2">
             {store
-              ? `Grounded in documents for ${store.store_name}`
-              : 'Grounded in your uploaded lease documents'}
+              ? `${t('chat.groundedIn')} ${store.store_name}`
+              : t('chat.groundedGeneral')}
           </p>
         </div>
       </div>
@@ -217,6 +229,7 @@ function ChatInterface({
 function ChatPageInner() {
   const searchParams = useSearchParams()
   const storeParam = searchParams.get('store')
+  const { t } = useLanguage()
 
   const [stores, setStores] = useState<StoreInfo[]>([])
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(storeParam)
@@ -403,7 +416,7 @@ function ChatPageInner() {
         >
           <ShieldAlert className="h-3.5 w-3.5 text-amber-400/80 shrink-0" />
           <p className="text-xs text-amber-200/60 leading-tight">
-            LeaseIQ provides informational summaries only — not legal advice. Consult a licensed attorney for legal interpretation.
+            {t('chat.disclaimer')}
           </p>
         </div>
 
