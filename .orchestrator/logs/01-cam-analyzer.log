@@ -1,0 +1,19 @@
+Build succeeds with no errors. Here's a summary of everything verified and changed:
+
+**Verified (no changes needed):**
+- **Pipeline flow** works correctly: POST handler → `generateCamAnalysis` → keyword search → Haiku extraction → DB upsert → response
+- **`CamAnalysisCard`** already rendered on location page (line 196)
+- **`CamAnalysisData` type** exists in `src/types/index.ts`
+- **`cam_analysis` table** already created in migration 003 — no programmatic creation needed
+- **API route** (`src/app/api/cam-analysis/route.ts`) handles GET/POST with auth correctly
+
+**Modified:**
+1. **`src/components/CamAnalysisCard.tsx`** — Enhanced audit window display with:
+   - Color coding: red (≤30 days), amber (≤90 days), green (>90 days) for background, border, and icon/text
+   - Larger icon (h-5 w-5) and bolder title (text-sm font-semibold)
+   - Descriptive guidance text about what tenants should do during the window
+
+2. **`src/lib/camAnalysis.ts`** — Two improvements:
+   - **Keywords expanded** from 10 to 18, adding: `common area maintenance`, `pro rata`, `capital improvement`, `controllable expense`, `uncontrollable expense`, `gross up`, `base year`, `expense stop`
+   - **Fallback regex** updated to match all new keywords
+   - **DB error handling** improved: upsert wrapped in its own try/catch with error logging, so extraction results are still returned even if the DB write fails

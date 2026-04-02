@@ -5,16 +5,24 @@ import { keywordSearchChunks } from './vectorStore'
 import type { CamAnalysisData } from '@/types'
 
 const CAM_KEYWORDS = [
+  'common area maintenance',
   'common area',
   'CAM',
   'maintenance charge',
   'operating expense',
   'pass-through',
   'proportionate share',
+  'pro rata',
   'admin fee',
   'management fee',
   'reconcil',
   'audit',
+  'capital improvement',
+  'controllable expense',
+  'uncontrollable expense',
+  'gross up',
+  'base year',
+  'expense stop',
 ]
 
 export async function generateCamAnalysis(
@@ -52,7 +60,7 @@ export async function generateCamAnalysis(
       .limit(60)
 
     const filtered = (rawChunks ?? []).filter((c: { id: string; content: string }) =>
-      /common\s*area|cam\b|maintenance|operating\s*expense|pass.?through|proportionate|admin\s*fee|management\s*fee|reconcil|audit/i.test(
+      /common\s*area|cam\b|maintenance|operating\s*expense|pass.?through|proportionate|pro\s*rata|admin\s*fee|management\s*fee|reconcil|audit|capital\s*improvement|controllable\s*expense|uncontrollable|gross\s*up|base\s*year|expense\s*stop/i.test(
         c.content
       )
     )
@@ -107,24 +115,30 @@ ${contextText.slice(0, 18000)}`,
     }
 
     // Upsert
-    const { data: existing } = await admin
-      .from('cam_analysis')
-      .select('id')
-      .eq('store_id', storeId)
-      .eq('tenant_id', tenantId)
-      .maybeSingle()
-
-    if (existing) {
-      await admin
+    try {
+      const { data: existing } = await admin
         .from('cam_analysis')
-        .update({ analysis_data: analysisData })
-        .eq('id', existing.id)
-    } else {
-      await admin.from('cam_analysis').insert({
-        store_id: storeId,
-        tenant_id: tenantId,
-        analysis_data: analysisData,
-      })
+        .select('id')
+        .eq('store_id', storeId)
+        .eq('tenant_id', tenantId)
+        .maybeSingle()
+
+      if (existing) {
+        const { error: updateErr } = await admin
+          .from('cam_analysis')
+          .update({ analysis_data: analysisData })
+          .eq('id', existing.id)
+        if (updateErr) console.error('[CAM] Update failed:', updateErr.message)
+      } else {
+        const { error: insertErr } = await admin.from('cam_analysis').insert({
+          store_id: storeId,
+          tenant_id: tenantId,
+          analysis_data: analysisData,
+        })
+        if (insertErr) console.error('[CAM] Insert failed:', insertErr.message)
+      }
+    } catch (dbErr) {
+      console.error('[CAM] DB upsert failed (table may not exist):', dbErr)
     }
 
     return analysisData

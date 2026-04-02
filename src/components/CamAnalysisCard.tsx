@@ -119,14 +119,36 @@ export function CamAnalysisCard({ storeId }: CamAnalysisCardProps) {
       {/* Audit window warning */}
       {analysis.audit_window_days != null && (
         <div
-          className="rounded-xl px-4 py-3 flex items-start gap-3"
-          style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.20)' }}
+          className="rounded-xl px-4 py-4 flex items-start gap-3"
+          style={{
+            background: analysis.audit_window_days <= 30
+              ? 'rgba(239,68,68,0.10)'
+              : analysis.audit_window_days <= 90
+              ? 'rgba(245,158,11,0.08)'
+              : 'rgba(16,185,129,0.08)',
+            border: `1px solid ${
+              analysis.audit_window_days <= 30
+                ? 'rgba(239,68,68,0.22)'
+                : analysis.audit_window_days <= 90
+                ? 'rgba(245,158,11,0.20)'
+                : 'rgba(16,185,129,0.18)'
+            }`,
+          }}
         >
-          <AlertCircle className="h-4 w-4 text-red-400 mt-0.5 shrink-0" />
+          <AlertCircle className={`h-5 w-5 mt-0.5 shrink-0 ${
+            analysis.audit_window_days <= 30 ? 'text-red-400' :
+            analysis.audit_window_days <= 90 ? 'text-amber-400' : 'text-emerald-400'
+          }`} />
           <div>
-            <p className="text-xs font-semibold text-red-400">CAM Objection Window</p>
-            <p className="text-xs text-red-300/70 mt-0.5">
-              You have {analysis.audit_window_days} days after receiving the annual reconciliation statement to object or request an audit. Don&apos;t miss this deadline.
+            <p className={`text-sm font-semibold ${
+              analysis.audit_window_days <= 30 ? 'text-red-400' :
+              analysis.audit_window_days <= 90 ? 'text-amber-400' : 'text-emerald-300'
+            }`}>
+              {analysis.audit_window_days}-Day CAM Objection Window
+            </p>
+            <p className="text-xs text-white/60 mt-1 leading-relaxed">
+              After receiving the annual CAM reconciliation statement, you have {analysis.audit_window_days} days
+              to review, object, or request a formal audit. Consider hiring a CAM auditor if charges seem unusually high.
             </p>
           </div>
         </div>
