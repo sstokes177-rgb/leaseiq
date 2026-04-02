@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Loader2, ShieldCheck, ShieldAlert, Users, Store } from 'lucide-react'
+import { ShieldCheck, ShieldAlert, Users, Store } from 'lucide-react'
 
 interface LeaseClauseCardProps {
   storeId: string

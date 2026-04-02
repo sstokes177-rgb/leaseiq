@@ -153,7 +153,7 @@ export function OccupancyCostCard({ storeId }: OccupancyCostCardProps) {
             <div className="flex items-center gap-2">
               <span className="text-xs text-white/70">{item.label}</span>
               {item.source === 'not set' && (
-                <span className="text-[10px] text-white/20 italic">not set</span>
+                <span className="text-[10px] text-white/35 italic">not set</span>
               )}
             </div>
             <span className={`text-xs font-medium ${item.amount > 0 ? 'text-white/85' : 'text-white/25'}`}>

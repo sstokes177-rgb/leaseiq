@@ -1,5 +1,50 @@
 -- Phase 3B-3E: CAM Intelligence, Financial Tools, Monitoring, Settings
 
+-- Ensure lease_summaries and obligation_matrices tables exist with RLS
+CREATE TABLE IF NOT EXISTS lease_summaries (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
+  tenant_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  summary_data JSONB NOT NULL DEFAULT '{}',
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE lease_summaries ENABLE ROW LEVEL SECURITY;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can view own lease summaries' AND tablename = 'lease_summaries') THEN
+    CREATE POLICY "Users can view own lease summaries" ON lease_summaries FOR SELECT USING (tenant_id = auth.uid());
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can insert own lease summaries' AND tablename = 'lease_summaries') THEN
+    CREATE POLICY "Users can insert own lease summaries" ON lease_summaries FOR INSERT WITH CHECK (tenant_id = auth.uid());
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can update own lease summaries' AND tablename = 'lease_summaries') THEN
+    CREATE POLICY "Users can update own lease summaries" ON lease_summaries FOR UPDATE USING (tenant_id = auth.uid());
+  END IF;
+END $$;
+
+CREATE TABLE IF NOT EXISTS obligation_matrices (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
+  tenant_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  matrix_data JSONB NOT NULL DEFAULT '{}',
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE obligation_matrices ENABLE ROW LEVEL SECURITY;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can view own obligation matrices' AND tablename = 'obligation_matrices') THEN
+    CREATE POLICY "Users can view own obligation matrices" ON obligation_matrices FOR SELECT USING (tenant_id = auth.uid());
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can insert own obligation matrices' AND tablename = 'obligation_matrices') THEN
+    CREATE POLICY "Users can insert own obligation matrices" ON obligation_matrices FOR INSERT WITH CHECK (tenant_id = auth.uid());
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can update own obligation matrices' AND tablename = 'obligation_matrices') THEN
+    CREATE POLICY "Users can update own obligation matrices" ON obligation_matrices FOR UPDATE USING (tenant_id = auth.uid());
+  END IF;
+END $$;
+
 -- CAM Analysis table
 CREATE TABLE IF NOT EXISTS cam_analysis (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,

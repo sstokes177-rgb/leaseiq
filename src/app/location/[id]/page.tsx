@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import {
   MessageSquare, Upload, FileText, ArrowRight, ArrowLeft,
-  Calendar, AlertTriangle, AlertCircle, MapPin, Building2, Info,
+  Calendar, AlertTriangle, AlertCircle, MapPin, Building2,
 } from 'lucide-react'
 import { LeaseSummaryCard } from '@/components/LeaseSummaryCard'
 import { ObligationMatrixCard } from '@/components/ObligationMatrixCard'

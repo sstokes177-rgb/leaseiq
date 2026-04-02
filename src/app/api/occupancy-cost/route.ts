@@ -9,6 +9,15 @@ export async function GET(request: NextRequest) {
   const storeId = request.nextUrl.searchParams.get('store_id')
   if (!storeId) return NextResponse.json({ error: 'store_id required' }, { status: 400 })
 
+  // Verify store ownership
+  const { data: store } = await supabase
+    .from('stores')
+    .select('id')
+    .eq('id', storeId)
+    .eq('tenant_id', user.id)
+    .maybeSingle()
+  if (!store) return NextResponse.json({ error: 'Store not found' }, { status: 404 })
+
   try {
     const [summaryRes, camRes, overridesRes, pctRentRes] = await Promise.all([
       supabase.from('lease_summaries').select('summary_data').eq('store_id', storeId).eq('tenant_id', user.id).maybeSingle(),

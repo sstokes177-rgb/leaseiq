@@ -158,7 +158,7 @@ export function RentEscalationTimeline({ storeId }: RentEscalationTimelineProps)
                 {y.escalationPct != null && y.escalationPct > 0 ? (
                   <span className="text-[10px] font-medium text-amber-400/70">+{y.escalationPct}%</span>
                 ) : y.escalationPct === null ? (
-                  <span className="text-[10px] text-white/20">Base</span>
+                  <span className="text-[10px] text-white/35">Base</span>
                 ) : null}
               </div>
               {y.isCurrent && (
