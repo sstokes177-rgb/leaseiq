@@ -140,7 +140,7 @@ ${contextText.slice(0, 22000)}`,
         if (storeErr) {
           console.error('[LeaseSummary] Failed to update store asset_class:', storeErr.message)
         } else {
-          console.log(`[LeaseSummary] Auto-detected asset_class: ${normalized} for store ${storeId}`)
+          console.info(`[LeaseSummary] Auto-detected asset_class: ${normalized} for store ${storeId}`)
         }
       }
     }

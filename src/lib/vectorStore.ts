@@ -48,15 +48,15 @@ export async function retrieveRelevantChunks(
 ): Promise<RetrievedChunk[]> {
   const supabase = createAdminSupabaseClient()
 
-  console.log(`[RAG] Question received: "${question.slice(0, 100)}"`)
-  console.log(`[RAG] Store ID: ${storeId ?? 'null'} | Tenant ID: ${tenantId}`)
+  console.info(`[RAG] Question received: "${question.slice(0, 100)}"`)
+  console.info(`[RAG] Store ID: ${storeId ?? 'null'} | Tenant ID: ${tenantId}`)
 
   const queryEmbedding = await embedText(question)
-  console.log(`[RAG] Embedding generated: ${queryEmbedding.length} dimensions`)
+  console.info(`[RAG] Embedding generated: ${queryEmbedding.length} dimensions`)
 
   const embStr = `[${queryEmbedding.join(',')}]`
 
-  console.log(`[RAG] Calling match_documents — store_id=${storeId ?? 'null'}, threshold=${MATCH_THRESHOLD}, count=${matchCount}`)
+  console.info(`[RAG] Calling match_documents — store_id=${storeId ?? 'null'}, threshold=${MATCH_THRESHOLD}, count=${matchCount}`)
 
   const { data, error } = await supabase.rpc('match_document_chunks', {
     query_embedding: embStr,
@@ -73,10 +73,10 @@ export async function retrieveRelevantChunks(
 
   const chunks = (data as RetrievedChunk[]) ?? []
   const topScore = chunks.length > 0 ? chunks[0].similarity.toFixed(4) : 'n/a'
-  console.log(`[RAG] Match results: ${chunks.length} chunks found, top score: ${topScore} (store-scoped: ${storeId != null})`)
+  console.info(`[RAG] Match results: ${chunks.length} chunks found, top score: ${topScore} (store-scoped: ${storeId != null})`)
   if (chunks.length > 0) {
     const docNames = [...new Set(chunks.map(c => c.metadata?.document_name ?? 'unknown'))].join(', ')
-    console.log(`[RAG] Chunks from documents: ${docNames}`)
+    console.info(`[RAG] Chunks from documents: ${docNames}`)
   }
 
   // Sort so amendments appear before base lease — amendments take precedence
@@ -122,7 +122,7 @@ export async function keywordSearchChunks(
     }
 
     const results = (data as RetrievedChunk[]) ?? []
-    console.log(`[RAG] Keyword search "${keyword}": ${results.length} results`)
+    console.info(`[RAG] Keyword search "${keyword}": ${results.length} results`)
     return results
   } catch (err) {
     console.warn(`[RAG] Keyword search threw for "${keyword}":`, err)

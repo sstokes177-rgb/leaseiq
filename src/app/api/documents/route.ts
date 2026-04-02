@@ -25,7 +25,8 @@ export async function GET(request: NextRequest) {
   const { data: documents, error } = await query
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    console.error('[Documents] GET error:', error.message)
+    return NextResponse.json({ error: 'Failed to fetch documents' }, { status: 500 })
   }
 
   return NextResponse.json({ documents })
@@ -53,7 +54,8 @@ export async function DELETE(request: NextRequest) {
     .eq('tenant_id', user.id)
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    console.error('[Documents] DELETE error:', error.message)
+    return NextResponse.json({ error: 'Failed to delete document' }, { status: 500 })
   }
 
   return NextResponse.json({ success: true })

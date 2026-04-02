@@ -163,7 +163,7 @@ export async function buildRAGContext(
   let chunks = await retrieveRelevantChunks(question, tenantId, 12, storeId)
 
   if (chunks.length === 0 && storeId != null) {
-    console.log('[RAG] Store-scoped vector search returned 0 chunks — will NOT fall back to other stores')
+    console.info('[RAG] Store-scoped vector search returned 0 chunks — will NOT fall back to other stores')
   }
 
   // ── Step 2: Keyword (ILIKE) hybrid search — always runs ───────────────────
@@ -172,7 +172,7 @@ export async function buildRAGContext(
   const keywords = extractKeywords(question)
 
   if (keywords.length > 0) {
-    console.log(`[RAG] Keyword search terms: ${keywords.join(', ')}`)
+    console.info(`[RAG] Keyword search terms: ${keywords.join(', ')}`)
 
     // Run all keyword searches in parallel, scoped to the current store only
     const keywordResults = await Promise.all(
@@ -185,7 +185,7 @@ export async function buildRAGContext(
     if (allKeywordChunks.length > 0) {
       const before = chunks.length
       chunks = deduplicateChunks(chunks, allKeywordChunks)
-      console.log(`[RAG] Keyword search added ${chunks.length - before} unique chunks (total: ${chunks.length})`)
+      console.info(`[RAG] Keyword search added ${chunks.length - before} unique chunks (total: ${chunks.length})`)
     }
   }
 
@@ -193,13 +193,13 @@ export async function buildRAGContext(
   if (chunks.length < 3) {
     const topicQuery = extractTopicQuery(question)
     if (topicQuery) {
-      console.log(`[RAG] Sparse results (${chunks.length}) — running topic expansion search: "${topicQuery}"`)
+      console.info(`[RAG] Sparse results (${chunks.length}) — running topic expansion search: "${topicQuery}"`)
       const topicChunks = await retrieveRelevantChunks(topicQuery, tenantId, 12, storeId ?? null)
 
       if (topicChunks.length > 0) {
-        console.log(`[RAG] Topic expansion found ${topicChunks.length} additional chunks`)
+        console.info(`[RAG] Topic expansion found ${topicChunks.length} additional chunks`)
         chunks = deduplicateChunks(chunks, topicChunks)
-        console.log(`[RAG] Combined total: ${chunks.length} chunks after deduplication`)
+        console.info(`[RAG] Combined total: ${chunks.length} chunks after deduplication`)
       }
     }
   }

@@ -6,6 +6,8 @@ import { extractDisplayName } from '@/lib/extractDisplayName'
 import { extractLeaseIdentifiers, checkMismatch } from '@/lib/validateDocument'
 import { extractCriticalDates } from '@/lib/extractCriticalDates'
 
+export const maxDuration = 120
+
 export type FileResultStatus = 'success' | 'failed' | 'duplicate' | 'mismatch'
 
 export interface FileResult {
@@ -18,6 +20,16 @@ export interface FileResult {
   reference?: { tenant_name: string | null; property_name: string | null; display_name: string | null }
 }
 
+/** Sanitize filename: remove path separators and control characters, keep extension */
+function sanitizeFilename(name: string): string {
+  return name
+    .replace(/[/\\:*?"<>|]/g, '_')   // Remove path separators and illegal chars
+    .replace(/[\x00-\x1f\x7f]/g, '') // Remove control characters
+    .replace(/\.{2,}/g, '.')          // Collapse consecutive dots
+    .trim()
+    .slice(0, 255)                    // Limit length
+}
+
 async function processSingleFile(
   file: File,
   userId: string,
@@ -25,7 +37,7 @@ async function processSingleFile(
   forceUpload: boolean,
   admin: ReturnType<typeof createAdminSupabaseClient>
 ): Promise<FileResult> {
-  const fileName = file.name
+  const fileName = sanitizeFilename(file.name)
 
   // ── Validate file type ──
   if (!isAcceptedFileType(file.type, fileName)) {
@@ -124,7 +136,8 @@ async function processSingleFile(
     .upload(filePath, buffer, { contentType, upsert: false })
 
   if (storageError) {
-    return { file_name: fileName, status: 'failed', error: `Storage error: ${storageError.message}` }
+    console.error('[Upload] Storage error:', storageError.message)
+    return { file_name: fileName, status: 'failed', error: 'Failed to upload file to storage' }
   }
 
   // ── Step 5: Create document record ──
@@ -143,7 +156,8 @@ async function processSingleFile(
 
   if (docError || !document) {
     await admin.storage.from('leases').remove([filePath])
-    return { file_name: fileName, status: 'failed', error: `Database error: ${docError?.message}` }
+    console.error('[Upload] Database error:', docError?.message)
+    return { file_name: fileName, status: 'failed', error: 'Failed to save document record' }
   }
 
   // ── Step 6: Store chunks ──

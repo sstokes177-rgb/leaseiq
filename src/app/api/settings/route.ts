@@ -47,6 +47,9 @@ export async function PUT(request: NextRequest) {
     .update(updates)
     .eq('id', user.id)
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    console.error('[Settings] PUT error:', error.message)
+    return NextResponse.json({ error: 'Failed to update settings' }, { status: 500 })
+  }
   return NextResponse.json({ success: true })
 }

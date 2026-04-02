@@ -16,7 +16,8 @@ export async function GET() {
     .order('created_at', { ascending: true })
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    console.error('[Stores] GET error:', error.message)
+    return NextResponse.json({ error: 'Failed to fetch stores' }, { status: 500 })
   }
 
   return NextResponse.json({ stores })
@@ -30,7 +31,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const body = await request.json()
+  const body = await request.json().catch(() => ({}))
   const { store_name, shopping_center_name, suite_number, address, asset_class } = body
 
   if (!store_name?.trim()) {
@@ -51,7 +52,8 @@ export async function POST(request: NextRequest) {
     .single()
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    console.error('[Stores] POST error:', error.message)
+    return NextResponse.json({ error: 'Failed to create store' }, { status: 500 })
   }
 
   return NextResponse.json({ store })
@@ -79,7 +81,8 @@ export async function DELETE(request: NextRequest) {
     .eq('tenant_id', user.id)
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    console.error('[Stores] DELETE error:', error.message)
+    return NextResponse.json({ error: 'Failed to delete store' }, { status: 500 })
   }
 
   return NextResponse.json({ success: true })

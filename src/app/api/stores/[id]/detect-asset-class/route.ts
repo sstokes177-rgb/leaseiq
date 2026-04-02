@@ -3,6 +3,8 @@ import { generateText } from 'ai'
 import { anthropic } from '@ai-sdk/anthropic'
 import { createServerSupabaseClient, createAdminSupabaseClient } from '@/lib/supabase'
 
+export const maxDuration = 60
+
 export async function POST(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

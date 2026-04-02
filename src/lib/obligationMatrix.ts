@@ -69,7 +69,7 @@ export async function generateObligationMatrix(
   // Fallback: if keyword search returns nothing (function not deployed yet),
   // fetch chunks from DB and filter for obligation language
   if (chunks.length === 0) {
-    console.log('[Obligations] Keyword search returned 0 results — using DB fallback for store', storeId)
+    console.info('[Obligations] Keyword search returned 0 results — using DB fallback for store', storeId)
     const { data: rawChunks, error: fetchError } = await admin
       .from('document_chunks')
       .select('id, content')
@@ -82,7 +82,7 @@ export async function generateObligationMatrix(
     }
 
     const toUse = rawChunks ?? []
-    console.log('[Obligations] DB fallback fetched', toUse.length, 'chunks for store', storeId)
+    console.info('[Obligations] DB fallback fetched', toUse.length, 'chunks for store', storeId)
 
     if (toUse.length === 0) {
       console.warn('[Obligations] No chunks found — store_id:', storeId, 'tenant_id:', tenantId)

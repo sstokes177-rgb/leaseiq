@@ -39,7 +39,10 @@ export async function PATCH(request: NextRequest) {
     .eq('id', id)
     .eq('tenant_id', user.id)
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    console.error('[Conversations] PATCH error:', error.message)
+    return NextResponse.json({ error: 'Failed to update conversation' }, { status: 500 })
+  }
   return NextResponse.json({ success: true })
 }
 
@@ -57,6 +60,9 @@ export async function DELETE(request: NextRequest) {
     .eq('id', id)
     .eq('tenant_id', user.id)
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    console.error('[Conversations] DELETE error:', error.message)
+    return NextResponse.json({ error: 'Failed to delete conversation' }, { status: 500 })
+  }
   return NextResponse.json({ success: true })
 }

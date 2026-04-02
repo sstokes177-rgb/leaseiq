@@ -41,8 +41,9 @@ export async function POST(request: NextRequest) {
     .download(doc.file_path)
 
   if (downloadErr || !fileData) {
+    console.error('[Reprocess] File download failed:', downloadErr?.message)
     return NextResponse.json(
-      { error: `Could not download file: ${downloadErr?.message ?? 'unknown error'}` },
+      { error: 'Could not download file from storage' },
       { status: 500 }
     )
   }
@@ -66,8 +67,9 @@ export async function POST(request: NextRequest) {
     .eq('document_id', documentId)
 
   if (deleteErr) {
+    console.error('[Reprocess] Failed to delete old chunks:', deleteErr.message)
     return NextResponse.json(
-      { error: `Failed to delete old chunks: ${deleteErr.message}` },
+      { error: 'Failed to delete old chunks' },
       { status: 500 }
     )
   }

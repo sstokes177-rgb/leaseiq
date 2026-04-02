@@ -22,7 +22,8 @@ export async function POST(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { email, role } = await request.json()
+  const body = await request.json().catch(() => ({}))
+  const { email, role } = body
   if (!email) return NextResponse.json({ error: 'Email required' }, { status: 400 })
 
   const validRoles = ['admin', 'member', 'viewer']

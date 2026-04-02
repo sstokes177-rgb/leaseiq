@@ -32,6 +32,8 @@ function isOverloadedError(err: unknown): boolean {
   return msg.includes('overload') || msg.includes('529')
 }
 
+export const maxDuration = 90
+
 export async function POST(request: NextRequest) {
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -40,11 +42,14 @@ export async function POST(request: NextRequest) {
     return new Response('Unauthorized', { status: 401 })
   }
 
-  const {
-    messages,
-    id: conversationId,
-    store_id: storeId,
-  }: { messages: UIMessage[]; id?: string; store_id?: string | null } = await request.json()
+  let body: { messages: UIMessage[]; id?: string; store_id?: string | null }
+  try {
+    body = await request.json()
+  } catch {
+    return new Response('Invalid request body', { status: 400 })
+  }
+
+  const { messages, id: conversationId, store_id: storeId } = body
 
   if (!messages || messages.length === 0) {
     return new Response('No messages provided', { status: 400 })
@@ -57,8 +62,8 @@ export async function POST(request: NextRequest) {
 
   const userText = getMessageText(lastUserMessage)
 
-  console.log(`[Chat] Question received: "${userText.slice(0, 100)}"`)
-  console.log(`[Chat] Store ID: ${storeId ?? 'null'} | User: ${user.id}`)
+  console.info(`[Chat] Question received: "${userText.slice(0, 100)}"`)
+  console.info(`[Chat] Store ID: ${storeId ?? 'null'} | User: ${user.id}`)
 
   // Fetch user's language preference
   let languagePreference = 'en'
@@ -101,7 +106,7 @@ export async function POST(request: NextRequest) {
   let modelId = PRIMARY_MODEL
   let result
 
-  console.log(`[Chat] Sending ${citations.length} chunks to Claude with model: ${modelId}`)
+  console.info(`[Chat] Sending ${citations.length} chunks to Claude with model: ${modelId}`)
 
   try {
     result = streamText({
@@ -114,7 +119,7 @@ export async function POST(request: NextRequest) {
         if (finishReason === 'error') {
           console.error(`[Chat] Stream finished with error`)
         } else {
-          console.log(`[Chat] Response received successfully — model: ${modelId}, length: ${text.length} chars`)
+          console.info(`[Chat] Response received successfully — model: ${modelId}, length: ${text.length} chars`)
         }
         if (conversationId && text) {
           try {
@@ -157,7 +162,7 @@ export async function POST(request: NextRequest) {
     // streamText exhausted all retries — try haiku fallback
     if (isOverloadedError(err)) {
       modelId = FALLBACK_MODEL
-      console.log(`[Chat] ${PRIMARY_MODEL} overloaded after all retries — falling back to ${FALLBACK_MODEL}`)
+      console.info(`[Chat] ${PRIMARY_MODEL} overloaded after all retries — falling back to ${FALLBACK_MODEL}`)
       try {
         result = streamText({
           model: anthropic(modelId),
@@ -166,7 +171,7 @@ export async function POST(request: NextRequest) {
           maxOutputTokens: 1024,
           maxRetries: 3,
           onFinish: async ({ text }) => {
-            console.log(`[Chat] Response received successfully — model: ${modelId} (fallback), length: ${text.length} chars`)
+            console.info(`[Chat] Response received successfully — model: ${modelId} (fallback), length: ${text.length} chars`)
             if (conversationId && text) {
               try {
                 const adminSupabase = createAdminSupabaseClient()

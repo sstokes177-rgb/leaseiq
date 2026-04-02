@@ -68,6 +68,9 @@ export async function POST(request: NextRequest) {
     { onConflict: 'store_id,tenant_id' }
   )
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    console.error('[OccupancyCost] POST error:', error.message)
+    return NextResponse.json({ error: 'Failed to save overrides' }, { status: 500 })
+  }
   return NextResponse.json({ success: true })
 }
