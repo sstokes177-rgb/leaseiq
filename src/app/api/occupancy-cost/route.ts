@@ -18,12 +18,14 @@ export async function GET(request: NextRequest) {
     .maybeSingle()
   if (!store) return NextResponse.json({ error: 'Store not found' }, { status: 404 })
 
+  const admin = createAdminSupabaseClient()
+
   try {
     const [summaryRes, camRes, overridesRes, pctRentRes] = await Promise.all([
-      supabase.from('lease_summaries').select('summary_data').eq('store_id', storeId).eq('tenant_id', user.id).maybeSingle(),
-      supabase.from('cam_analysis').select('analysis_data').eq('store_id', storeId).eq('tenant_id', user.id).maybeSingle(),
-      supabase.from('occupancy_cost_overrides').select('*').eq('store_id', storeId).eq('tenant_id', user.id).maybeSingle(),
-      supabase.from('percentage_rent_entries').select('gross_sales').eq('store_id', storeId).eq('tenant_id', user.id),
+      admin.from('lease_summaries').select('summary_data').eq('store_id', storeId).eq('tenant_id', user.id).maybeSingle(),
+      admin.from('cam_analysis').select('analysis_data').eq('store_id', storeId).eq('tenant_id', user.id).maybeSingle(),
+      admin.from('occupancy_cost_overrides').select('*').eq('store_id', storeId).eq('tenant_id', user.id).maybeSingle(),
+      admin.from('percentage_rent_entries').select('gross_sales').eq('store_id', storeId).eq('tenant_id', user.id),
     ])
 
     return NextResponse.json({
@@ -45,6 +47,11 @@ export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => ({}))
   const storeId = body?.store_id as string | undefined
   if (!storeId) return NextResponse.json({ error: 'store_id required' }, { status: 400 })
+
+  // Verify store ownership
+  const { data: store } = await supabase
+    .from('stores').select('id').eq('id', storeId).eq('tenant_id', user.id).maybeSingle()
+  if (!store) return NextResponse.json({ error: 'Store not found' }, { status: 404 })
 
   const admin = createAdminSupabaseClient()
 

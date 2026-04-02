@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Loader2, DollarSign, Edit3, Check, X } from 'lucide-react'
+import { Loader2, Calculator, Edit3, Check, X } from 'lucide-react'
 
 interface OccupancyCostCardProps {
   storeId: string
@@ -14,6 +14,7 @@ interface CostData {
   } | null
   cam: {
     proportionate_share_pct: string | null
+    cam_cap: string | null
   } | null
   overrides: {
     insurance_monthly: number | null
@@ -28,6 +29,44 @@ function parseCurrency(value: string | null): number {
   if (!value) return 0
   const num = parseFloat(value.replace(/[^0-9.-]/g, ''))
   return isNaN(num) ? 0 : num
+}
+
+function fmt(n: number): string {
+  return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+function CostRow({
+  label,
+  amount,
+  note,
+  highlight,
+  total,
+}: {
+  label: string
+  amount: number
+  note?: string
+  highlight?: boolean
+  total?: boolean
+}) {
+  return (
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-2">
+        <span className={`text-xs ${total ? 'font-semibold text-white/90' : highlight ? 'text-white/80 font-medium' : 'text-white/70'}`}>
+          {label}
+        </span>
+        {note && (
+          <span className="text-[10px] text-white/35 italic">{note}</span>
+        )}
+      </div>
+      <span className={
+        total
+          ? 'text-sm font-bold text-emerald-400'
+          : `text-xs font-medium ${amount > 0 ? 'text-white/85' : 'text-white/25'}`
+      }>
+        ${fmt(amount)}
+      </span>
+    </div>
+  )
 }
 
 export function OccupancyCostCard({ storeId }: OccupancyCostCardProps) {
@@ -103,19 +142,28 @@ export function OccupancyCostCard({ storeId }: OccupancyCostCardProps) {
   if (!data?.summary) return null
 
   const baseRent = parseCurrency(data.summary.base_rent_monthly)
-  const insuranceAmt = data.overrides?.insurance_monthly ?? 0
-  const taxAmt = data.overrides?.tax_monthly ?? 0
-  const otherAmt = data.overrides?.other_monthly ?? 0
-  const totalMonthly = baseRent + insuranceAmt + taxAmt + otherAmt
-  const sqft = parseFloat(data.summary.square_footage?.replace(/[^0-9.]/g, '') ?? '0')
-  const perSqFt = sqft > 0 ? totalMonthly / sqft : 0
+  const sqft = parseFloat((data.summary.square_footage ?? '0').replace(/[^0-9.]/g, '')) || 0
+  const insuranceAmt = Number(data.overrides?.insurance_monthly) || 0
+  const taxAmt = Number(data.overrides?.tax_monthly) || 0
+  const otherAmt = Number(data.overrides?.other_monthly) || 0
 
-  const lineItems = [
-    { label: 'Base Rent', amount: baseRent, source: 'lease' },
-    { label: 'Insurance', amount: insuranceAmt, source: insuranceAmt > 0 ? 'manual' : 'not set' },
-    { label: 'Property Tax', amount: taxAmt, source: taxAmt > 0 ? 'manual' : 'not set' },
-    ...(otherAmt > 0 ? [{ label: data.overrides?.other_label ?? 'Other', amount: otherAmt, source: 'manual' }] : []),
-  ]
+  // Estimate CAM from analysis if available
+  let camEstimate = 0
+  let camNote: string | undefined
+  if (data.cam?.cam_cap && sqft > 0) {
+    const capPerSqft = parseCurrency(data.cam.cam_cap)
+    if (capPerSqft > 0) {
+      camEstimate = (capPerSqft * sqft) / 12
+      camNote = 'Estimated from cap'
+    }
+  }
+  if (camEstimate === 0 && data.cam?.proportionate_share_pct) {
+    camNote = 'See CAM analysis'
+  }
+
+  const totalMonthly = baseRent + camEstimate + insuranceAmt + taxAmt + otherAmt
+  const totalAnnual = totalMonthly * 12
+  const perSqFt = sqft > 0 ? totalAnnual / sqft : 0
 
   return (
     <div className="glass-card rounded-2xl p-6 space-y-5">
@@ -124,9 +172,9 @@ export function OccupancyCostCard({ storeId }: OccupancyCostCardProps) {
         <div className="flex items-center gap-3 min-w-0">
           <div
             className="flex items-center justify-center w-9 h-9 rounded-xl shrink-0"
-            style={{ background: 'rgba(34,197,94,0.10)', border: '1px solid rgba(34,197,94,0.20)' }}
+            style={{ background: 'rgba(20,184,166,0.10)', border: '1px solid rgba(20,184,166,0.20)' }}
           >
-            <DollarSign className="h-4 w-4 text-green-400" />
+            <Calculator className="h-4 w-4 text-teal-400" />
           </div>
           <div className="min-w-0">
             <p className="font-semibold text-sm">Total Occupancy Cost</p>
@@ -148,37 +196,39 @@ export function OccupancyCostCard({ storeId }: OccupancyCostCardProps) {
         className="rounded-xl px-4 py-3 space-y-2"
         style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
       >
-        {lineItems.map((item, i) => (
-          <div key={i} className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-white/70">{item.label}</span>
-              {item.source === 'not set' && (
-                <span className="text-[10px] text-white/35 italic">not set</span>
-              )}
-            </div>
-            <span className={`text-xs font-medium ${item.amount > 0 ? 'text-white/85' : 'text-white/25'}`}>
-              ${item.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </span>
-          </div>
-        ))}
-        <div
-          className="flex items-center justify-between pt-2 mt-2"
-          style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}
-        >
-          <span className="text-xs font-semibold text-white/90">Total Monthly</span>
-          <span className="text-sm font-bold text-emerald-400">
-            ${totalMonthly.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </span>
-        </div>
-        {perSqFt > 0 && (
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] text-white/35">Per sq ft/month</span>
-            <span className="text-[11px] text-white/50">
-              ${perSqFt.toFixed(2)}/sf
-            </span>
-          </div>
+        <CostRow label="Base Rent" amount={baseRent} highlight />
+        <CostRow label="CAM Charges" amount={camEstimate} note={camNote} />
+        <CostRow label="Insurance" amount={insuranceAmt} note={insuranceAmt === 0 ? 'not set' : undefined} />
+        <CostRow label="Property Tax" amount={taxAmt} note={taxAmt === 0 ? 'not set' : undefined} />
+        {otherAmt > 0 && (
+          <CostRow label={data.overrides?.other_label ?? 'Other'} amount={otherAmt} />
         )}
+        <div
+          className="pt-2 mt-2"
+          style={{ borderTop: '1px solid rgba(255,255,255,0.10)' }}
+        >
+          <CostRow label="Total Monthly" amount={totalMonthly} total />
+        </div>
       </div>
+
+      {/* Per-sqft annual display */}
+      {sqft > 0 && (
+        <div
+          className="rounded-xl px-4 py-3 text-center"
+          style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.18)' }}
+        >
+          <p className="text-[10px] font-semibold text-emerald-400/60 uppercase tracking-widest">
+            Total Occupancy Cost
+          </p>
+          <p className="text-2xl font-bold text-emerald-300 mt-1">
+            ${perSqFt.toFixed(2)}
+            <span className="text-sm font-normal text-emerald-300/60">/sqft/yr</span>
+          </p>
+          <p className="text-xs text-white/40 mt-1">
+            ${totalAnnual.toLocaleString()}/year &middot; {sqft.toLocaleString()} sqft
+          </p>
+        </div>
+      )}
 
       {/* Edit form */}
       {editing && (
@@ -186,47 +236,56 @@ export function OccupancyCostCard({ storeId }: OccupancyCostCardProps) {
           className="rounded-xl px-4 py-3 space-y-3"
           style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
         >
-          <p className="text-xs font-semibold text-white/50">Manual Overrides</p>
+          <p className="text-[10px] font-semibold text-white/35 uppercase tracking-widest">Manual Overrides</p>
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="text-[10px] text-white/35 block mb-0.5">Insurance/mo</label>
-              <input
-                type="number"
-                value={insurance}
-                onChange={(e) => setInsurance(e.target.value)}
-                placeholder="0.00"
-                className="w-full bg-white/[0.06] border border-white/[0.10] rounded-lg px-2 py-1.5 text-xs text-white/85 placeholder:text-white/25"
-              />
+              <label className="text-[10px] font-semibold text-white/35 uppercase tracking-widest block mb-1">Insurance</label>
+              <div className="relative">
+                <input
+                  type="number"
+                  value={insurance}
+                  onChange={(e) => setInsurance(e.target.value)}
+                  placeholder="0.00"
+                  className="glass-input w-full px-3 py-1.5 pr-12 text-sm text-white/85 placeholder:text-white/25"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-white/30">$/mo</span>
+              </div>
             </div>
             <div>
-              <label className="text-[10px] text-white/35 block mb-0.5">Property Tax/mo</label>
-              <input
-                type="number"
-                value={tax}
-                onChange={(e) => setTax(e.target.value)}
-                placeholder="0.00"
-                className="w-full bg-white/[0.06] border border-white/[0.10] rounded-lg px-2 py-1.5 text-xs text-white/85 placeholder:text-white/25"
-              />
+              <label className="text-[10px] font-semibold text-white/35 uppercase tracking-widest block mb-1">Property Tax</label>
+              <div className="relative">
+                <input
+                  type="number"
+                  value={tax}
+                  onChange={(e) => setTax(e.target.value)}
+                  placeholder="0.00"
+                  className="glass-input w-full px-3 py-1.5 pr-12 text-sm text-white/85 placeholder:text-white/25"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-white/30">$/mo</span>
+              </div>
             </div>
             <div>
-              <label className="text-[10px] text-white/35 block mb-0.5">Other Label</label>
+              <label className="text-[10px] font-semibold text-white/35 uppercase tracking-widest block mb-1">Other Label</label>
               <input
                 type="text"
                 value={otherLabel}
                 onChange={(e) => setOtherLabel(e.target.value)}
                 placeholder="e.g. Marketing Fund"
-                className="w-full bg-white/[0.06] border border-white/[0.10] rounded-lg px-2 py-1.5 text-xs text-white/85 placeholder:text-white/25"
+                className="glass-input w-full px-3 py-1.5 text-sm text-white/85 placeholder:text-white/25"
               />
             </div>
             <div>
-              <label className="text-[10px] text-white/35 block mb-0.5">Other Amount/mo</label>
-              <input
-                type="number"
-                value={other}
-                onChange={(e) => setOther(e.target.value)}
-                placeholder="0.00"
-                className="w-full bg-white/[0.06] border border-white/[0.10] rounded-lg px-2 py-1.5 text-xs text-white/85 placeholder:text-white/25"
-              />
+              <label className="text-[10px] font-semibold text-white/35 uppercase tracking-widest block mb-1">Other Amount</label>
+              <div className="relative">
+                <input
+                  type="number"
+                  value={other}
+                  onChange={(e) => setOther(e.target.value)}
+                  placeholder="0.00"
+                  className="glass-input w-full px-3 py-1.5 pr-12 text-sm text-white/85 placeholder:text-white/25"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-white/30">$/mo</span>
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-2 pt-1">

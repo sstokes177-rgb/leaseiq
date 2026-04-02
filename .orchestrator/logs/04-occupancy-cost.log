@@ -1,0 +1,19 @@
+Build passes. Here's a summary of what was verified and fixed:
+
+**API Route** (`src/app/api/occupancy-cost/route.ts`):
+- GET: Switched parallel queries from user client to `admin` client (bypasses RLS after ownership is already verified)
+- POST: Added store ownership verification before upserting overrides
+- Both handlers already had proper auth, param validation, and parallel fetching
+
+**OccupancyCostCard** (`src/components/OccupancyCostCard.tsx`):
+- Added CAM charges line item (estimates monthly from `cam_cap` per-sqft if available)
+- Changed icon from `DollarSign` (green) to `Calculator` (teal) per spec
+- Added prominent per-sqft annual display box with emerald accent
+- Changed per-sqft calculation from monthly to annual (`totalAnnual / sqft`)
+- Switched inputs to `glass-input` class with `$/mo` suffix
+- Updated label styling to match spec (`text-[10px] font-semibold text-white/35 uppercase tracking-widest`)
+- Extracted `CostRow` component for consistent line item rendering
+
+**Location page** — already renders `<OccupancyCostCard storeId={id} />` at line 200.
+
+**Types** — `OccupancyCostOverrides` in `src/types/index.ts` already correct (uses `other_label` matching the DB migration).
