@@ -137,3 +137,92 @@ export interface CriticalDate {
   alert_days_before: number
   created_at: string
 }
+
+// CAM Analysis
+export interface CamAnalysisData {
+  proportionate_share_pct: string | null
+  admin_fee_pct: string | null
+  cam_cap: string | null
+  audit_window_days: number | null
+  excluded_items: string[]
+  included_items: string[]
+  escalation_limit: string | null
+}
+
+export interface CamAnalysis {
+  id: string
+  store_id: string
+  tenant_id: string
+  analysis_data: CamAnalysisData
+  created_at: string
+}
+
+// CAM Reconciliation
+export interface CamOvercharge {
+  item: string
+  amount: string
+  reason: string
+  article: string
+}
+
+export interface CamReconciliationData {
+  total_billed: string
+  potential_overcharges: CamOvercharge[]
+  total_potential_savings: string
+  recommendation: string
+}
+
+export interface CamReconciliation {
+  id: string
+  store_id: string
+  tenant_id: string
+  reconciliation_data: CamReconciliationData
+  file_name: string | null
+  created_at: string
+}
+
+// Percentage Rent
+export interface PercentageRentEntry {
+  id: string
+  store_id: string
+  tenant_id: string
+  month: number
+  year: number
+  gross_sales: number
+  created_at: string
+}
+
+export interface PercentageRentConfig {
+  id: string
+  store_id: string
+  tenant_id: string
+  breakpoint: number | null
+  percentage: number | null
+  analysis_data: {
+    breakpoint_raw: string | null
+    percentage_raw: string | null
+    details: string | null
+  }
+  created_at: string
+}
+
+// Occupancy Cost
+export interface OccupancyCostOverrides {
+  id: string
+  store_id: string
+  tenant_id: string
+  insurance_monthly: number | null
+  tax_monthly: number | null
+  other_monthly: number | null
+  other_label: string | null
+}
+
+// Team
+export interface TeamInvitation {
+  id: string
+  tenant_id: string
+  email: string
+  role: 'admin' | 'member' | 'viewer'
+  status: 'pending' | 'accepted' | 'revoked'
+  created_at: string
+}
