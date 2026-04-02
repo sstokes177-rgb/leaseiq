@@ -1,0 +1,17 @@
+Build passes cleanly. Here's a summary of what was done:
+
+**API route fixes** (`src/app/api/team/route.ts`):
+- **GET**: Switched from user Supabase client to admin client (bypasses RLS for reliable reads)
+- **POST**: Role now defaults to `'member'` if missing/invalid instead of returning 400; duplicate check now looks at both `pending` and `accepted` statuses with distinct error messages; error response uses generic message instead of leaking Supabase errors
+- **DELETE**: Switched from `request.nextUrl.searchParams` to `new URL(request.url).searchParams`; no longer returns errors from Supabase (fire-and-forget revoke)
+
+**Created** `src/components/TeamManagement.tsx`:
+- Invite form with email input, role selector (Admin/Member/Viewer), and submit button
+- Role description cards showing permissions for each role
+- Active invitations list with role icons, status badges, and revoke buttons for pending invites
+- Past invitations section (revoked/expired, capped at 5)
+- Pricing note: "$15/month per additional team member"
+- Loading spinner state
+
+**Updated** `src/app/settings/page.tsx`:
+- Added `<TeamManagement />` below `<SettingsClient />` in the settings page

@@ -5,6 +5,7 @@ import { createServerSupabaseClient } from '@/lib/supabase'
 import Link from 'next/link'
 import { FileText, ArrowLeft } from 'lucide-react'
 import { SettingsClient } from './SettingsClient'
+import { TeamManagement } from '@/components/TeamManagement'
 
 export default async function SettingsPage() {
   const supabase = await createServerSupabaseClient()
@@ -48,6 +49,7 @@ export default async function SettingsPage() {
         </div>
 
         <SettingsClient email={user.email ?? ''} />
+        <TeamManagement />
       </main>
     </div>
   )
