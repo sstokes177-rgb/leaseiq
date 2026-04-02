@@ -32,6 +32,7 @@ export function AddStoreButton() {
   const [open, setOpen] = useState(false)
   const [storeName, setStoreName] = useState('')
   const [suiteNumber, setSuiteNumber] = useState('')
+  const [assetClass, setAssetClass] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
@@ -47,6 +48,7 @@ export function AddStoreButton() {
       body: JSON.stringify({
         store_name: storeName.trim(),
         suite_number: suiteNumber.trim() || null,
+        asset_class: assetClass || null,
       }),
     })
     const data = await res.json()
@@ -58,6 +60,7 @@ export function AddStoreButton() {
       setOpen(false)
       setStoreName('')
       setSuiteNumber('')
+      setAssetClass('')
       router.refresh()
     }
   }
@@ -112,6 +115,22 @@ export function AddStoreButton() {
               onChange={(e) => setSuiteNumber(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && storeName.trim() && handleSubmit()}
             />
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground/90 mb-1.5 block">
+              Asset class <span className="text-muted-foreground/50">(optional — auto-detected after lease upload)</span>
+            </label>
+            <select
+              value={assetClass}
+              onChange={(e) => setAssetClass(e.target.value)}
+              className="w-full rounded-xl px-4 py-2.5 text-sm focus:outline-none transition-all cursor-pointer appearance-none"
+              style={inputStyle}
+            >
+              <option value="" style={{ background: '#0c0e14' }}>Auto-detect from lease</option>
+              {['Retail', 'Office', 'Industrial', 'Mixed-Use', 'Medical', 'Restaurant', 'Grocery', 'Other'].map(c => (
+                <option key={c} value={c} style={{ background: '#0c0e14' }}>{c}</option>
+              ))}
+            </select>
           </div>
         </div>
 

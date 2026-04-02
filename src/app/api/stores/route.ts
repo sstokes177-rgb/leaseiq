@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json()
-  const { store_name, shopping_center_name, suite_number, address } = body
+  const { store_name, shopping_center_name, suite_number, address, asset_class } = body
 
   if (!store_name?.trim()) {
     return NextResponse.json({ error: 'Store name is required' }, { status: 400 })
@@ -45,6 +45,7 @@ export async function POST(request: NextRequest) {
       shopping_center_name: shopping_center_name?.trim() || null,
       suite_number: suite_number?.trim() || null,
       address: address?.trim() || null,
+      asset_class: asset_class?.trim() || null,
     })
     .select()
     .single()

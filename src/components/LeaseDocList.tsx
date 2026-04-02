@@ -35,6 +35,8 @@ export function LeaseDocList({ refreshTrigger, storeId }: LeaseDocListProps) {
   const [urlLoadingId, setUrlLoadingId] = useState<string | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [previewName, setPreviewName] = useState<string>('')
+  const [previewNotPdf, setPreviewNotPdf] = useState(false)
+  const [showAll, setShowAll] = useState(false)
 
   const fetchDocuments = async () => {
     setLoading(true)
@@ -62,8 +64,6 @@ export function LeaseDocList({ refreshTrigger, storeId }: LeaseDocListProps) {
       setUrlLoadingId(null)
     }
   }
-
-  const [previewNotPdf, setPreviewNotPdf] = useState(false)
 
   const handlePreview = async (doc: DocWithPath) => {
     const isPdf = doc.file_name.toLowerCase().endsWith('.pdf')
@@ -130,6 +130,8 @@ export function LeaseDocList({ refreshTrigger, storeId }: LeaseDocListProps) {
     )
   }
 
+  const INITIAL_SHOW = 8
+
   if (documents.length === 0) {
     return (
       <p className="text-sm text-muted-foreground py-4">
@@ -138,10 +140,13 @@ export function LeaseDocList({ refreshTrigger, storeId }: LeaseDocListProps) {
     )
   }
 
+  const visibleDocs = showAll ? documents : documents.slice(0, INITIAL_SHOW)
+  const hasMore = documents.length > INITIAL_SHOW
+
   return (
     <>
-      <div className="space-y-2">
-        {documents.map((doc) => {
+      <div className="space-y-2 max-h-[600px] overflow-y-auto pr-1">
+        {visibleDocs.map((doc) => {
           const isDeleting = deletingId === doc.id
           const isProcessing = reprocessingId === doc.id
           const isLoadingUrl = urlLoadingId === doc.id
@@ -263,6 +268,18 @@ export function LeaseDocList({ refreshTrigger, storeId }: LeaseDocListProps) {
           )
         })}
       </div>
+
+      {/* Show more/less toggle */}
+      {hasMore && (
+        <button
+          onClick={() => setShowAll(prev => !prev)}
+          className="w-full text-center text-xs text-emerald-400/80 hover:text-emerald-300 py-2 mt-1 transition-colors"
+        >
+          {showAll
+            ? `Show fewer (${INITIAL_SHOW} of ${documents.length})`
+            : `Show all ${documents.length} documents`}
+        </button>
+      )}
 
       {/* Preview modal */}
       {previewUrl && (

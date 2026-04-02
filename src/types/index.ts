@@ -77,6 +77,7 @@ export interface Message {
 
 export interface Citation {
   chunk_id: string
+  document_id?: string
   document_name: string
   document_type?: string
   section_heading?: string

@@ -355,7 +355,15 @@ function ChatPageInner() {
             <div className="relative py-2 shrink-0">
               <select
                 value={selectedStoreId ?? ''}
-                onChange={(e) => setSelectedStoreId(e.target.value)}
+                onChange={(e) => {
+                  setSelectedStoreId(e.target.value)
+                  // Reset conversation when switching stores
+                  setActiveConversationId(crypto.randomUUID())
+                  setInitialMessages(undefined)
+                  setChatKey(k => k + 1)
+                  setActiveCitation(null)
+                  setSidebarRefresh(s => s + 1)
+                }}
                 className="appearance-none text-xs rounded-lg pl-3 pr-7 py-1.5 focus:outline-none cursor-pointer"
                 style={{
                   background: 'rgba(255,255,255,0.06)',

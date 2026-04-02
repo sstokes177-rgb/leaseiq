@@ -162,10 +162,8 @@ export async function buildRAGContext(
   // ── Step 1: Primary vector search ────────────────────────────────────────────
   let chunks = await retrieveRelevantChunks(question, tenantId, 12, storeId)
 
-  // If store-scoped returns nothing, fall back to tenant-wide
   if (chunks.length === 0 && storeId != null) {
-    console.log('[RAG] Store-scoped search returned 0 chunks — falling back to tenant-wide search')
-    chunks = await retrieveRelevantChunks(question, tenantId, 12, null)
+    console.log('[RAG] Store-scoped vector search returned 0 chunks — will NOT fall back to other stores')
   }
 
   // ── Step 2: Keyword (ILIKE) hybrid search — always runs ───────────────────
@@ -176,15 +174,10 @@ export async function buildRAGContext(
   if (keywords.length > 0) {
     console.log(`[RAG] Keyword search terms: ${keywords.join(', ')}`)
 
-    // Run all keyword searches in parallel, with store-scope + tenant-wide fallback
+    // Run all keyword searches in parallel, scoped to the current store only
     const keywordResults = await Promise.all(
       keywords.map(async (kw) => {
-        const results = await keywordSearchChunks(kw, tenantId, 8, storeId ?? null)
-        // If store-scoped keyword search returns nothing, try tenant-wide
-        if (results.length === 0 && storeId != null) {
-          return keywordSearchChunks(kw, tenantId, 8, null)
-        }
-        return results
+        return keywordSearchChunks(kw, tenantId, 8, storeId ?? null)
       })
     )
 
@@ -203,26 +196,24 @@ export async function buildRAGContext(
       console.log(`[RAG] Sparse results (${chunks.length}) — running topic expansion search: "${topicQuery}"`)
       const topicChunks = await retrieveRelevantChunks(topicQuery, tenantId, 12, storeId ?? null)
 
-      const finalTopicChunks =
-        topicChunks.length === 0 && storeId != null
-          ? await retrieveRelevantChunks(topicQuery, tenantId, 12, null)
-          : topicChunks
-
-      if (finalTopicChunks.length > 0) {
-        console.log(`[RAG] Topic expansion found ${finalTopicChunks.length} additional chunks`)
-        chunks = deduplicateChunks(chunks, finalTopicChunks)
+      if (topicChunks.length > 0) {
+        console.log(`[RAG] Topic expansion found ${topicChunks.length} additional chunks`)
+        chunks = deduplicateChunks(chunks, topicChunks)
         console.log(`[RAG] Combined total: ${chunks.length} chunks after deduplication`)
       }
     }
   }
 
   if (chunks.length === 0) {
+    const scopeMsg = storeId
+      ? 'No relevant lease sections were found in the documents for THIS specific location. ' +
+        'Inform the tenant that you could not find relevant sections in the lease documents uploaded to this location, ' +
+        'and suggest they check that the relevant documents have been uploaded to this specific location.'
+      : 'No relevant lease sections were found for this question. ' +
+        'Inform the tenant that you could not find relevant sections in their uploaded lease documents, ' +
+        'and ask them to verify their documents have been uploaded.'
     return {
-      systemPrompt: buildLeasePrompt(
-        'No relevant lease sections were found for this question. ' +
-          'Inform the tenant that you could not find relevant sections in their uploaded lease documents, ' +
-          'and ask them to verify their documents have been uploaded.'
-      ),
+      systemPrompt: buildLeasePrompt(scopeMsg),
       citations: [],
       hasContext: false,
     }

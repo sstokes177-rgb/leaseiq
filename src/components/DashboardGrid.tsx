@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
-import { Building2, MapPin, Search, X } from 'lucide-react'
+import { Building2, MapPin, Search, X, Sparkles, Loader2 } from 'lucide-react'
 
 interface StoreWithCount {
   id: string
@@ -20,9 +20,56 @@ interface DashboardGridProps {
   stores: StoreWithCount[]
 }
 
-const ASSET_CLASSES = ['Retail', 'Office', 'Industrial', 'Mixed-Use', 'Other']
+const ASSET_CLASSES = ['Retail', 'Office', 'Industrial', 'Mixed-Use', 'Medical', 'Restaurant', 'Grocery', 'Other']
+
+const ASSET_CLASS_COLORS: Record<string, string> = {
+  Retail: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/25',
+  Office: 'bg-blue-500/15 text-blue-300 border-blue-500/25',
+  Industrial: 'bg-orange-500/15 text-orange-300 border-orange-500/25',
+  'Mixed-Use': 'bg-violet-500/15 text-violet-300 border-violet-500/25',
+  Medical: 'bg-rose-500/15 text-rose-300 border-rose-500/25',
+  Restaurant: 'bg-amber-500/15 text-amber-300 border-amber-500/25',
+  Grocery: 'bg-lime-500/15 text-lime-300 border-lime-500/25',
+  Other: 'bg-slate-500/15 text-slate-300 border-slate-500/25',
+}
 
 type SortKey = 'name_asc' | 'name_desc' | 'recent' | 'expiry'
+
+function AssetClassBadge({ storeId, assetClass, docCount }: { storeId: string; assetClass: string | null; docCount: number }) {
+  const [detecting, setDetecting] = useState(false)
+  const [detected, setDetected] = useState(assetClass)
+
+  if (detected) {
+    const cls = ASSET_CLASS_COLORS[detected] ?? ASSET_CLASS_COLORS.Other
+    return (
+      <span className={`text-[10px] px-1.5 py-0.5 rounded border font-medium ${cls}`}>
+        {detected}
+      </span>
+    )
+  }
+
+  if (docCount === 0) return null
+
+  return (
+    <button
+      onClick={(e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        setDetecting(true)
+        fetch(`/api/stores/${storeId}/detect-asset-class`, { method: 'POST' })
+          .then(r => r.ok ? r.json() : null)
+          .then(data => { if (data?.asset_class) setDetected(data.asset_class) })
+          .catch(() => {})
+          .finally(() => setDetecting(false))
+      }}
+      disabled={detecting}
+      className="text-[10px] px-1.5 py-0.5 rounded border border-white/[0.08] bg-white/[0.04] text-muted-foreground/60 hover:text-emerald-300 hover:border-emerald-500/25 transition-colors flex items-center gap-1"
+    >
+      {detecting ? <Loader2 className="h-2.5 w-2.5 animate-spin" /> : <Sparkles className="h-2.5 w-2.5" />}
+      {detecting ? 'Detecting...' : 'Detect type'}
+    </button>
+  )
+}
 
 export function DashboardGrid({ stores }: DashboardGridProps) {
   const [search, setSearch] = useState('')
@@ -229,11 +276,7 @@ export function DashboardGrid({ stores }: DashboardGridProps) {
                     ? 'No documents yet'
                     : `${store.doc_count} document${store.doc_count !== 1 ? 's' : ''}`}
                 </p>
-                {store.asset_class && (
-                  <span className="text-[10px] px-1.5 py-0.5 rounded border border-white/[0.08] bg-white/[0.04] text-muted-foreground/60">
-                    {store.asset_class}
-                  </span>
-                )}
+                <AssetClassBadge storeId={store.id} assetClass={store.asset_class} docCount={store.doc_count} />
               </div>
             </Link>
           ))}

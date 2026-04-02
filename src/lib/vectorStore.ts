@@ -74,6 +74,10 @@ export async function retrieveRelevantChunks(
   const chunks = (data as RetrievedChunk[]) ?? []
   const topScore = chunks.length > 0 ? chunks[0].similarity.toFixed(4) : 'n/a'
   console.log(`[RAG] Match results: ${chunks.length} chunks found, top score: ${topScore} (store-scoped: ${storeId != null})`)
+  if (chunks.length > 0) {
+    const docNames = [...new Set(chunks.map(c => c.metadata?.document_name ?? 'unknown'))].join(', ')
+    console.log(`[RAG] Chunks from documents: ${docNames}`)
+  }
 
   // Sort so amendments appear before base lease — amendments take precedence
   const docTypePriority: Record<string, number> = {
@@ -196,6 +200,7 @@ export function buildContextFromChunks(chunks: RetrievedChunk[]): {
 
     citations.push({
       chunk_id: chunk.id,
+      document_id: chunk.document_id,
       document_name: meta.document_name,
       document_type: meta.document_type,
       section_heading: meta.section_heading,
