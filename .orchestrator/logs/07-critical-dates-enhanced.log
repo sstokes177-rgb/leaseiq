@@ -1,0 +1,15 @@
+Build passes. Here's what was done:
+
+**Created:**
+- `src/components/CriticalDatesCard.tsx` — Client component with:
+  - Client-side fetch from `/api/critical-dates`
+  - 5 urgency levels (critical/warning/safe/distant/past) with color-coded rows
+  - Expandable details with description + actionable guidance per date type
+  - Summary badges showing urgent/upcoming counts
+  - Toggle to show/hide past dates
+  - Loading skeleton state
+  - Sorted: upcoming nearest-first, then past dates
+- `src/app/api/critical-dates/route.ts` — Authenticated GET endpoint filtered by `store_id`
+
+**Modified:**
+- `src/app/location/[id]/page.tsx` — Removed all inline critical dates logic (`daysUntil`, `formatCountdown`, `urgencyBadge`, server-side dates fetch, inline rendering) and replaced with `<CriticalDatesCard storeId={id} />`
