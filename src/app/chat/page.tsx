@@ -93,7 +93,14 @@ function ChatInterface({
 
   useEffect(() => {
     if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+      const el = scrollRef.current
+      // Only auto-scroll if user is near the bottom (within 150px)
+      const isNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 150
+      if (isNearBottom) {
+        requestAnimationFrame(() => {
+          el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
+        })
+      }
     }
   }, [messages, showTypingIndicator])
 
@@ -114,7 +121,7 @@ function ChatInterface({
   return (
     <>
       {/* Messages */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto scroll-smooth">
         <div className="max-w-2xl mx-auto px-4 py-6 space-y-3">
           {messages.length === 0 ? (
             <div className="space-y-10 py-4">

@@ -10,9 +10,9 @@ export async function GET(request: NextRequest) {
 
   let query = supabase
     .from('conversations')
-    .select('id, title, created_at, store_id')
+    .select('id, title, created_at, updated_at, store_id')
     .eq('tenant_id', user.id)
-    .order('created_at', { ascending: false })
+    .order('updated_at', { ascending: false })
     .limit(30)
 
   if (storeId) {

@@ -2,6 +2,7 @@
 
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import { useState, useRef, useCallback, createContext, useContext } from 'react'
 import { CitationCard } from './CitationCard'
 import type { Citation } from '@/types'
 import { cn } from '@/lib/utils'
@@ -19,6 +20,15 @@ interface ChatMessageProps {
 function formatTime(date: Date): string {
   return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
 }
+
+// ── Citation context for inline references ──────────────────────────────────
+
+interface CitationCtx {
+  citations: Citation[]
+  onArticleClick: (citation: Citation) => void
+}
+
+const CitationContext = createContext<CitationCtx | null>(null)
 
 // ── Inline content tokenizer ──────────────────────────────────────────────────
 
@@ -80,6 +90,124 @@ function tokenize(text: string): Token[] {
   return tokens
 }
 
+// ── Match article reference to citation ─────────────────────────────────────
+
+/** Extract the numeric part from "Section 5.1" or "Article 23" etc. */
+function extractArticleNumber(ref: string): string | null {
+  const m = ref.match(/(?:Article|Section|Paragraph|Clause)\s+(\d+(?:\.\d+)*[a-zA-Z]?(?:\([a-z\d]+\))?)/i)
+  return m ? m[1] : null
+}
+
+function findMatchingCitation(articleRef: string, citations: Citation[]): Citation | null {
+  const num = extractArticleNumber(articleRef)
+  if (!num) return null
+  const numLower = num.toLowerCase()
+
+  // Try matching against section_heading first, then content
+  for (const c of citations) {
+    if (c.section_heading) {
+      const heading = c.section_heading.toLowerCase()
+      if (heading.includes(numLower) || heading.includes(`article ${numLower}`) || heading.includes(`section ${numLower}`)) {
+        return c
+      }
+    }
+  }
+
+  // Fallback: search content for the article/section reference
+  for (const c of citations) {
+    const content = (c.content ?? c.excerpt).toLowerCase()
+    if (content.includes(`article ${numLower}`) || content.includes(`section ${numLower}`)) {
+      return c
+    }
+  }
+
+  // Last resort: return first citation if we have any
+  return citations.length > 0 ? citations[0] : null
+}
+
+// ── Article tooltip component ───────────────────────────────────────────────
+
+function ArticleRef({ text }: { text: string }) {
+  const ctx = useContext(CitationContext)
+  const [showTooltip, setShowTooltip] = useState(false)
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined)
+  const refEl = useRef<HTMLButtonElement>(null)
+
+  const matched = ctx ? findMatchingCitation(text, ctx.citations) : null
+
+  const handleMouseEnter = useCallback(() => {
+    timeoutRef.current = setTimeout(() => setShowTooltip(true), 300)
+  }, [])
+
+  const handleMouseLeave = useCallback(() => {
+    clearTimeout(timeoutRef.current)
+    setShowTooltip(false)
+  }, [])
+
+  const handleClick = useCallback(() => {
+    clearTimeout(timeoutRef.current)
+    setShowTooltip(false)
+    if (matched && ctx) ctx.onArticleClick(matched)
+  }, [matched, ctx])
+
+  if (!matched || !ctx) {
+    // No citation match — render as non-clickable badge
+    return (
+      <span
+        className="inline-flex items-center mx-0.5 px-2 py-0.5 rounded-md text-[11px] font-semibold leading-tight"
+        style={{
+          background: 'rgba(16,185,129,0.15)',
+          border: '1px solid rgba(16,185,129,0.32)',
+          color: 'rgb(52,211,153)',
+        }}
+      >
+        {text}
+      </span>
+    )
+  }
+
+  const tooltipExcerpt = (matched.content ?? matched.excerpt).slice(0, 200)
+
+  return (
+    <span className="relative inline-flex">
+      <button
+        ref={refEl}
+        onClick={handleClick}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        className="inline-flex items-center mx-0.5 px-2 py-0.5 rounded-md text-[11px] font-semibold leading-tight cursor-pointer transition-all hover:scale-105"
+        style={{
+          background: 'rgba(16,185,129,0.15)',
+          border: '1px solid rgba(16,185,129,0.32)',
+          color: 'rgb(52,211,153)',
+        }}
+      >
+        {text}
+      </button>
+
+      {/* Tooltip */}
+      {showTooltip && (
+        <div
+          className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 p-3 rounded-xl text-xs text-white/80 leading-relaxed pointer-events-none"
+          style={{
+            background: 'rgba(10,12,18,0.97)',
+            border: '1px solid rgba(255,255,255,0.12)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+            animation: 'fade-in 0.15s ease-out both',
+          }}
+        >
+          <p className="text-[10px] font-semibold text-emerald-400/80 uppercase tracking-widest mb-1.5">
+            {matched.document_name}
+          </p>
+          <p className="italic text-white/65">
+            &ldquo;{tooltipExcerpt}{(matched.content ?? matched.excerpt).length > 200 ? '...' : ''}&rdquo;
+          </p>
+        </div>
+      )}
+    </span>
+  )
+}
+
 function InlineTokens({ tokens }: { tokens: Token[] }) {
   return (
     <>
@@ -94,19 +222,7 @@ function InlineTokens({ tokens }: { tokens: Token[] }) {
           )
 
         if (tok.t === 'article')
-          return (
-            <span
-              key={i}
-              className="inline-flex items-center mx-0.5 px-2 py-0.5 rounded-md text-[11px] font-semibold leading-tight"
-              style={{
-                background: 'rgba(16,185,129,0.15)',
-                border: '1px solid rgba(16,185,129,0.32)',
-                color: 'rgb(52,211,153)',
-              }}
-            >
-              {tok.v}
-            </span>
-          )
+          return <ArticleRef key={i} text={tok.v} />
 
         if (tok.t === 'doc-tag') {
           const cls = DOC_TAG_STYLES[tok.docType] ?? 'bg-white/[0.07] text-white/70 border-white/15'
@@ -239,7 +355,7 @@ function LeaseResponseContent({
   }
 
   return (
-    <div>
+    <div className="streaming-content">
       <ReactMarkdown remarkPlugins={[remarkGfm]} components={MD_COMPONENTS}>
         {content}
       </ReactMarkdown>
@@ -262,6 +378,10 @@ export function ChatMessage({
 }: ChatMessageProps) {
   const isUser = role === 'user'
 
+  const citationCtx: CitationCtx | null = (citations && citations.length > 0 && onCitationClick)
+    ? { citations, onArticleClick: onCitationClick }
+    : null
+
   return (
     <div className={cn('flex flex-col message-in', isUser ? 'items-end' : 'items-start')}>
       <div
@@ -280,7 +400,9 @@ export function ChatMessage({
         {isUser ? (
           <div className="whitespace-pre-wrap text-sm leading-relaxed">{content}</div>
         ) : (
-          <LeaseResponseContent content={content} isStreaming={isStreaming} />
+          <CitationContext.Provider value={citationCtx}>
+            <LeaseResponseContent content={content} isStreaming={isStreaming} />
+          </CitationContext.Provider>
         )}
 
         {!isUser && citations && citations.length > 0 && (

@@ -138,6 +138,40 @@ function docTypeLabel(docType: string): string {
   return labels[docType] ?? docType.toUpperCase().replace('_', ' ')
 }
 
+/**
+ * Create a clean excerpt from chunk content: trims to complete words,
+ * adds ellipses when content is trimmed at start/end.
+ */
+function cleanExcerpt(content: string, minLength = 300): string {
+  const text = content.trim()
+  if (text.length <= minLength) return text
+
+  let raw = text.slice(0, minLength + 50) // grab a bit extra to find word boundary
+
+  // Trim start: if the chunk begins mid-word (no capital, no sentence start), skip to next word
+  const startsClean = /^[A-Z"(\d]/.test(raw) || /^[.!?]\s/.test(text.slice(0, 2))
+  let prefix = ''
+  if (!startsClean) {
+    const firstSpace = raw.indexOf(' ')
+    if (firstSpace > 0 && firstSpace < 30) {
+      raw = raw.slice(firstSpace + 1)
+      prefix = '...'
+    }
+  }
+
+  // Trim end: find last complete word boundary
+  let suffix = ''
+  if (text.length > raw.length) {
+    const lastSpace = raw.lastIndexOf(' ')
+    if (lastSpace > minLength - 50) {
+      raw = raw.slice(0, lastSpace)
+    }
+    suffix = '...'
+  }
+
+  return prefix + raw + suffix
+}
+
 export function buildContextFromChunks(chunks: RetrievedChunk[]): {
   contextText: string
   citations: Citation[]
@@ -166,7 +200,8 @@ export function buildContextFromChunks(chunks: RetrievedChunk[]): {
       document_type: meta.document_type,
       section_heading: meta.section_heading,
       page_number: meta.page_number,
-      excerpt: chunk.content.slice(0, 200) + (chunk.content.length > 200 ? '…' : ''),
+      excerpt: cleanExcerpt(chunk.content, 300),
+      content: chunk.content,
     })
   }
 

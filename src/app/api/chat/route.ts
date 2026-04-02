@@ -98,10 +98,13 @@ export async function POST(request: NextRequest) {
         if (conversationId && text) {
           try {
             const adminSupabase = createAdminSupabaseClient()
-            // Upsert conversation (safe if it already exists)
+            // Upsert conversation (create if new, update timestamp if existing)
             await adminSupabase
               .from('conversations')
-              .upsert({ id: conversationId, tenant_id: user.id, store_id: storeId ?? null }, { onConflict: 'id', ignoreDuplicates: true })
+              .upsert(
+                { id: conversationId, tenant_id: user.id, store_id: storeId ?? null, updated_at: new Date().toISOString() },
+                { onConflict: 'id' }
+              )
             // Always save this message pair
             const { error: msgErr } = await adminSupabase.from('messages').insert([
               { conversation_id: conversationId, role: 'user', content: userText },
@@ -148,7 +151,10 @@ export async function POST(request: NextRequest) {
                 const adminSupabase = createAdminSupabaseClient()
                 await adminSupabase
                   .from('conversations')
-                  .upsert({ id: conversationId, tenant_id: user.id, store_id: storeId ?? null }, { onConflict: 'id', ignoreDuplicates: true })
+                  .upsert(
+                    { id: conversationId, tenant_id: user.id, store_id: storeId ?? null, updated_at: new Date().toISOString() },
+                    { onConflict: 'id' }
+                  )
                 await adminSupabase.from('messages').insert([
                   { conversation_id: conversationId, role: 'user', content: userText },
                   { conversation_id: conversationId, role: 'assistant', content: text, citations },

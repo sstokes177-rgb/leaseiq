@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { X, FileText } from 'lucide-react'
 import type { Citation } from '@/types'
 
@@ -24,38 +25,68 @@ interface CitationSidePanelProps {
 }
 
 export function CitationSidePanel({ citation, onClose }: CitationSidePanelProps) {
-  if (!citation) return null
+  const [visible, setVisible] = useState(false)
+  const [displayCitation, setDisplayCitation] = useState<Citation | null>(null)
 
-  const cfg = getDocConfig(citation.document_type)
+  useEffect(() => {
+    if (citation) {
+      setDisplayCitation(citation)
+      // Trigger slide-in on next frame
+      requestAnimationFrame(() => setVisible(true))
+    } else {
+      setVisible(false)
+      // Keep content visible during slide-out
+      const timer = setTimeout(() => setDisplayCitation(null), 300)
+      return () => clearTimeout(timer)
+    }
+  }, [citation])
+
+  if (!displayCitation) return null
+
+  const cfg = getDocConfig(displayCitation.document_type)
+  const fullText = displayCitation.content ?? displayCitation.excerpt
 
   return (
     <>
       {/* Mobile: full-screen overlay */}
       <div
-        className="md:hidden fixed inset-0 z-40 flex flex-col"
-        style={{ background: 'rgba(12,14,20,0.98)' }}
+        className={`md:hidden fixed inset-0 z-40 transition-opacity duration-300 ${visible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
       >
-        <div className="flex items-center justify-between px-4 py-3.5 border-b border-white/[0.08]">
-          <p className="text-sm font-semibold">Source excerpt</p>
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/[0.06] transition-colors"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-        <div className="flex-1 overflow-y-auto px-4 py-4">
-          <PanelContent citation={citation} cfg={cfg} />
+        <div
+          className="absolute inset-0 flex flex-col transition-transform duration-300 ease-out"
+          style={{
+            background: 'rgba(12,14,20,0.98)',
+            transform: visible ? 'translateX(0)' : 'translateX(100%)',
+          }}
+        >
+          <div className="flex items-center justify-between px-4 py-3.5 border-b border-white/[0.08]">
+            <p className="text-sm font-semibold">Source Document</p>
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/[0.06] transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto px-4 py-4">
+            <PanelContent citation={displayCitation} cfg={cfg} fullText={fullText} />
+          </div>
         </div>
       </div>
 
-      {/* Desktop: right side panel (fixed width, slides alongside chat) */}
+      {/* Desktop: right side panel (slides alongside chat) */}
       <div
-        className="hidden md:flex flex-col w-[40%] min-w-[280px] max-w-[480px] border-l border-white/[0.08] overflow-hidden"
-        style={{ background: 'rgba(10,12,18,0.95)' }}
+        className="hidden md:flex flex-col border-l border-white/[0.08] overflow-hidden transition-all duration-300 ease-out"
+        style={{
+          background: 'rgba(10,12,18,0.95)',
+          width: visible ? '40%' : '0%',
+          minWidth: visible ? '280px' : '0px',
+          maxWidth: visible ? '480px' : '0px',
+          opacity: visible ? 1 : 0,
+        }}
       >
         <div className="flex items-center justify-between px-4 py-3.5 border-b border-white/[0.08] shrink-0">
-          <p className="text-sm font-semibold">Source excerpt</p>
+          <p className="text-sm font-semibold">Source Document</p>
           <button
             onClick={onClose}
             className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/[0.06] transition-colors"
@@ -64,14 +95,14 @@ export function CitationSidePanel({ citation, onClose }: CitationSidePanelProps)
           </button>
         </div>
         <div className="flex-1 overflow-y-auto px-4 py-4">
-          <PanelContent citation={citation} cfg={cfg} />
+          <PanelContent citation={displayCitation} cfg={cfg} fullText={fullText} />
         </div>
       </div>
     </>
   )
 }
 
-function PanelContent({ citation, cfg }: { citation: Citation; cfg: { label: string; pillCls: string } }) {
+function PanelContent({ citation, cfg, fullText }: { citation: Citation; cfg: { label: string; pillCls: string }; fullText: string }) {
   return (
     <div className="space-y-4">
       {/* Doc type + name */}
@@ -102,19 +133,22 @@ function PanelContent({ citation, cfg }: { citation: Citation; cfg: { label: str
           )}
           {citation.page_number && (
             <span className="text-[11px] text-white/45 px-2 py-0.5 rounded-md bg-white/[0.05] border border-white/[0.08]">
-              p.{citation.page_number}
+              Page {citation.page_number}
             </span>
           )}
         </div>
       )}
 
-      {/* Excerpt */}
+      {/* Full text */}
       <div
         className="rounded-xl px-4 py-3"
         style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}
       >
-        <p className="text-sm text-white/80 leading-relaxed italic">
-          &ldquo;{citation.excerpt}&rdquo;
+        <p className="text-[10px] font-semibold text-white/30 uppercase tracking-widest mb-2">
+          Full Source Text
+        </p>
+        <p className="text-sm text-white/80 leading-relaxed whitespace-pre-wrap">
+          {fullText}
         </p>
       </div>
     </div>

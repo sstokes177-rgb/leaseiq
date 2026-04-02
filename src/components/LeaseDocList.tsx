@@ -63,11 +63,15 @@ export function LeaseDocList({ refreshTrigger, storeId }: LeaseDocListProps) {
     }
   }
 
+  const [previewNotPdf, setPreviewNotPdf] = useState(false)
+
   const handlePreview = async (doc: DocWithPath) => {
+    const isPdf = doc.file_name.toLowerCase().endsWith('.pdf')
     const urls = await fetchSignedUrls(doc.id)
     if (!urls) return
     setPreviewName(doc.display_name ?? doc.file_name)
-    setPreviewUrl(urls.preview_url)
+    setPreviewNotPdf(!isPdf)
+    setPreviewUrl(isPdf ? urls.preview_url : urls.download_url)
   }
 
   const handleDownload = async (doc: DocWithPath) => {
@@ -263,27 +267,52 @@ export function LeaseDocList({ refreshTrigger, storeId }: LeaseDocListProps) {
       {/* Preview modal */}
       {previewUrl && (
         <div
-          className="fixed inset-0 z-50 flex flex-col bg-black/80 backdrop-blur-sm"
-          onClick={(e) => { if (e.target === e.currentTarget) setPreviewUrl(null) }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+          onClick={(e) => { if (e.target === e.currentTarget) { setPreviewUrl(null); setPreviewNotPdf(false) } }}
         >
-          <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.08]"
-            style={{ background: 'rgba(12,14,20,0.98)' }}
+          <div
+            className="flex flex-col w-[90vw] h-[85vh] max-w-5xl rounded-2xl overflow-hidden"
+            style={{ background: 'rgba(12,14,20,0.98)', border: '1px solid rgba(255,255,255,0.10)' }}
           >
-            <p className="text-sm font-medium truncate max-w-[calc(100%-3rem)]">{previewName}</p>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 shrink-0"
-              onClick={() => setPreviewUrl(null)}
-            >
-              <X className="h-4 w-4" />
-            </Button>
+            <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.08] shrink-0">
+              <p className="text-sm font-medium truncate max-w-[calc(100%-3rem)]">{previewName}</p>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 shrink-0"
+                onClick={() => { setPreviewUrl(null); setPreviewNotPdf(false) }}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            {previewNotPdf ? (
+              <div className="flex-1 flex flex-col items-center justify-center gap-4 px-6">
+                <FileText className="h-12 w-12 text-muted-foreground/30" />
+                <p className="text-sm text-muted-foreground/80 text-center">
+                  Preview is only available for PDF files.<br />
+                  Click Download to view this document.
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    window.open(previewUrl, '_blank')
+                    setPreviewUrl(null)
+                    setPreviewNotPdf(false)
+                  }}
+                >
+                  <Download className="h-3.5 w-3.5 mr-1.5" />
+                  Download
+                </Button>
+              </div>
+            ) : (
+              <iframe
+                src={previewUrl}
+                className="flex-1 w-full border-0"
+                title={previewName}
+              />
+            )}
           </div>
-          <iframe
-            src={previewUrl}
-            className="flex-1 w-full border-0"
-            title={previewName}
-          />
         </div>
       )}
     </>

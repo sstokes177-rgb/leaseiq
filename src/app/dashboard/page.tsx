@@ -4,9 +4,10 @@ import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase'
 import Link from 'next/link'
 import {
-  FileText, Sparkles, Building2, MapPin,
+  FileText, Sparkles, Building2,
 } from 'lucide-react'
 import { AddStoreButton } from './AddStoreModal'
+import { DashboardGrid } from '@/components/DashboardGrid'
 
 export default async function DashboardPage() {
   const supabase = await createServerSupabaseClient()
@@ -14,18 +15,33 @@ export default async function DashboardPage() {
   if (!user) redirect('/login')
 
   let profile: { company_name: string | null } | null = null
-  let stores: { id: string; store_name: string; shopping_center_name: string | null; suite_number: string | null; created_at: string }[] | null = null
+  let stores: {
+    id: string; store_name: string; shopping_center_name: string | null;
+    suite_number: string | null; address: string | null;
+    asset_class: string | null; created_at: string
+  }[] | null = null
   let storeCountRows: { store_id: string | null }[] | null = null
+  let leaseSummaries: { store_id: string; summary_data: { lease_end_date?: string | null } }[] = []
 
   try {
     const [profileRes, storesRes, countsRes] = await Promise.all([
       supabase.from('tenant_profiles').select('*').eq('id', user.id).maybeSingle(),
-      supabase.from('stores').select('*').eq('tenant_id', user.id).order('created_at', { ascending: true }),
+      supabase.from('stores').select('id, store_name, shopping_center_name, suite_number, address, asset_class, created_at').eq('tenant_id', user.id).order('created_at', { ascending: true }),
       supabase.from('documents').select('store_id').eq('tenant_id', user.id).not('store_id', 'is', null),
     ])
     profile = profileRes.data
     stores = storesRes.data
     storeCountRows = countsRes.data
+
+    // lease_summaries table may not exist yet — gracefully degrade
+    try {
+      const summaryRes = await supabase.from('lease_summaries').select('store_id, summary_data').eq('tenant_id', user.id)
+      if (summaryRes.data) {
+        leaseSummaries = summaryRes.data as typeof leaseSummaries
+      }
+    } catch {
+      // Table doesn't exist yet
+    }
   } catch {
     // Gracefully degrade
   }
@@ -43,6 +59,21 @@ export default async function DashboardPage() {
       }
     }
   }
+
+  const expiryByStore: Record<string, string | null> = {}
+  if (leaseSummaries.length > 0) {
+    for (const ls of leaseSummaries) {
+      const endDate = ls.summary_data?.lease_end_date
+      if (endDate) expiryByStore[ls.store_id] = endDate
+    }
+  }
+
+  const storesWithCounts = storeList.map(store => ({
+    ...store,
+    asset_class: store.asset_class ?? null,
+    doc_count: docCountsByStore[store.id] ?? 0,
+    lease_expiry: expiryByStore[store.id] ?? null,
+  }))
 
   return (
     <div className="min-h-screen">
@@ -94,51 +125,13 @@ export default async function DashboardPage() {
           <AddStoreButton />
         </div>
 
-        {/* Location grid */}
+        {/* Location grid with search/filters */}
         {storeList.length > 0 && (
           <div>
             <p className="text-xs font-semibold text-muted-foreground/80 uppercase tracking-widest mb-4">
               Your Locations
             </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {storeList.map((store) => {
-                const count = docCountsByStore[store.id] ?? 0
-                return (
-                  <Link
-                    key={store.id}
-                    href={`/location/${store.id}`}
-                    className="glass-card glass-card-lift rounded-2xl p-5 block transition-all"
-                  >
-                    <div className="flex items-start gap-3 mb-3">
-                      <div
-                        className="flex items-center justify-center w-9 h-9 rounded-xl shrink-0"
-                        style={{
-                          background: 'rgba(255,255,255,0.06)',
-                          border: '1px solid rgba(255,255,255,0.09)',
-                        }}
-                      >
-                        <Building2 className="h-4 w-4 text-muted-foreground" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="font-semibold text-sm truncate">{store.store_name}</p>
-                        {store.shopping_center_name && (
-                          <p className="text-xs text-muted-foreground/70 truncate mt-0.5 flex items-center gap-1">
-                            <MapPin className="h-3 w-3 shrink-0" />
-                            {store.shopping_center_name}
-                            {store.suite_number && `, Suite ${store.suite_number}`}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    <p className="text-xs text-muted-foreground/70">
-                      {count === 0
-                        ? 'No documents yet'
-                        : `${count} document${count !== 1 ? 's' : ''}`}
-                    </p>
-                  </Link>
-                )
-              })}
-            </div>
+            <DashboardGrid stores={storesWithCounts} />
           </div>
         )}
 

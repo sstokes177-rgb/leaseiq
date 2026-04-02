@@ -7,6 +7,7 @@ interface ConversationItem {
   id: string
   title: string | null
   created_at: string
+  updated_at: string | null
   store_id: string | null
 }
 
@@ -103,7 +104,7 @@ export function ChatSidebar({
             {conversations.map((conv) => {
               const isActive = conv.id === activeConversationId
               const title = conv.title ?? 'Untitled conversation'
-              const date = relativeDate(conv.created_at)
+              const date = relativeDate(conv.updated_at ?? conv.created_at)
 
               return (
                 <div

@@ -82,6 +82,7 @@ export interface Citation {
   section_heading?: string
   page_number?: number
   excerpt: string
+  content?: string
 }
 
 export interface LeaseSummaryData {
