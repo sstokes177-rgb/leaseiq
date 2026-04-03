@@ -145,24 +145,32 @@ export function CamAuditCard({ storeId, storeName }: CamAuditCardProps) {
           </div>
         </div>
 
-        {/* Educational content */}
-        <div
-          className="rounded-xl px-4 py-4 space-y-3"
-          style={{ background: 'rgba(239,68,68,0.04)', border: '1px solid rgba(239,68,68,0.12)' }}
-        >
-          <div className="flex items-start gap-2.5">
-            <Info className="h-4 w-4 text-red-400/70 mt-0.5 shrink-0" />
-            <div>
-              <p className="text-sm font-semibold text-red-300/90 mb-1">Did you know?</p>
-              <p className="text-xs text-white/60 leading-relaxed">
-                Industry studies show that approximately <span className="text-red-400 font-semibold">40% of CAM reconciliation statements contain errors</span> — often in the landlord&apos;s favor. Common issues include management fee overcharges, pro-rata share miscalculations, and charges for excluded services.
-              </p>
-            </div>
+        {/* Empty state content */}
+        <div className="text-center py-2">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4" style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.15)' }}>
+            <Search className="h-7 w-7 text-red-400/60" />
           </div>
-          <p className="text-xs text-white/45 leading-relaxed pl-6">
-            Upload your annual CAM reconciliation statement to run a comprehensive 14-point forensic audit that cross-references charges against your lease provisions.
+          <p className="font-semibold text-sm mb-1">Upload your CAM reconciliation statement to run a forensic audit</p>
+          <p className="text-xs text-muted-foreground/60 mb-4 max-w-sm mx-auto">
+            We check against 14 detection rules to find potential overcharges.
           </p>
         </div>
+
+        {/* Expandable: What is a CAM reconciliation? */}
+        <details className="rounded-xl overflow-hidden" style={{ background: 'rgba(239,68,68,0.04)', border: '1px solid rgba(239,68,68,0.12)' }}>
+          <summary className="px-4 py-3 text-xs font-semibold text-red-300/80 cursor-pointer flex items-center gap-2 hover:text-red-300 transition-colors">
+            <Info className="h-3.5 w-3.5 shrink-0" />
+            What is a CAM reconciliation?
+          </summary>
+          <div className="px-4 pb-4 space-y-2">
+            <p className="text-xs text-white/55 leading-relaxed">
+              A CAM (Common Area Maintenance) reconciliation is an annual statement from your landlord comparing estimated CAM charges you paid throughout the year to the actual expenses incurred. It determines whether you owe additional money or are due a refund.
+            </p>
+            <p className="text-xs text-white/55 leading-relaxed">
+              Industry studies show that approximately <span className="text-red-400 font-semibold">40% of CAM statements contain errors</span> — often in the landlord&apos;s favor. Our forensic audit cross-references every charge against your lease provisions.
+            </p>
+          </div>
+        </details>
 
         {/* Upload area */}
         <div

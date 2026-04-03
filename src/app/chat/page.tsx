@@ -17,11 +17,11 @@ import { exportChatHistory } from '@/lib/pdfExport'
 import { useLanguage } from '@/components/LanguageProvider'
 
 const EXAMPLE_QUESTIONS = [
-  'Who is responsible for HVAC repairs?',
-  'Can I sublease part of my space?',
-  'What are my options for early termination?',
-  'When is my next rent increase and by how much?',
-  'Can I put a sign on my storefront?',
+  'What are my renewal options?',
+  'Who is responsible for HVAC maintenance?',
+  'What are my CAM obligations?',
+  'When does my lease expire?',
+  'Can I sublease my space?',
   "What happens if I'm late on rent?",
 ]
 
@@ -167,13 +167,25 @@ function ChatInterface({
                 <p className="text-xs font-semibold text-muted-foreground/75 uppercase tracking-widest mb-3">
                   {t('chat.exampleQuestions')}
                 </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="flex flex-wrap gap-2 justify-center">
                   {exampleQuestions.map((q) => (
                     <button
                       key={q}
                       onClick={() => { sendMessage({ text: q }) }}
                       disabled={isLoading}
-                      className="text-left text-sm px-4 py-3 rounded-xl glass-card glass-card-lift text-foreground/90 hover:text-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="text-sm px-4 py-2 rounded-full text-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed hover:text-emerald-300"
+                      style={{
+                        background: 'rgba(255,255,255,0.04)',
+                        border: '1px solid rgba(255,255,255,0.10)',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'rgba(16,185,129,0.10)'
+                        e.currentTarget.style.borderColor = 'rgba(16,185,129,0.30)'
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
+                        e.currentTarget.style.borderColor = 'rgba(255,255,255,0.10)'
+                      }}
                     >
                       {q}
                     </button>

@@ -9,6 +9,7 @@ import {
 import { AddStoreButton } from './AddStoreModal'
 import { DashboardGrid } from '@/components/DashboardGrid'
 import { NotificationCenter } from '@/components/NotificationCenter'
+import { DashboardOnboarding } from './DashboardOnboarding'
 
 export default async function DashboardPage() {
   const supabase = await createServerSupabaseClient()
@@ -94,12 +95,15 @@ export default async function DashboardPage() {
             </div>
             <span className="font-bold text-base tracking-tight">Provelo</span>
           </Link>
-          <nav className="hidden sm:flex items-center gap-1">
+          <nav className="hidden sm:flex items-center gap-1" data-tour-step="1">
             <Link href="/dashboard" className="text-sm text-foreground/90 font-medium px-3 py-1.5 rounded-lg bg-white/[0.06]">
               Dashboard
             </Link>
             <Link href="/portfolio" className="text-sm text-muted-foreground/70 hover:text-foreground/90 font-medium px-3 py-1.5 rounded-lg hover:bg-white/[0.04] transition-colors">
               Portfolio
+            </Link>
+            <Link href="/chat" data-tour-step="2" className="text-sm text-muted-foreground/70 hover:text-foreground/90 font-medium px-3 py-1.5 rounded-lg hover:bg-white/[0.04] transition-colors">
+              Chat
             </Link>
             <Link href="/settings" className="text-sm text-muted-foreground/70 hover:text-foreground/90 font-medium px-3 py-1.5 rounded-lg hover:bg-white/[0.04] transition-colors">
               Settings
@@ -107,7 +111,7 @@ export default async function DashboardPage() {
           </nav>
         </div>
         <div className="hidden sm:flex items-center gap-2">
-          <NotificationCenter />
+          <span data-tour-step="4"><NotificationCenter /></span>
           <form action="/api/auth/signout" method="POST">
             <button className="text-sm text-muted-foreground/85 hover:text-foreground transition-colors">
               Sign out
@@ -122,6 +126,7 @@ export default async function DashboardPage() {
           <div className="absolute right-0 top-full mt-1 w-44 rounded-xl glass-card p-2 z-50">
             <Link href="/dashboard" className="block px-3 py-2.5 text-sm rounded-lg bg-white/[0.06]">Dashboard</Link>
             <Link href="/portfolio" className="block px-3 py-2.5 text-sm rounded-lg hover:bg-white/[0.06] transition-colors">Portfolio</Link>
+            <Link href="/chat" className="block px-3 py-2.5 text-sm rounded-lg hover:bg-white/[0.06] transition-colors">Chat</Link>
             <Link href="/settings" className="block px-3 py-2.5 text-sm rounded-lg hover:bg-white/[0.06] transition-colors">Settings</Link>
             <form action="/api/auth/signout" method="POST">
               <button className="w-full text-left px-3 py-2.5 text-sm rounded-lg hover:bg-white/[0.06] text-muted-foreground transition-colors">
@@ -149,8 +154,11 @@ export default async function DashboardPage() {
                 : 'Get started by adding your first location.'}
             </p>
           </div>
-          <AddStoreButton />
+          <span data-tour-step="3"><AddStoreButton /></span>
         </div>
+
+        {/* Onboarding checklist + Welcome tour */}
+        <DashboardOnboarding firstStoreId={storeList[0]?.id ?? null} />
 
         {/* Location grid with search/filters */}
         {storeList.length > 0 && (
@@ -165,20 +173,22 @@ export default async function DashboardPage() {
         {/* Empty state */}
         {storeList.length === 0 && (
           <div className="glass-card rounded-2xl p-12 text-center">
-            <div
-              className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-5"
-              style={{
-                background: 'rgba(16,185,129,0.10)',
-                border: '1px solid rgba(16,185,129,0.18)',
-              }}
-            >
-              <Building2 className="h-7 w-7 text-emerald-400" />
+            <div className="mb-6">
+              <svg className="mx-auto h-20 w-20 text-emerald-400/30" fill="none" viewBox="0 0 80 80" stroke="currentColor" strokeWidth="1.5">
+                <rect x="10" y="30" width="25" height="40" rx="2" />
+                <rect x="45" y="15" width="25" height="55" rx="2" />
+                <path d="M22 42h8M22 50h8M22 58h8M57 27h8M57 35h8M57 43h8M57 51h8M57 59h8" strokeLinecap="round" />
+                <path d="M35 65h10" strokeDasharray="3 3" />
+              </svg>
             </div>
-            <p className="font-semibold text-base mb-2">Get started by adding your first location</p>
-            <p className="text-sm text-muted-foreground/80 mb-6 font-light max-w-xs mx-auto">
-              Each location has its own lease documents and Q&amp;A history.
+            <p className="font-bold text-xl mb-2">Welcome to Provelo!</p>
+            <p className="text-sm text-muted-foreground/80 mb-6 font-light max-w-sm mx-auto">
+              Add your first commercial location to get started with AI-powered lease intelligence.
             </p>
             <AddStoreButton />
+            <p className="text-xs text-muted-foreground/50 mt-6 max-w-xs mx-auto leading-relaxed">
+              Provelo helps you understand your lease, catch billing errors, and never miss a critical date.
+            </p>
           </div>
         )}
       </main>

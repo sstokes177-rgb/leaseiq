@@ -171,11 +171,11 @@ export function RiskScoreCard({ storeId }: RiskScoreCardProps) {
     )
   }
 
-  // No score yet — show generate prompt
+  // No score yet — show enhanced empty state
   if (overallScore === null) {
     return (
-      <div className="glass-card rounded-2xl p-6">
-        <div className="flex items-center gap-3 mb-4">
+      <div className="glass-card rounded-2xl p-6" id="risk-score">
+        <div className="flex items-center gap-3 mb-5">
           <div
             className="flex items-center justify-center w-9 h-9 rounded-xl shrink-0"
             style={{ background: 'rgba(139,92,246,0.10)', border: '1px solid rgba(139,92,246,0.20)' }}
@@ -187,15 +187,25 @@ export function RiskScoreCard({ storeId }: RiskScoreCardProps) {
             <p className="text-xs text-muted-foreground/60">AI-powered clause risk analysis</p>
           </div>
         </div>
-        {error && <p className="text-xs text-red-400/80 mb-3">{error}</p>}
-        <button
-          onClick={handleAnalyze}
-          disabled={generating}
-          className="flex items-center gap-2 text-sm font-medium text-violet-400/80 hover:text-violet-300 transition-colors disabled:opacity-50"
-        >
-          {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
-          {generating ? 'Analyzing lease clauses...' : 'Analyze Risk Score'}
-        </button>
+        <div className="text-center py-4">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4" style={{ background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.15)' }}>
+            <ShieldAlert className="h-7 w-7 text-violet-400/60" />
+          </div>
+          <p className="font-semibold text-sm mb-1">Your lease hasn&apos;t been analyzed yet</p>
+          <p className="text-xs text-muted-foreground/60 mb-5 max-w-xs mx-auto">
+            Click Analyze to generate a risk score across 20 clause categories. Takes about 30 seconds.
+          </p>
+          {error && <p className="text-xs text-red-400/80 mb-3">{error}</p>}
+          <button
+            onClick={handleAnalyze}
+            disabled={generating}
+            className="inline-flex items-center gap-2 text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors disabled:opacity-50"
+            style={{ background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.30)', color: 'rgb(167,139,250)' }}
+          >
+            {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
+            {generating ? 'Analyzing...' : 'Analyze Now'}
+          </button>
+        </div>
       </div>
     )
   }
@@ -216,7 +226,7 @@ export function RiskScoreCard({ storeId }: RiskScoreCardProps) {
   const scoreColors = getScoreColor(overallScore)
 
   return (
-    <div className="glass-card rounded-2xl p-6 space-y-6">
+    <div className="glass-card rounded-2xl p-6 space-y-6" id="risk-score">
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-3 min-w-0">

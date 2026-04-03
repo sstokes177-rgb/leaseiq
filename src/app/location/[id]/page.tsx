@@ -206,24 +206,25 @@ export default async function LocationPage({
           </div>
         )}
 
-        {/* No documents yet */}
+        {/* No documents yet — enhanced empty state */}
         {!hasDocuments && (
           <div className="glass-card rounded-2xl p-10 text-center">
-            <div
-              className="inline-flex items-center justify-center w-12 h-12 rounded-2xl mb-4"
-              style={{ background: 'rgba(16,185,129,0.10)', border: '1px solid rgba(16,185,129,0.18)' }}
-            >
-              <FileText className="h-6 w-6 text-emerald-400/80" />
+            <div className="mb-5">
+              <Upload className="h-14 w-14 text-emerald-400/30 mx-auto" />
             </div>
-            <p className="font-semibold text-sm mb-1">No documents yet</p>
-            <p className="text-xs text-muted-foreground/70 mb-5">
-              Upload your lease to unlock AI-powered analysis and Q&amp;A.
+            <p className="font-bold text-lg mb-2">Upload your lease to unlock AI intelligence</p>
+            <p className="text-sm text-muted-foreground/70 mb-6 max-w-sm mx-auto">
+              Supported: PDF files. Upload your base lease, amendments, exhibits, and any other lease documents.
             </p>
             <Link href={`/upload?store=${id}`}>
-              <Button size="sm">
-                Upload your lease <ArrowRight className="h-3.5 w-3.5 ml-1" />
+              <Button size="lg" className="gap-2">
+                <Upload className="h-4 w-4" />
+                Upload Documents
               </Button>
             </Link>
+            <p className="text-xs text-muted-foreground/40 mt-5 max-w-xs mx-auto leading-relaxed">
+              Your documents are processed securely and encrypted at rest.
+            </p>
           </div>
         )}
       </main>

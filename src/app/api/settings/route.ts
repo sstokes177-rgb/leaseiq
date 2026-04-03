@@ -35,6 +35,7 @@ export async function PUT(request: NextRequest) {
   if (body.language_preference !== undefined) updates.language_preference = body.language_preference
   if (body.notification_prefs !== undefined) updates.notification_prefs = body.notification_prefs
   if (body.display_theme !== undefined) updates.display_theme = body.display_theme
+  if (body.onboarding_completed !== undefined) updates.onboarding_completed = body.onboarding_completed
 
   if (Object.keys(updates).length === 0) {
     return NextResponse.json({ error: 'No fields to update' }, { status: 400 })

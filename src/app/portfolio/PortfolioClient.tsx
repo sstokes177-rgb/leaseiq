@@ -287,6 +287,38 @@ export function PortfolioClient({ userName }: { userName: string }) {
     )
   }
 
+  // Portfolio empty state — less than 2 locations
+  if (data.total_locations < 2) {
+    return (
+      <div className="min-h-screen">
+        <Header userName={userName} />
+        <main className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
+          <div className="glass-card rounded-2xl p-12 text-center">
+            <div className="mb-5">
+              <BarChart3 className="h-14 w-14 text-emerald-400/25 mx-auto" />
+            </div>
+            <p className="font-bold text-lg mb-2">Add more locations to unlock portfolio analytics</p>
+            <p className="text-sm text-muted-foreground/70 mb-6 max-w-sm mx-auto">
+              Compare risk scores, track expirations, and spot trends across your entire portfolio.
+            </p>
+            <Link href="/dashboard">
+              <button
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(16,185,129,0.9), rgba(13,148,136,0.9))',
+                  border: '1px solid rgba(16,185,129,0.3)',
+                }}
+              >
+                <Plus className="h-4 w-4" />
+                Add Location
+              </button>
+            </Link>
+          </div>
+        </main>
+      </div>
+    )
+  }
+
   const upcomingCount = data.upcoming_critical_dates.filter(d => getDaysUntil(d.date_value) > 0 && getDaysUntil(d.date_value) <= 90).length
 
   // ── Chart data ─────────────────────────────────────────────────────────────

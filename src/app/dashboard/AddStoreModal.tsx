@@ -67,7 +67,7 @@ export function AddStoreButton() {
 
   if (!open) {
     return (
-      <Button onClick={() => setOpen(true)} variant="outline" size="sm" className="gap-1.5">
+      <Button id="add-store-btn" onClick={() => setOpen(true)} variant="outline" size="sm" className="gap-1.5">
         <Plus className="h-3.5 w-3.5" />
         Add location
       </Button>
