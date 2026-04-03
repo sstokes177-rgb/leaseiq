@@ -287,6 +287,126 @@ export function exportObligationMatrix(obligations: ObligationExportItem[], stor
 
 // ── Dispute Letter Export ─────────────────────────────────────────────────
 
+// ── Lease Comparison Export ────────────────────────────────────────────────
+
+interface ComparisonExportItem {
+  clause_affected: string
+  original_text: string
+  amended_text: string
+  impact: 'favorable' | 'unfavorable' | 'neutral'
+  significance: 'high' | 'medium' | 'low'
+  explanation: string
+}
+
+export function exportLeaseComparison(
+  comparisons: ComparisonExportItem[],
+  summary: string,
+  netImpact: string,
+  storeName: string,
+) {
+  const doc = createPDF('Lease Comparison')
+  let y = 40
+  let pageNum = 1
+
+  // Title
+  doc.setFontSize(14)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(40, 40, 50)
+  doc.text(`${storeName} — Amendment Comparison`, 15, y)
+  y += 8
+
+  // Net impact badge
+  doc.setFontSize(9)
+  doc.setFont('helvetica', 'bold')
+  const impactColor = netImpact === 'favorable' ? COLORS.emerald : netImpact === 'unfavorable' ? COLORS.red : COLORS.amber
+  doc.setTextColor(...impactColor)
+  doc.text(`Net Impact: ${netImpact.charAt(0).toUpperCase() + netImpact.slice(1)}`, 15, y)
+  y += 6
+
+  // Summary
+  doc.setFontSize(8)
+  doc.setFont('helvetica', 'normal')
+  doc.setTextColor(80, 80, 90)
+  const summaryLines = doc.splitTextToSize(summary, 180)
+  doc.text(summaryLines, 15, y)
+  y += summaryLines.length * 4 + 6
+
+  doc.setFontSize(8)
+  doc.setTextColor(...COLORS.grey)
+  doc.text(`${comparisons.length} change${comparisons.length !== 1 ? 's' : ''} identified`, 15, y)
+  y += 8
+
+  const IMPACT_COLORS: Record<string, [number, number, number]> = {
+    favorable: COLORS.emerald,
+    unfavorable: COLORS.red,
+    neutral: COLORS.grey,
+  }
+
+  for (const item of comparisons) {
+    // Check page break (each item needs ~35mm)
+    if (y > 240) {
+      addFooter(doc, pageNum)
+      doc.addPage()
+      pageNum++
+      y = 20
+    }
+
+    // Clause header with impact color
+    const color = IMPACT_COLORS[item.impact] ?? COLORS.grey
+    doc.setFillColor(...color)
+    doc.rect(15, y - 3, 2, 12, 'F')
+
+    doc.setFontSize(9)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(40, 40, 50)
+    doc.text(item.clause_affected, 20, y)
+
+    // Impact + significance badges
+    doc.setFontSize(7)
+    doc.setTextColor(...color)
+    const badge = `${item.impact.toUpperCase()} | ${item.significance.toUpperCase()}`
+    doc.text(badge, 195, y, { align: 'right' })
+    y += 6
+
+    // Original text
+    doc.setFontSize(7.5)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(...COLORS.grey)
+    doc.text('Original:', 20, y)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(60, 60, 70)
+    const origLines = doc.splitTextToSize(item.original_text, 145)
+    doc.text(origLines, 45, y)
+    y += origLines.length * 3.5 + 2
+
+    // Amended text
+    if (y > 270) { addFooter(doc, pageNum); doc.addPage(); pageNum++; y = 20 }
+    doc.setFontSize(7.5)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(...color)
+    doc.text('Amended:', 20, y)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(60, 60, 70)
+    const amendLines = doc.splitTextToSize(item.amended_text, 145)
+    doc.text(amendLines, 45, y)
+    y += amendLines.length * 3.5 + 2
+
+    // Explanation
+    if (y > 270) { addFooter(doc, pageNum); doc.addPage(); pageNum++; y = 20 }
+    doc.setFontSize(7)
+    doc.setFont('helvetica', 'italic')
+    doc.setTextColor(100, 100, 110)
+    const expLines = doc.splitTextToSize(item.explanation, 170)
+    doc.text(expLines, 20, y)
+    y += expLines.length * 3.5 + 6
+  }
+
+  addFooter(doc, pageNum)
+  doc.save(`Provelo_Comparison_${storeName.replace(/\s+/g, '_')}.pdf`)
+}
+
+// ── Dispute Letter Export ─────────────────────────────────────────────────
+
 export function exportDisputeLetter(letterText: string, storeName: string) {
   const doc = createPDF('CAM Dispute Letter')
   let y = 40

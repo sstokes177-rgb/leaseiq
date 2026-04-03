@@ -20,6 +20,7 @@ import { DocumentListItem } from '@/components/DocumentListItem'
 import { CriticalDatesCard } from '@/components/CriticalDatesCard'
 import { RiskScoreCard } from '@/components/RiskScoreCard'
 import { NotificationCenter } from '@/components/NotificationCenter'
+import { LeaseComparisonCard } from '@/components/LeaseComparisonCard'
 
 export default async function LocationPage({
   params,
@@ -168,6 +169,11 @@ export default async function LocationPage({
 
         {/* Risk Score */}
         {hasDocuments && <RiskScoreCard storeId={id} />}
+
+        {/* Lease Comparison */}
+        {hasDocuments && (
+          <LeaseComparisonCard storeId={id} storeName={store.store_name} documentCount={documents.length} />
+        )}
 
         {/* Obligation Matrix */}
         {hasDocuments && <ObligationMatrixCard storeId={id} storeName={store.store_name} />}

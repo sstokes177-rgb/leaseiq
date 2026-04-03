@@ -279,6 +279,25 @@ export interface Notification {
   created_at: string
 }
 
+// Lease Comparison
+export type ComparisonImpact = 'favorable' | 'unfavorable' | 'neutral'
+export type ComparisonSignificance = 'high' | 'medium' | 'low'
+
+export interface LeaseComparisonItem {
+  clause_affected: string
+  original_text: string
+  amended_text: string
+  impact: ComparisonImpact
+  significance: ComparisonSignificance
+  explanation: string
+}
+
+export interface LeaseComparisonResult {
+  comparisons: LeaseComparisonItem[]
+  summary: string
+  net_impact: 'favorable' | 'unfavorable' | 'mixed'
+}
+
 // Team
 export interface TeamInvitation {
   id: string

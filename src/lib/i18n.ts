@@ -103,6 +103,16 @@ export const translations: Record<Language, Record<string, string>> = {
     'settings.saving': 'Saving...',
     'settings.saved': 'Saved',
 
+    // Lease Comparison
+    'compare.title': 'Lease Comparison',
+    'compare.subtitle': 'Side-by-side amendment analysis',
+    'compare.emptyTitle': 'Compare your lease versions',
+    'compare.emptyDesc': 'See what changed between your base lease and amendments, with impact analysis for each clause.',
+    'compare.compareNow': 'Compare Versions',
+    'compare.comparing': 'Comparing\u2026',
+    'compare.export': 'Export Comparison',
+    'compare.discuss': 'Discuss Changes with AI',
+
     // Common
     'common.loading': 'Loading\u2026',
     'common.pdfOrWord': 'PDF or Word',
@@ -213,6 +223,16 @@ export const translations: Record<Language, Record<string, string>> = {
     'settings.save': 'Guardar Cambios',
     'settings.saving': 'Guardando...',
     'settings.saved': 'Guardado',
+
+    // Lease Comparison
+    'compare.title': 'Comparaci\u00f3n de Contrato',
+    'compare.subtitle': 'An\u00e1lisis de enmiendas lado a lado',
+    'compare.emptyTitle': 'Compare sus versiones del contrato',
+    'compare.emptyDesc': 'Vea qu\u00e9 cambi\u00f3 entre su contrato base y las enmiendas, con an\u00e1lisis de impacto para cada cl\u00e1usula.',
+    'compare.compareNow': 'Comparar Versiones',
+    'compare.comparing': 'Comparando\u2026',
+    'compare.export': 'Exportar Comparaci\u00f3n',
+    'compare.discuss': 'Discutir Cambios con IA',
 
     // Common
     'common.loading': 'Cargando\u2026',
