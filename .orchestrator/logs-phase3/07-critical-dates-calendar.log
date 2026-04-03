@@ -1,0 +1,23 @@
+All done. Here's what was built:
+
+### PART 1: Interactive Calendar View
+- **List/Calendar toggle** — tab switcher in the CriticalDatesCard header
+- **Month grid** — 7-column Sun-Sat layout, min 80px cells, colored dots per urgency (red <30d, amber 30-90d, green >90d, gray past)
+- **Today highlight** — emerald ring on current day
+- **Day click popover** — shows all events with type, description, store name
+- **Navigation** — prev/next month arrows, month/year display, "Today" button
+
+### PART 2: Configurable Reminders
+- **Migration 011** — adds `reminder_days INTEGER[] DEFAULT '{30}'` to `critical_dates`
+- **PATCH endpoint** — `/api/critical-dates` accepts `{id, reminder_days[]}` to save per-date reminders
+- **Reminder popover** — bell icon on each date row shows current reminders (e.g. "30d, 180d"), click to toggle from preset options (7, 14, 30, 60, 90, 120, 180, 210, 365 days), save button persists to DB
+
+### PART 3: Cross-Location Critical Dates
+- **CrossLocationDates component** — wraps CriticalDatesCard with `crossLocation` prop
+- **API updated** — `store_id` parameter is now optional; without it, returns all stores' dates enriched with store names
+- **Grouped display** — "This Month", "Next 3 Months", "Next 6 Months", "Beyond 6 Months", "Past"
+- **Store name shown** on each date row in cross-location mode
+- **Dashboard** — CrossLocationDates added after the location grid
+- **Portfolio** — replaced inline critical dates section with the new reusable component
+
+Build passes clean. Pushed to `main`.
