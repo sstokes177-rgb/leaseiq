@@ -1,0 +1,14 @@
+Done. Build passes, committed, and pushed.
+
+**What changed in `src/components/LandingPage.tsx`:**
+
+- **Sticky nav** — Logo + "Commercial Lease Intelligence" tagline, center anchor links (Features, How It Works, For Tenants), Sign In ghost button + Start Free emerald button. Scroll-triggered `bg-gray-950/80 backdrop-blur-xl`. Mobile hamburger menu.
+- **Full-viewport hero** — Radial emerald gradient + subtle CSS grid pattern. "Know Your Lease. Protect Your Business." headline at `text-7xl`. Two CTAs: "Start Free" (solid emerald) + "See How It Works" (outlined). "No credit card required" subtext.
+- **Problem section** — "Commercial leases are designed to protect landlords." Three pain point cards (CAM errors, buried dates, confusing language) with `bg-white/[0.03]` glass styling and emerald hover borders.
+- **Feature cards** — 2x2 grid: Ask Your Lease Anything, Catch CAM Overcharges, Score Your Lease Risk, Never Miss a Deadline. Icon hover scale animation.
+- **How It Works** — 3-step horizontal flow with emerald number circles and connecting lines.
+- **Trust section** — Three security badges (encryption, enterprise security, data privacy).
+- **Final CTA** — Emerald gradient card with "Ready to understand your lease?"
+- **4-column footer** — Product, Company, Legal, Connect columns + copyright.
+- **Responsive** — Mobile single-column, hamburger nav, scaled-down typography.
+- **Performance** — CSS-only animations, no images, no heavy libraries.
