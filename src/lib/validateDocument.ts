@@ -1,5 +1,6 @@
 import { generateText } from 'ai'
 import { anthropic } from '@ai-sdk/anthropic'
+import { INJECTION_DEFENSE, sanitizeChunkContent } from './security'
 
 export interface LeaseIdentifiers {
   tenant_name: string | null

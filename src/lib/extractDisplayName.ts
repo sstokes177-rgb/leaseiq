@@ -1,5 +1,6 @@
 import { generateText } from 'ai'
 import { anthropic } from '@ai-sdk/anthropic'
+import { INJECTION_DEFENSE, sanitizeChunkContent } from './security'
 
 /**
  * Uses Claude Haiku to extract a short human-readable display label from
@@ -13,7 +14,7 @@ export async function extractDisplayName(text: string): Promise<string | null> {
     messages: [
       {
         role: 'user',
-        content: `You are reading the opening section of a commercial retail lease. Extract a short display label that identifies this lease for the tenant.
+        content: `${INJECTION_DEFENSE}You are reading the opening section of a commercial retail lease. Extract a short display label that identifies this lease for the tenant.
 
 Format: "Tenant Name — Property or Location Name"
 If only one of those is identifiable, use just that.

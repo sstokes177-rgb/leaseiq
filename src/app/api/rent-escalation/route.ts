@@ -5,6 +5,7 @@ import { anthropic } from '@ai-sdk/anthropic'
 import { keywordSearchChunks } from '@/lib/vectorStore'
 import { parseAIJson } from '@/lib/parseAIJson'
 import { isRateLimited } from '@/lib/rateLimit'
+import { INJECTION_DEFENSE, sanitizeChunkContent } from '@/lib/security'
 
 export const maxDuration = 60
 
@@ -59,7 +60,7 @@ export async function GET(request: NextRequest) {
         maxOutputTokens: 800,
         messages: [{
           role: 'user',
-          content: `Extract the rent escalation schedule from these lease excerpts. Return ONLY valid JSON:
+          content: `${INJECTION_DEFENSE}Extract the rent escalation schedule from these lease excerpts. Return ONLY valid JSON:
 {
   "type": "percentage" | "fixed_amount" | "step_schedule" | "cpi" | "unknown",
   "annual_percentage": number or null (if type is "percentage"),
@@ -77,7 +78,7 @@ If it's a simple percentage increase, set "type": "percentage" and "annual_perce
 If it's a fixed dollar increase per year, set "type": "fixed_amount" and "annual_fixed_increase".
 
 Lease excerpts:
-${chunks.slice(0, 15).join('\n\n---\n\n').slice(0, 15000)}`,
+${chunks.slice(0, 15).map(c => sanitizeChunkContent(c)).join('\n\n---\n\n').slice(0, 15000)}`,
         }],
       })
 

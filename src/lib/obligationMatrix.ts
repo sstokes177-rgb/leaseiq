@@ -3,6 +3,7 @@ import { anthropic } from '@ai-sdk/anthropic'
 import { createAdminSupabaseClient } from './supabase'
 import { keywordSearchChunks } from './vectorStore'
 import { parseAIJson } from './parseAIJson'
+import { INJECTION_DEFENSE, sanitizeChunkContent } from './security'
 import type { ObligationItem } from '@/types'
 
 const OBLIGATION_KEYWORDS = [
@@ -125,7 +126,7 @@ export async function generateObligationMatrix(
 
   const contextText = chunks
     .slice(0, 35)
-    .map((c) => c.content)
+    .map((c) => sanitizeChunkContent(c.content))
     .join('\n\n---\n\n')
 
   let obligations: ObligationItem[]
@@ -136,7 +137,7 @@ export async function generateObligationMatrix(
       messages: [
         {
           role: 'user',
-          content: `You are a lease analysis specialist. From the following lease excerpts, create a responsibility matrix.
+          content: `${INJECTION_DEFENSE}You are a lease analysis specialist. From the following lease excerpts, create a responsibility matrix.
 
 For each category below, determine who is responsible: Tenant, Landlord, Shared, or Not Addressed.
 Cite the specific article/section if mentioned in the text. Keep "details" to one sentence.

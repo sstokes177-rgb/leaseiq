@@ -1,5 +1,6 @@
 import { createAdminSupabaseClient } from './supabase'
 import { embedText, embedBatch } from './embeddings'
+import { sanitizeChunkContent } from './security'
 import type { ChunkMetadata, Citation } from '@/types'
 
 interface ChunkToStore {
@@ -197,7 +198,7 @@ export function buildContextFromChunks(chunks: RetrievedChunk[]): {
       .filter(Boolean)
       .join(' | ')
 
-    contextParts.push(`[${label}]\n${chunk.content}`)
+    contextParts.push(`[${label}]\n${sanitizeChunkContent(chunk.content)}`)
 
     citations.push({
       chunk_id: chunk.id,

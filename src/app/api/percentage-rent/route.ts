@@ -5,6 +5,7 @@ import { anthropic } from '@ai-sdk/anthropic'
 import { keywordSearchChunks } from '@/lib/vectorStore'
 import { parseAIJson } from '@/lib/parseAIJson'
 import { isRateLimited } from '@/lib/rateLimit'
+import { INJECTION_DEFENSE, sanitizeChunkContent } from '@/lib/security'
 
 export const maxDuration = 90
 
@@ -133,7 +134,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'No lease documents found' }, { status: 422 })
   }
 
-  const contextText = chunks.map((c) => c.content).join('\n\n---\n\n')
+  const contextText = chunks.map((c) => sanitizeChunkContent(c.content)).join('\n\n---\n\n')
 
   try {
     const { text: result } = await generateText({
@@ -142,7 +143,7 @@ export async function POST(request: NextRequest) {
       messages: [
         {
           role: 'user',
-          content: `Extract percentage rent details from these lease excerpts. Return ONLY valid JSON:
+          content: `${INJECTION_DEFENSE}Extract percentage rent details from these lease excerpts. Return ONLY valid JSON:
 {
   "breakpoint": "number or null (annual breakpoint amount, numbers only)",
   "percentage": "number or null (percentage rate, e.g. 6 for 6%)",

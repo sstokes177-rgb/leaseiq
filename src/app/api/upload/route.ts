@@ -5,6 +5,8 @@ import { storeChunks } from '@/lib/vectorStore'
 import { extractDisplayName } from '@/lib/extractDisplayName'
 import { extractLeaseIdentifiers, checkMismatch } from '@/lib/validateDocument'
 import { extractCriticalDates } from '@/lib/extractCriticalDates'
+import { validateUploadedFile, verifyPDFHeader, sanitizeFileName as secureSanitize } from '@/lib/security'
+import { isRateLimited } from '@/lib/rateLimit'
 
 export const maxDuration = 120
 
@@ -39,6 +41,12 @@ async function processSingleFile(
 ): Promise<FileResult> {
   const fileName = sanitizeFilename(file.name)
 
+  // ── Security validation ──
+  const securityCheck = validateUploadedFile(file)
+  if (!securityCheck.valid) {
+    return { file_name: fileName, status: 'failed', error: securityCheck.error }
+  }
+
   // ── Validate file type ──
   if (!isAcceptedFileType(file.type, fileName)) {
     return { file_name: fileName, status: 'failed', error: 'Unsupported file type. Please upload a PDF (.pdf) or Word document (.doc, .docx).' }
@@ -70,6 +78,13 @@ async function processSingleFile(
   }
 
   const arrayBuffer = await file.arrayBuffer()
+
+  // ── PDF magic bytes verification ──
+  const ext = file.name.split('.').pop()?.toLowerCase() ?? ''
+  if (ext === 'pdf' && !verifyPDFHeader(arrayBuffer)) {
+    return { file_name: fileName, status: 'failed', error: 'File is not a valid PDF document.' }
+  }
+
   const buffer = Buffer.from(arrayBuffer)
 
   // ── Step 1: Extract text ──
@@ -128,7 +143,8 @@ async function processSingleFile(
   }
 
   // ── Step 4: Upload file to storage ──
-  const filePath = `${userId}/${Date.now()}_${fileName}`
+  const safeStoreName = secureSanitize(fileName)
+  const filePath = `${userId}/${crypto.randomUUID()}/${safeStoreName}`
   const contentType = file.type || 'application/octet-stream'
 
   const { error: storageError } = await admin.storage
@@ -207,6 +223,10 @@ export async function POST(request: NextRequest) {
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  if (isRateLimited(user.id, 'upload')) {
+    return NextResponse.json({ error: 'Too many requests. Please wait a moment before trying again.' }, { status: 429 })
+  }
 
   const formData = await request.formData()
   const files = formData.getAll('file') as File[]

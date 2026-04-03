@@ -1,5 +1,6 @@
 import pdf from 'pdf-parse'
 import mammoth from 'mammoth'
+import { cleanExtractedText } from './security'
 import type { ChunkMetadata } from '@/types'
 
 export interface TextChunk {
@@ -108,7 +109,7 @@ async function extractPdfText(buffer: Buffer): Promise<string> {
       'Could not extract text from this PDF. If it is a scanned document, please convert it to a searchable PDF first.'
     )
   }
-  return text
+  return cleanExtractedText(text)
 }
 
 async function extractWordText(buffer: Buffer): Promise<string> {
@@ -117,7 +118,7 @@ async function extractWordText(buffer: Buffer): Promise<string> {
   if (!text || text.trim().length === 0) {
     throw new Error('Could not extract text from this Word document.')
   }
-  return text
+  return cleanExtractedText(text)
 }
 
 /**

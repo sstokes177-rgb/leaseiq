@@ -1,6 +1,7 @@
 import { generateText } from 'ai'
 import { anthropic } from '@ai-sdk/anthropic'
 import { parseAIJson } from './parseAIJson'
+import { INJECTION_DEFENSE, sanitizeChunkContent } from './security'
 
 export interface CriticalDate {
   date_type: string
@@ -21,7 +22,7 @@ export async function extractCriticalDates(text: string): Promise<CriticalDate[]
       messages: [
         {
           role: 'user',
-          content: `Extract all critical dates from this commercial lease. Return a JSON array of objects with:
+          content: `${INJECTION_DEFENSE}Extract all critical dates from this commercial lease. Return a JSON array of objects with:
 - "date_type": short label (e.g., "Lease Expiration", "Rent Commencement", "Renewal Option Deadline", "Rent Escalation", "CAM Audit Deadline", "Notice Deadline")
 - "date_value": ISO date string YYYY-MM-DD, or null if only a duration is mentioned without a specific date
 - "description": 1–2 sentences explaining what this date means for the tenant and any action required
@@ -39,7 +40,7 @@ Focus on:
 Return ONLY a valid JSON array. Return [] if no specific dates are found.
 
 Lease text:
-${text.slice(0, 8000)}`,
+${sanitizeChunkContent(text.slice(0, 8000))}`,
         },
       ],
     })

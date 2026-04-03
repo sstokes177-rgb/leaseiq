@@ -3,6 +3,7 @@ import { anthropic } from '@ai-sdk/anthropic'
 import { createAdminSupabaseClient } from './supabase'
 import { keywordSearchChunks } from './vectorStore'
 import { parseAIJson } from './parseAIJson'
+import { INJECTION_DEFENSE, sanitizeChunkContent } from './security'
 import type { CamAnalysisData } from '@/types'
 
 const CAM_KEYWORDS = [
@@ -74,7 +75,7 @@ export async function generateCamAnalysis(
 
   const contextText = chunks
     .slice(0, 35)
-    .map((c) => c.content)
+    .map((c) => sanitizeChunkContent(c.content))
     .join('\n\n---\n\n')
 
   try {
@@ -84,7 +85,7 @@ export async function generateCamAnalysis(
       messages: [
         {
           role: 'user',
-          content: `Extract CAM charge details from these lease excerpts. Return ONLY valid JSON with no other text:
+          content: `${INJECTION_DEFENSE}Extract CAM charge details from these lease excerpts. Return ONLY valid JSON with no other text:
 {
   "proportionate_share_pct": "string or null (e.g. '3.5%')",
   "admin_fee_pct": "string or null (e.g. '15% of CAM')",

@@ -4,6 +4,7 @@ import { generateText } from 'ai'
 import { anthropic } from '@ai-sdk/anthropic'
 import { parseAIJson } from '@/lib/parseAIJson'
 import { isRateLimited } from '@/lib/rateLimit'
+import { INJECTION_DEFENSE, sanitizeChunkContent } from '@/lib/security'
 import type { LeaseComparisonResult } from '@/types'
 
 export const maxDuration = 120
@@ -88,12 +89,12 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  // Build context text
+  // Build context text (sanitize chunks before including in prompt)
   const baseLeaseText = baseChunks
     .map(c => {
       const meta = c.metadata as { document_name?: string; section_heading?: string }
       const heading = meta?.section_heading ? ` — ${meta.section_heading}` : ''
-      return `[${meta?.document_name ?? 'Base Lease'}${heading}]\n${c.content}`
+      return `[${meta?.document_name ?? 'Base Lease'}${heading}]\n${sanitizeChunkContent(c.content)}`
     })
     .join('\n\n---\n\n')
 
@@ -101,11 +102,11 @@ export async function POST(request: NextRequest) {
     .map(c => {
       const meta = c.metadata as { document_name?: string; section_heading?: string }
       const heading = meta?.section_heading ? ` — ${meta.section_heading}` : ''
-      return `[${meta?.document_name ?? 'Amendment'}${heading}]\n${c.content}`
+      return `[${meta?.document_name ?? 'Amendment'}${heading}]\n${sanitizeChunkContent(c.content)}`
     })
     .join('\n\n---\n\n')
 
-  const prompt = `You are a commercial lease comparison analyst. Compare the following lease documents and identify ALL differences.
+  const prompt = `${INJECTION_DEFENSE}You are a commercial lease comparison analyst. Compare the following lease documents and identify ALL differences.
 
 BASE LEASE:
 ${baseLeaseText.slice(0, 18000)}

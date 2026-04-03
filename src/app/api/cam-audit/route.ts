@@ -5,6 +5,7 @@ import { anthropic } from '@ai-sdk/anthropic'
 import { keywordSearchChunks } from '@/lib/vectorStore'
 import { parseAIJson } from '@/lib/parseAIJson'
 import { isRateLimited } from '@/lib/rateLimit'
+import { INJECTION_DEFENSE, sanitizeChunkContent, verifyPDFHeader } from '@/lib/security'
 import type { CamAuditFinding } from '@/types'
 
 export const maxDuration = 120
@@ -121,10 +122,15 @@ async function handleForensicAudit(request: NextRequest, userId: string) {
     .from('stores').select('id').eq('id', storeId).eq('tenant_id', userId).maybeSingle()
   if (!store) return NextResponse.json({ error: 'Store not found' }, { status: 404 })
 
-  // Extract text from PDF
+  // Verify PDF and extract text
+  const arrayBuffer = await file.arrayBuffer()
+  if (!verifyPDFHeader(arrayBuffer)) {
+    return NextResponse.json({ error: 'File is not a valid PDF document.' }, { status: 400 })
+  }
+
   let statementText: string
   try {
-    const buffer = Buffer.from(await file.arrayBuffer())
+    const buffer = Buffer.from(arrayBuffer)
     const pdfParse = (await import('pdf-parse')).default
     const result = await pdfParse(buffer)
     statementText = result.text
@@ -185,14 +191,14 @@ async function handleForensicAudit(request: NextRequest, userId: string) {
       maxOutputTokens: 6000,
       messages: [{
         role: 'user',
-        content: `${AUDIT_SYSTEM_PROMPT}
+        content: `${INJECTION_DEFENSE}${AUDIT_SYSTEM_PROMPT}
 ${camSummary}
 
 LEASE EXCERPTS (CAM-related provisions):
-${leaseChunks.slice(0, 40).join('\n\n---\n\n').slice(0, 25000)}
+${leaseChunks.slice(0, 40).map(c => sanitizeChunkContent(c)).join('\n\n---\n\n').slice(0, 25000)}
 
 CAM RECONCILIATION STATEMENT:
-${statementText.slice(0, 25000)}`,
+${sanitizeChunkContent(statementText.slice(0, 25000))}`,
       }],
     })
 
@@ -307,7 +313,7 @@ async function handleDisputeLetter(request: NextRequest, userId: string) {
       maxOutputTokens: 3000,
       messages: [{
         role: 'user',
-        content: `Write a professional dispute letter from the tenant to the landlord regarding CAM reconciliation overcharges.
+        content: `${INJECTION_DEFENSE}Write a professional dispute letter from the tenant to the landlord regarding CAM reconciliation overcharges.
 
 Tenant: ${tenantName}
 Landlord: ${landlordName}

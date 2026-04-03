@@ -2,6 +2,7 @@ import { generateText } from 'ai'
 import { anthropic } from '@ai-sdk/anthropic'
 import { createAdminSupabaseClient } from './supabase'
 import { parseAIJson } from './parseAIJson'
+import { INJECTION_DEFENSE, sanitizeChunkContent } from './security'
 import type { LeaseSummaryData } from '@/types'
 
 export async function generateLeaseSummary(
@@ -50,7 +51,7 @@ export async function generateLeaseSummary(
     const meta = c.metadata as { document_type?: string; document_name?: string; section_heading?: string }
     const tag = meta?.document_type ? `[${meta.document_type.toUpperCase().replace('_', ' ')}]` : ''
     const heading = meta?.section_heading ? ` — ${meta.section_heading}` : ''
-    return `${tag}${heading}\n${c.content}`
+    return `${tag}${heading}\n${sanitizeChunkContent(c.content)}`
   }).join('\n\n---\n\n')
 
   let summaryData: LeaseSummaryData & { asset_class?: string }
@@ -61,7 +62,7 @@ export async function generateLeaseSummary(
       messages: [
         {
           role: 'user',
-          content: `You are a lease abstraction specialist. From the following lease document excerpts, extract these fields in JSON format. If a field cannot be determined, use null.
+          content: `${INJECTION_DEFENSE}You are a lease abstraction specialist. From the following lease document excerpts, extract these fields in JSON format. If a field cannot be determined, use null.
 
 IMPORTANT for lease dates:
 - Look very carefully for the lease expiration date. It may be stated as a specific date, OR as a number of years from the commencement date (e.g., "The term shall be twenty (20) years from the Commencement Date").

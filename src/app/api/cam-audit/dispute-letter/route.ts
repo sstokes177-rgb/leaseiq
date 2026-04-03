@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient, createAdminSupabaseClient } from '@/lib/supabase'
 import { generateText } from 'ai'
 import { anthropic } from '@ai-sdk/anthropic'
+import { INJECTION_DEFENSE, sanitizeChunkContent } from '@/lib/security'
 import type { CamAuditFinding } from '@/types'
 
 export const maxDuration = 120
@@ -72,7 +73,7 @@ export async function POST(request: NextRequest) {
     .ilike('content', '%common area%')
     .limit(10)
 
-  const leaseExcerpts = (camChunks ?? []).map(c => c.content).join('\n---\n').slice(0, 8000)
+  const leaseExcerpts = (camChunks ?? []).map(c => sanitizeChunkContent(c.content)).join('\n---\n').slice(0, 8000)
 
   const total = Number(audit.total_potential_overcharge).toLocaleString('en-US', { minimumFractionDigits: 2 })
 
@@ -82,7 +83,7 @@ export async function POST(request: NextRequest) {
       maxOutputTokens: 3000,
       messages: [{
         role: 'user',
-        content: `Generate a professional dispute letter for a commercial tenant challenging CAM (Common Area Maintenance) overcharges. The letter should be sent from the tenant to the landlord/property manager.
+        content: `${INJECTION_DEFENSE}Generate a professional dispute letter for a commercial tenant challenging CAM (Common Area Maintenance) overcharges. The letter should be sent from the tenant to the landlord/property manager.
 
 TENANT LOCATION: ${store.store_name} at ${propertyAddress}
 TENANT: ${tenantName}

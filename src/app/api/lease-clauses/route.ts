@@ -5,6 +5,7 @@ import { anthropic } from '@ai-sdk/anthropic'
 import { keywordSearchChunks } from '@/lib/vectorStore'
 import { parseAIJson } from '@/lib/parseAIJson'
 import { isRateLimited } from '@/lib/rateLimit'
+import { INJECTION_DEFENSE, sanitizeChunkContent } from '@/lib/security'
 
 export const maxDuration = 60
 
@@ -122,10 +123,10 @@ export async function GET(request: NextRequest) {
       maxOutputTokens: 600,
       messages: [{
         role: 'user',
-        content: `${CLAUDE_PROMPTS[clauseType]}
+        content: `${INJECTION_DEFENSE}${CLAUDE_PROMPTS[clauseType]}
 
 Lease excerpts:
-${chunks.slice(0, 15).join('\n\n---\n\n').slice(0, 15000)}`,
+${chunks.slice(0, 15).map(c => sanitizeChunkContent(c)).join('\n\n---\n\n').slice(0, 15000)}`,
       }],
     })
 

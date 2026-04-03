@@ -5,6 +5,7 @@ import { anthropic } from '@ai-sdk/anthropic'
 import { keywordSearchChunks } from '@/lib/vectorStore'
 import { parseAIJson } from '@/lib/parseAIJson'
 import { isRateLimited } from '@/lib/rateLimit'
+import { INJECTION_DEFENSE, sanitizeChunkContent } from '@/lib/security'
 import type { ClauseScore, NegotiationPriority } from '@/types'
 
 export const maxDuration = 90
@@ -203,7 +204,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Limit context to 30 chunks and 20k chars to avoid token limits
-  const contextText = chunks.slice(0, 30).join('\n\n---\n\n').slice(0, 20000)
+  const contextText = chunks.slice(0, 30).map(c => sanitizeChunkContent(c)).join('\n\n---\n\n').slice(0, 20000)
 
   let text: string
   try {
@@ -212,7 +213,7 @@ export async function POST(request: NextRequest) {
       maxOutputTokens: 6000,
       messages: [{
         role: 'user',
-        content: `${SYSTEM_PROMPT}\n\nLease excerpts to analyze:\n${contextText}`,
+        content: `${INJECTION_DEFENSE}${SYSTEM_PROMPT}\n\nLease excerpts to analyze:\n${contextText}`,
       }],
     })
     text = result.text
@@ -226,7 +227,7 @@ export async function POST(request: NextRequest) {
           maxOutputTokens: 6000,
           messages: [{
             role: 'user',
-            content: `${SYSTEM_PROMPT}\n\nLease excerpts to analyze:\n${contextText}`,
+            content: `${INJECTION_DEFENSE}${SYSTEM_PROMPT}\n\nLease excerpts to analyze:\n${contextText}`,
           }],
         })
         text = fallback.text

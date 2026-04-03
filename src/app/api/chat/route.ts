@@ -4,6 +4,7 @@ import { anthropic } from '@ai-sdk/anthropic'
 import { createServerSupabaseClient, createAdminSupabaseClient } from '@/lib/supabase'
 import { buildRAGContext } from '@/lib/ragChain'
 import { isRateLimited } from '@/lib/rateLimit'
+import { sanitizeUserInput } from '@/lib/security'
 
 async function generateConversationTitle(question: string, answer: string): Promise<string | null> {
   try {
@@ -44,7 +45,7 @@ export async function POST(request: NextRequest) {
   }
 
   if (isRateLimited(user.id, 'chat')) {
-    return NextResponse.json({ error: 'Please wait a moment before sending another message.' }, { status: 429 })
+    return NextResponse.json({ error: 'Too many requests. Please wait a moment before trying again.' }, { status: 429 })
   }
 
   let body: { messages: UIMessage[]; id?: string; store_id?: string | null }
@@ -71,7 +72,8 @@ export async function POST(request: NextRequest) {
     return new Response('No user message found', { status: 400 })
   }
 
-  const userText = getMessageText(lastUserMessage)
+  const rawUserText = getMessageText(lastUserMessage)
+  const userText = sanitizeUserInput(rawUserText)
 
   console.info(`[Chat] Question received: "${userText.slice(0, 100)}"`)
   console.info(`[Chat] Store ID: ${storeId ?? 'null'} | User: ${user.id}`)

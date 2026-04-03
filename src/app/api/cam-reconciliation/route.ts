@@ -4,6 +4,7 @@ import { generateText } from 'ai'
 import { anthropic } from '@ai-sdk/anthropic'
 import { parseAIJson } from '@/lib/parseAIJson'
 import { isRateLimited } from '@/lib/rateLimit'
+import { INJECTION_DEFENSE, sanitizeChunkContent, verifyPDFHeader } from '@/lib/security'
 import type { CamReconciliationData } from '@/types'
 
 export const maxDuration = 120
@@ -59,10 +60,15 @@ export async function POST(request: NextRequest) {
 
   if (!store) return NextResponse.json({ error: 'Store not found' }, { status: 404 })
 
-  // Extract text from PDF
+  // Verify PDF and extract text
+  const arrayBuffer = await file.arrayBuffer()
+  if (!verifyPDFHeader(arrayBuffer)) {
+    return NextResponse.json({ error: 'File is not a valid PDF document.' }, { status: 400 })
+  }
+
   let statementText: string
   try {
-    const buffer = Buffer.from(await file.arrayBuffer())
+    const buffer = Buffer.from(arrayBuffer)
     const pdfParse = (await import('pdf-parse')).default
     const result = await pdfParse(buffer)
     statementText = result.text
@@ -96,13 +102,13 @@ export async function POST(request: NextRequest) {
       maxOutputTokens: 1500,
       messages: [{
         role: 'user',
-        content: `You are a CAM (Common Area Maintenance) reconciliation specialist for commercial retail tenants.
+        content: `${INJECTION_DEFENSE}You are a CAM (Common Area Maintenance) reconciliation specialist for commercial retail tenants.
 
 Analyze this CAM reconciliation statement and compare it against the tenant's lease provisions. Identify any potential overcharges, errors, or items that don't comply with the lease terms.
 ${camContext}
 
 CAM Reconciliation Statement text:
-${statementText.slice(0, 25000)}
+${sanitizeChunkContent(statementText.slice(0, 25000))}
 
 Return ONLY valid JSON with exactly these keys:
 {
