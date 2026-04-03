@@ -1,0 +1,11 @@
+All four fixes implemented and build passes. Here's what changed in `CitationSidePanel.tsx`:
+
+**FIX 1 — Toggle tabs**: Added `activeTab` state (`'text' | 'pdf'`), defaults to `'text'`. Two tab buttons appear when PDF is available — "Extracted Text" and "Original PDF". Active tab gets emerald underline/highlight. Only one view renders at a time.
+
+**FIX 2 — Resizable panel**: Drag handle widened to 6px with 5 grip dots instead of a single bar. Reset button now shows whenever panel is not at default size (previously only showed in fullscreen). All header buttons have `min-h-[44px] min-w-[44px]` for accessibility.
+
+**FIX 3 — Reset on close**: When `citation` becomes null, `panelWidthPct` resets to `DEFAULT_WIDTH_PCT` (40vw) and `isFullscreen` resets to false, so reopening always starts at default size.
+
+**FIX 4 — Mobile**: Mobile overlay already renders full-screen with no drag handle. Tab toggle works on mobile too. Close button has 44px touch target.
+
+**Readability**: Extracted text bumped to `text-base` (16px) with `leading-[1.7]`. All interactive elements have 44px minimum touch targets.

@@ -36,6 +36,8 @@ const MIN_WIDTH_PX = 300
 const MAX_WIDTH_PCT = 70
 const FULLSCREEN_WIDTH_PCT = 90
 
+type PanelTab = 'text' | 'pdf'
+
 interface CitationSidePanelProps {
   citation: Citation | null
   onClose: () => void
@@ -46,6 +48,7 @@ export function CitationSidePanel({ citation, onClose }: CitationSidePanelProps)
   const [displayCitation, setDisplayCitation] = useState<Citation | null>(null)
   const [pdfUrl, setPdfUrl] = useState<string | null>(null)
   const [pdfLoading, setPdfLoading] = useState(false)
+  const [activeTab, setActiveTab] = useState<PanelTab>('text')
 
   // Resizable state
   const [panelWidthPct, setPanelWidthPct] = useState(DEFAULT_WIDTH_PCT)
@@ -58,6 +61,7 @@ export function CitationSidePanel({ citation, onClose }: CitationSidePanelProps)
     if (citation) {
       setDisplayCitation(citation)
       setPdfUrl(null)
+      setActiveTab('text')
       requestAnimationFrame(() => setVisible(true))
 
       if (citation.document_id) {
@@ -72,6 +76,9 @@ export function CitationSidePanel({ citation, onClose }: CitationSidePanelProps)
       }
     } else {
       setVisible(false)
+      // FIX 3: Reset to default size on close
+      setPanelWidthPct(DEFAULT_WIDTH_PCT)
+      setIsFullscreen(false)
       const timer = setTimeout(() => {
         setDisplayCitation(null)
         setPdfUrl(null)
@@ -133,10 +140,11 @@ export function CitationSidePanel({ citation, onClose }: CitationSidePanelProps)
   const fullText = cleanText(displayCitation.content ?? displayCitation.excerpt)
   const pageNum = displayCitation.page_number
   const effectiveWidthPct = isFullscreen ? FULLSCREEN_WIDTH_PCT : panelWidthPct
+  const isNotDefaultSize = Math.abs(panelWidthPct - DEFAULT_WIDTH_PCT) > 0.5 || isFullscreen
 
   return (
     <>
-      {/* Mobile: full-screen overlay */}
+      {/* Mobile: full-screen overlay — no drag handle */}
       <div
         className={`md:hidden fixed inset-0 z-40 transition-opacity duration-300 ${visible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
       >
@@ -155,6 +163,7 @@ export function CitationSidePanel({ citation, onClose }: CitationSidePanelProps)
             onFullscreen={undefined}
             onResetSize={undefined}
             isFullscreen={false}
+            isNotDefaultSize={false}
           />
           <div className="flex-1 overflow-y-auto">
             <PanelBody
@@ -164,6 +173,8 @@ export function CitationSidePanel({ citation, onClose }: CitationSidePanelProps)
               pdfUrl={pdfUrl}
               pdfLoading={pdfLoading}
               pageNum={pageNum}
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
             />
           </div>
         </div>
@@ -179,14 +190,20 @@ export function CitationSidePanel({ citation, onClose }: CitationSidePanelProps)
           opacity: visible ? 1 : 0,
         }}
       >
-        {/* Drag handle on left edge */}
+        {/* Drag handle on left edge — 6px wide */}
         <div
           onMouseDown={handleMouseDown}
-          className="absolute left-0 top-0 bottom-0 w-[5px] z-10 cursor-col-resize group hover:bg-emerald-500/20 transition-colors"
+          className="absolute left-0 top-0 bottom-0 w-[6px] z-10 cursor-col-resize group hover:bg-emerald-500/20 transition-colors"
           style={{ background: 'transparent' }}
         >
-          {/* Grip indicator */}
-          <div className="absolute left-[1px] top-1/2 -translate-y-1/2 w-[3px] h-8 rounded-full bg-white/[0.12] group-hover:bg-emerald-400/50 transition-colors" />
+          {/* Grip dots indicator */}
+          <div className="absolute left-[1px] top-1/2 -translate-y-1/2 flex flex-col gap-[3px] items-center">
+            <div className="w-[3px] h-[3px] rounded-full bg-white/[0.15] group-hover:bg-emerald-400/60 transition-colors" />
+            <div className="w-[3px] h-[3px] rounded-full bg-white/[0.15] group-hover:bg-emerald-400/60 transition-colors" />
+            <div className="w-[3px] h-[3px] rounded-full bg-white/[0.15] group-hover:bg-emerald-400/60 transition-colors" />
+            <div className="w-[3px] h-[3px] rounded-full bg-white/[0.15] group-hover:bg-emerald-400/60 transition-colors" />
+            <div className="w-[3px] h-[3px] rounded-full bg-white/[0.15] group-hover:bg-emerald-400/60 transition-colors" />
+          </div>
         </div>
 
         <PanelHeader
@@ -197,6 +214,7 @@ export function CitationSidePanel({ citation, onClose }: CitationSidePanelProps)
           onFullscreen={handleFullscreen}
           onResetSize={handleResetSize}
           isFullscreen={isFullscreen}
+          isNotDefaultSize={isNotDefaultSize}
         />
         <div className="flex-1 overflow-y-auto min-h-0">
           <PanelBody
@@ -206,6 +224,8 @@ export function CitationSidePanel({ citation, onClose }: CitationSidePanelProps)
             pdfUrl={pdfUrl}
             pdfLoading={pdfLoading}
             pageNum={pageNum}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
           />
         </div>
       </div>
@@ -221,6 +241,7 @@ function PanelHeader({
   onFullscreen,
   onResetSize,
   isFullscreen,
+  isNotDefaultSize,
 }: {
   citation: Citation
   cfg: { label: string; pillCls: string }
@@ -229,49 +250,51 @@ function PanelHeader({
   onFullscreen: (() => void) | undefined
   onResetSize: (() => void) | undefined
   isFullscreen: boolean
+  isNotDefaultSize: boolean
 }) {
   return (
     <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.08] shrink-0">
       <div className="flex items-center gap-2 min-w-0">
-        <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold border shrink-0 ${cfg.pillCls}`}>
+        <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold border shrink-0 ${cfg.pillCls}`}>
           {cfg.label}
         </span>
         <p className="text-xs text-white/60 truncate">{citation.document_name}</p>
       </div>
       <div className="flex items-center gap-1 shrink-0">
-        {/* Fullscreen / Reset buttons (desktop only) */}
+        {/* Full Screen button — hidden when already fullscreen */}
         {onFullscreen && !isFullscreen && (
           <button
             onClick={onFullscreen}
-            className="p-1.5 rounded-lg text-muted-foreground/50 hover:text-foreground hover:bg-white/[0.06] transition-colors"
+            className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-lg text-muted-foreground/50 hover:text-foreground hover:bg-white/[0.06] transition-colors"
             title="Full screen"
           >
-            <Maximize2 className="h-3.5 w-3.5" />
+            <Maximize2 className="h-4 w-4" />
           </button>
         )}
-        {onResetSize && isFullscreen && (
+        {/* Reset button — shown whenever panel is not at default size */}
+        {onResetSize && isNotDefaultSize && (
           <button
             onClick={onResetSize}
-            className="p-1.5 rounded-lg text-muted-foreground/50 hover:text-foreground hover:bg-white/[0.06] transition-colors"
+            className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-lg text-muted-foreground/50 hover:text-foreground hover:bg-white/[0.06] transition-colors"
             title="Reset size"
           >
-            <RotateCcw className="h-3.5 w-3.5" />
+            <RotateCcw className="h-4 w-4" />
           </button>
         )}
         {pdfUrl && (
           <Button
             variant="ghost"
             size="icon-xs"
-            className="text-muted-foreground/60 hover:text-foreground"
+            className="min-h-[44px] min-w-[44px] text-muted-foreground/60 hover:text-foreground"
             onClick={() => window.open(pdfUrl, '_blank')}
             title="Open full document in new tab"
           >
-            <ExternalLink className="h-3.5 w-3.5" />
+            <ExternalLink className="h-4 w-4" />
           </Button>
         )}
         <button
           onClick={onClose}
-          className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/[0.06] transition-colors"
+          className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/[0.06] transition-colors"
         >
           <X className="h-4 w-4" />
         </button>
@@ -287,6 +310,8 @@ function PanelBody({
   pdfUrl,
   pdfLoading,
   pageNum,
+  activeTab,
+  onTabChange,
 }: {
   citation: Citation
   cfg: { label: string; pillCls: string }
@@ -294,7 +319,11 @@ function PanelBody({
   pdfUrl: string | null
   pdfLoading: boolean
   pageNum?: number
+  activeTab: PanelTab
+  onTabChange: (tab: PanelTab) => void
 }) {
+  const hasPdf = !!pdfUrl && !pdfLoading
+
   return (
     <div className="flex flex-col h-full">
       {/* Section + page info */}
@@ -320,14 +349,41 @@ function PanelBody({
         </div>
       )}
 
-      {/* PDF viewer or loading */}
+      {/* Tab toggle — only show when PDF is available */}
+      {(hasPdf || pdfLoading) && (
+        <div className="flex gap-1 px-4 pt-3">
+          <button
+            onClick={() => onTabChange('text')}
+            className={`min-h-[44px] px-4 rounded-lg text-sm font-medium transition-colors ${
+              activeTab === 'text'
+                ? 'text-emerald-300 bg-emerald-500/10 border-b-2 border-emerald-400'
+                : 'text-white/50 hover:text-white/70 hover:bg-white/[0.04]'
+            }`}
+          >
+            Extracted Text
+          </button>
+          <button
+            onClick={() => onTabChange('pdf')}
+            className={`min-h-[44px] px-4 rounded-lg text-sm font-medium transition-colors ${
+              activeTab === 'pdf'
+                ? 'text-emerald-300 bg-emerald-500/10 border-b-2 border-emerald-400'
+                : 'text-white/50 hover:text-white/70 hover:bg-white/[0.04]'
+            }`}
+          >
+            Original PDF
+          </button>
+        </div>
+      )}
+
+      {/* Loading state */}
       {pdfLoading && (
         <div className="flex items-center justify-center py-8">
           <Loader2 className="h-5 w-5 animate-spin text-muted-foreground/50" />
         </div>
       )}
 
-      {pdfUrl && !pdfLoading && (
+      {/* PDF view — only shown when "Original PDF" tab active */}
+      {hasPdf && activeTab === 'pdf' && (
         <div className="px-4 pt-3 flex-1 min-h-[300px]">
           <iframe
             src={`${pdfUrl}${pageNum ? `#page=${pageNum}` : ''}`}
@@ -337,20 +393,22 @@ function PanelBody({
         </div>
       )}
 
-      {/* Text excerpt (always shown as reference below PDF, or as primary if no PDF) */}
-      <div className="px-4 py-3">
-        <div
-          className="rounded-xl px-4 py-3"
-          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}
-        >
-          <p className="text-[10px] font-semibold text-white/30 uppercase tracking-widest mb-2">
-            {pdfUrl ? 'Extracted Text' : 'Source Text'}
-          </p>
-          <p className="text-sm text-white/80 leading-relaxed whitespace-pre-wrap">
-            {fullText}
-          </p>
+      {/* Extracted text view — shown when "Extracted Text" tab active, or always if no PDF */}
+      {(activeTab === 'text' || (!hasPdf && !pdfLoading)) && (
+        <div className="px-4 py-3">
+          <div
+            className="rounded-xl px-4 py-3"
+            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}
+          >
+            <p className="text-[10px] font-semibold text-white/30 uppercase tracking-widest mb-2">
+              Source Text
+            </p>
+            <p className="text-base text-white/80 leading-[1.7] whitespace-pre-wrap">
+              {fullText}
+            </p>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }
