@@ -64,6 +64,7 @@ export interface Conversation {
   store_id: string | null
   title: string | null
   created_at: string
+  updated_at: string | null
 }
 
 export interface Message {
