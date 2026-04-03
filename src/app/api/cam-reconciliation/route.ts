@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient, createAdminSupabaseClient } from '@/lib/supabase'
 import { generateText } from 'ai'
 import { anthropic } from '@ai-sdk/anthropic'
+import { parseAIJson } from '@/lib/parseAIJson'
 import type { CamReconciliationData } from '@/types'
 
 export const maxDuration = 120
@@ -128,7 +129,7 @@ If no overcharges are found, return an empty array for potential_overcharges and
       }],
     })
 
-    reconciliationData = JSON.parse(result.trim().replace(/^```json\s*|\s*```$/g, ''))
+    reconciliationData = parseAIJson<CamReconciliationData>(result)
   } catch (err) {
     console.error('[CAM Reconciliation] Claude analysis failed:', err)
     return NextResponse.json({ error: 'Analysis failed. Please try again.' }, { status: 500 })

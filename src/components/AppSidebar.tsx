@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, Briefcase, Settings, Plus,
-  ChevronLeft, ChevronRight,
+  ChevronLeft, ChevronRight, Search,
 } from 'lucide-react'
 
 interface SidebarLocation {
@@ -55,13 +55,22 @@ export function AppSidebar({ locations = [] }: AppSidebarProps) {
 
   return (
     <aside
-      className={`hidden lg:flex flex-col shrink-0 border-r border-white/[0.06] sidebar-transition ${
+      className={`hidden lg:flex flex-col shrink-0 border-r border-white/[0.06] sidebar-transition relative ${
         collapsed ? 'w-12' : 'w-56'
       }`}
       style={{ background: 'rgba(8,10,16,0.95)' }}
     >
-      {/* Top: Logo + collapse toggle */}
-      <div className="flex items-center justify-between px-3 py-4">
+      {/* Toggle button — prominent, on the right edge */}
+      <button
+        onClick={toggleCollapsed}
+        className="absolute top-16 -right-4 z-10 w-8 h-8 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 border border-white/10 transition-colors text-gray-300 hover:text-white"
+        aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+      >
+        {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+      </button>
+
+      {/* Top: Logo */}
+      <div className="flex items-center px-3 py-4">
         <Link href="/dashboard" className="flex items-center gap-2.5 group min-w-0">
           <div
             className="flex items-center justify-center w-8 h-8 rounded-xl shrink-0 transition-opacity group-hover:opacity-80"
@@ -76,12 +85,6 @@ export function AppSidebar({ locations = [] }: AppSidebarProps) {
             <span className="font-bold text-base tracking-tight truncate">Provelo</span>
           )}
         </Link>
-        <button
-          onClick={toggleCollapsed}
-          className="p-1 rounded-md text-gray-500 hover:text-white hover:bg-white/[0.05] transition-colors shrink-0"
-        >
-          {collapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}
-        </button>
       </div>
 
       {/* Main nav */}
@@ -190,6 +193,29 @@ export function AppSidebar({ locations = [] }: AppSidebarProps) {
           </Link>
         </div>
       )}
+
+      {/* Ctrl+K shortcut hint */}
+      <div className="px-2 pb-3 mt-auto">
+        <button
+          onClick={() => {
+            document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true }))
+          }}
+          className={`flex items-center gap-2 w-full rounded-lg transition-colors text-gray-500 hover:text-gray-300 hover:bg-white/[0.05] ${
+            collapsed ? 'justify-center px-0 py-2' : 'px-2.5 py-2'
+          }`}
+          title="Quick actions"
+        >
+          <Search className="h-3.5 w-3.5 shrink-0" />
+          {!collapsed && (
+            <>
+              <span className="text-xs truncate">Search</span>
+              <kbd className="ml-auto bg-white/[0.05] border border-white/10 rounded-md px-1.5 py-0.5 text-[10px] text-gray-500 shrink-0">
+                {typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.userAgent) ? '⌘K' : 'Ctrl+K'}
+              </kbd>
+            </>
+          )}
+        </button>
+      </div>
     </aside>
   )
 }

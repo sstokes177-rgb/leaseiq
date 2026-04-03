@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Menu, X } from 'lucide-react'
+import { Menu, X, Search } from 'lucide-react'
 import { AppSidebar } from './AppSidebar'
 import { NotificationCenter } from './NotificationCenter'
 
@@ -55,7 +55,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   return (
     <div className="flex h-screen overflow-hidden">
       {/* Desktop sidebar - hidden below lg */}
-      <div className="hidden lg:block">
+      <div className="hidden lg:block overflow-visible">
         <AppSidebar locations={locations} />
       </div>
 
@@ -81,7 +81,20 @@ export function AppLayout({ children }: AppLayoutProps) {
             </div>
             <span className="font-bold text-sm tracking-tight">Provelo</span>
           </Link>
-          <div className="flex items-center">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true }))
+              }}
+              className="flex items-center gap-2 h-8 pl-3 pr-2 rounded-lg text-gray-500 hover:text-gray-300 transition-colors"
+              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
+            >
+              <Search className="h-3.5 w-3.5" />
+              <span className="text-xs hidden sm:inline">Search...</span>
+              <kbd className="bg-white/[0.05] border border-white/10 rounded px-1.5 py-0.5 text-[10px] text-gray-500 hidden sm:inline">
+                {typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.userAgent) ? '⌘K' : 'Ctrl+K'}
+              </kbd>
+            </button>
             <NotificationCenter />
           </div>
         </div>

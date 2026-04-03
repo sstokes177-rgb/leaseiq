@@ -1,6 +1,7 @@
 import { generateText } from 'ai'
 import { anthropic } from '@ai-sdk/anthropic'
 import { createAdminSupabaseClient } from './supabase'
+import { parseAIJson } from './parseAIJson'
 import type { LeaseSummaryData } from '@/types'
 
 export async function generateLeaseSummary(
@@ -96,7 +97,7 @@ ${contextText.slice(0, 22000)}`,
       ],
     })
 
-    summaryData = JSON.parse(result.trim().replace(/^```json\s*|\s*```$/g, ''))
+    summaryData = parseAIJson(result)
   } catch (err) {
     console.error('[LeaseSummary] Claude extraction failed:', err)
     return null

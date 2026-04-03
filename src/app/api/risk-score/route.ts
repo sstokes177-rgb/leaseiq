@@ -3,6 +3,7 @@ import { createServerSupabaseClient, createAdminSupabaseClient } from '@/lib/sup
 import { generateText } from 'ai'
 import { anthropic } from '@ai-sdk/anthropic'
 import { keywordSearchChunks } from '@/lib/vectorStore'
+import { parseAIJson } from '@/lib/parseAIJson'
 import type { ClauseScore, NegotiationPriority } from '@/types'
 
 export const maxDuration = 90
@@ -243,10 +244,7 @@ export async function POST(request: NextRequest) {
   // Parse the JSON response — handle various wrapping formats
   let parsed: { clauses?: ClauseScore[]; top_3_priorities?: NegotiationPriority[] }
   try {
-    const cleaned = text.trim()
-      .replace(/^```(?:json)?\s*/i, '')
-      .replace(/\s*```$/i, '')
-    parsed = JSON.parse(cleaned)
+    parsed = parseAIJson(text)
   } catch (parseErr) {
     console.error('[RiskScore] JSON parse failed. Raw text:', text.slice(0, 500))
     return NextResponse.json(

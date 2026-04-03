@@ -49,7 +49,13 @@ export async function POST(request: NextRequest) {
     return new Response('Invalid request body', { status: 400 })
   }
 
-  const { messages, id: conversationId, store_id: storeId } = body
+  const { messages, id: rawConversationId, store_id: storeId } = body
+
+  // Validate UUID — useChat may send short random IDs that Supabase rejects
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+  const conversationId = rawConversationId && UUID_RE.test(rawConversationId)
+    ? rawConversationId
+    : crypto.randomUUID()
 
   if (!messages || messages.length === 0) {
     return new Response('No messages provided', { status: 400 })

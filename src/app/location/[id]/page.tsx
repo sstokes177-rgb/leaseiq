@@ -5,23 +5,11 @@ import { createServerSupabaseClient } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import {
-  MessageSquare, Upload, FileText, ArrowRight, ArrowLeft,
+  MessageSquare, Upload, ArrowRight, ArrowLeft,
   MapPin, Building2,
 } from 'lucide-react'
-import { LeaseSummaryCard } from '@/components/LeaseSummaryCard'
-import { ObligationMatrixCard } from '@/components/ObligationMatrixCard'
-import { CamAnalysisCard } from '@/components/CamAnalysisCard'
-import { CamReconciliationCard } from '@/components/CamReconciliationCard'
-import { PercentageRentCard } from '@/components/PercentageRentCard'
-import { OccupancyCostCard } from '@/components/OccupancyCostCard'
-import { RentEscalationTimeline } from '@/components/RentEscalationTimeline'
-import { LeaseClauseCard } from '@/components/LeaseClauseCard'
-import { DocumentListItem } from '@/components/DocumentListItem'
-import { CriticalDatesCard } from '@/components/CriticalDatesCard'
-import { LocationRiskSection } from '@/components/LocationRiskSection'
-import { NotificationCenter } from '@/components/NotificationCenter'
-import { LeaseComparisonCard } from '@/components/LeaseComparisonCard'
 import { AppLayout } from '@/components/AppLayout'
+import { LocationTabs } from '@/components/LocationTabs'
 
 export default async function LocationPage({
   params,
@@ -119,53 +107,13 @@ export default async function LocationPage({
           </Link>
         </div>
 
-        {/* Lease Summary */}
-        {hasDocuments && <LeaseSummaryCard storeId={id} storeName={store.store_name} />}
-
-        {/* Risk Score */}
-        {hasDocuments && <LocationRiskSection storeId={id} />}
-
-        {/* Lease Comparison */}
-        {hasDocuments && (
-          <LeaseComparisonCard storeId={id} storeName={store.store_name} documentCount={documents.length} />
-        )}
-
-        {/* Obligation Matrix */}
-        {hasDocuments && <ObligationMatrixCard storeId={id} storeName={store.store_name} />}
-
-        {/* CAM Intelligence */}
-        {hasDocuments && <CamAnalysisCard storeId={id} />}
-        {hasDocuments && <CamReconciliationCard storeId={id} />}
-
-        {/* Financial Tools */}
-        {hasDocuments && <OccupancyCostCard storeId={id} />}
-        {hasDocuments && <RentEscalationTimeline storeId={id} />}
-        {hasDocuments && <PercentageRentCard storeId={id} />}
-
-        {/* Monitoring */}
-        {hasDocuments && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <LeaseClauseCard storeId={id} clauseType="co-tenancy" />
-            <LeaseClauseCard storeId={id} clauseType="exclusive-use" />
-          </div>
-        )}
-
-        {/* Critical Dates */}
-        {hasDocuments && <CriticalDatesCard storeId={id} />}
-
-        {/* Recent documents */}
-        {hasDocuments && (
-          <div>
-            <p className="text-xs font-semibold text-muted-foreground/80 uppercase tracking-widest mb-4">
-              Recent Documents
-            </p>
-            <div className="space-y-2.5">
-              {documents.map((doc) => (
-                <DocumentListItem key={doc.id} doc={doc} />
-              ))}
-            </div>
-          </div>
-        )}
+        {/* Tabbed content */}
+        <LocationTabs
+          storeId={id}
+          storeName={store.store_name}
+          hasDocuments={hasDocuments}
+          documents={documents}
+        />
 
         {/* No documents yet — enhanced empty state */}
         {!hasDocuments && (

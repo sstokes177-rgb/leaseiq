@@ -3,6 +3,7 @@ import { createServerSupabaseClient, createAdminSupabaseClient } from '@/lib/sup
 import { generateText } from 'ai'
 import { anthropic } from '@ai-sdk/anthropic'
 import { keywordSearchChunks } from '@/lib/vectorStore'
+import { parseAIJson } from '@/lib/parseAIJson'
 
 export const maxDuration = 60
 
@@ -74,7 +75,7 @@ ${chunks.slice(0, 15).join('\n\n---\n\n').slice(0, 15000)}`,
         }],
       })
 
-      detailedSchedule = JSON.parse(text.trim().replace(/^```json\s*|\s*```$/g, ''))
+      detailedSchedule = parseAIJson(text)
     } catch (err) {
       console.error('[RentEscalation] Extraction failed:', err)
     }

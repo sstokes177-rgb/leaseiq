@@ -89,6 +89,7 @@ function ChatInterface({
   const exampleQuestions = lang === 'es' ? EXAMPLE_QUESTIONS_ES : EXAMPLE_QUESTIONS
 
   const { messages, sendMessage, status, error, clearError } = useChat({
+    id: conversationId,
     transport: new DefaultChatTransport({
       api: '/api/chat',
       body: { id: conversationId, store_id: storeId },

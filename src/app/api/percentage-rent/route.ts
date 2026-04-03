@@ -3,6 +3,7 @@ import { createServerSupabaseClient, createAdminSupabaseClient } from '@/lib/sup
 import { generateText } from 'ai'
 import { anthropic } from '@ai-sdk/anthropic'
 import { keywordSearchChunks } from '@/lib/vectorStore'
+import { parseAIJson } from '@/lib/parseAIJson'
 
 export const maxDuration = 90
 
@@ -153,7 +154,13 @@ ${contextText.slice(0, 12000)}`,
       ],
     })
 
-    const parsed = JSON.parse(result.trim().replace(/^```json\s*|\s*```$/g, ''))
+    const parsed = parseAIJson<{
+      breakpoint?: number | null
+      percentage?: number | null
+      breakpoint_raw?: string | null
+      percentage_raw?: string | null
+      details?: string | null
+    }>(result)
 
     await admin.from('percentage_rent_config').upsert(
       {

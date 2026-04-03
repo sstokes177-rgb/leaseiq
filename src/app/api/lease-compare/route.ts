@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient, createAdminSupabaseClient } from '@/lib/supabase'
 import { generateText } from 'ai'
 import { anthropic } from '@ai-sdk/anthropic'
+import { parseAIJson } from '@/lib/parseAIJson'
 import type { LeaseComparisonResult } from '@/types'
 
 export const maxDuration = 120
@@ -168,10 +169,7 @@ Return ONLY valid JSON:
   // Parse JSON
   let parsed: LeaseComparisonResult
   try {
-    const cleaned = text.trim()
-      .replace(/^```(?:json)?\s*/i, '')
-      .replace(/\s*```$/i, '')
-    parsed = JSON.parse(cleaned)
+    parsed = parseAIJson(text)
   } catch {
     console.error('[LeaseCompare] JSON parse failed. Raw text:', text.slice(0, 500))
     return NextResponse.json(

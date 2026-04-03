@@ -3,6 +3,7 @@ import { createServerSupabaseClient, createAdminSupabaseClient } from '@/lib/sup
 import { generateText } from 'ai'
 import { anthropic } from '@ai-sdk/anthropic'
 import { keywordSearchChunks } from '@/lib/vectorStore'
+import { parseAIJson } from '@/lib/parseAIJson'
 import type { CamAuditFinding } from '@/types'
 
 export const maxDuration = 120
@@ -190,7 +191,7 @@ ${statementText.slice(0, 25000)}`,
       }],
     })
 
-    const parsed = JSON.parse(text.trim().replace(/^```json\s*|\s*```$/g, ''))
+    const parsed = parseAIJson<{ findings?: CamAuditFinding[]; dispute_deadline_days?: number }>(text)
     const findings: CamAuditFinding[] = (parsed.findings ?? []).map((f: CamAuditFinding) => ({
       rule_name: f.rule_name,
       status: f.status,
