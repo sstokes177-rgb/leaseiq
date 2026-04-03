@@ -152,13 +152,11 @@ body::after {
   }
 
   .glass-card {
-    background: rgba(255, 255, 255, 0.04);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 255, 255, 0.07);
-    box-shadow:
-      0 4px 24px rgba(0, 0, 0, 0.35),
-      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
     transition:
       transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
       box-shadow 0.22s ease,
@@ -167,13 +165,10 @@ body::after {
   }
 
   .glass-card-lift:hover {
-    background: rgba(255, 255, 255, 0.065);
-    border-color: rgba(16, 185, 129, 0.22);
-    transform: translateY(-3px);
-    box-shadow:
-      0 16px 48px rgba(0, 0, 0, 0.45),
-      0 0 0 1px rgba(16, 185, 129, 0.12),
-      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.10);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   }
 
   .glass-input {
@@ -286,6 +281,52 @@ body::after {
 @keyframes cmd-card-in {
   from { opacity: 0; transform: scale(0.95); }
   to   { opacity: 1; transform: scale(1); }
+}
+
+/* ─── Page & card entrance animations ─── */
+@keyframes page-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes card-stagger-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes modal-fade-scale {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.page-fade-in {
+  animation: page-fade-in 200ms ease-out both;
+}
+
+.card-stagger-in {
+  animation: card-stagger-in 250ms cubic-bezier(0.22,1,0.36,1) both;
+}
+
+.slide-in-right {
+  animation: slide-in-right 200ms ease-out both;
+}
+
+.modal-fade-scale {
+  animation: modal-fade-scale 200ms ease-out both;
+}
+
+/* Button active press effect */
+button:active:not(:disabled),
+a:active:not(:disabled) {
+  transform: scale(0.98);
+  transition: transform 100ms ease;
+}
+
+/* Sidebar transitions */
+.sidebar-transition {
+  transition: width 200ms cubic-bezier(0.22,1,0.36,1);
 }
 
 /* ─── Mobile safe areas ─── */

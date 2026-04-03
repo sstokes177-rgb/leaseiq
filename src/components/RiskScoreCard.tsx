@@ -270,7 +270,7 @@ export function RiskScoreCard({ storeId, onArticleClick }: RiskScoreCardProps) {
   // Loading skeleton
   if (loading) {
     return (
-      <div className="glass-card rounded-2xl p-6 space-y-4 animate-pulse">
+      <div className="glass-card p-6 space-y-4 animate-pulse">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl shrink-0" style={{ background: 'rgba(255,255,255,0.06)' }} />
           <div className="space-y-1.5 flex-1">
@@ -288,7 +288,7 @@ export function RiskScoreCard({ storeId, onArticleClick }: RiskScoreCardProps) {
   // No score yet — show enhanced empty state
   if (overallScore === null) {
     return (
-      <div className="glass-card rounded-2xl p-6" id="risk-score">
+      <div className="glass-card p-6" id="risk-score">
         <div className="flex items-center gap-3 mb-5">
           <div
             className="flex items-center justify-center w-9 h-9 rounded-xl shrink-0"
@@ -339,7 +339,7 @@ export function RiskScoreCard({ storeId, onArticleClick }: RiskScoreCardProps) {
   const scoreColors = getScoreColor(overallScore)
 
   return (
-    <div className="glass-card rounded-2xl p-6 space-y-6" id="risk-score">
+    <div className="glass-card p-6 space-y-6" id="risk-score">
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-3 min-w-0">

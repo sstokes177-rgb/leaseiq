@@ -72,7 +72,7 @@ export function SettingsClient({ email }: SettingsClientProps) {
     return (
       <div className="space-y-6 animate-pulse">
         {[0, 1, 2].map(i => (
-          <div key={i} className="glass-card rounded-2xl p-6 space-y-4">
+          <div key={i} className="glass-card p-6 space-y-4">
             <div className="h-4 w-32 rounded-md" style={{ background: 'rgba(255,255,255,0.08)' }} />
             <div className="h-10 w-full rounded-xl" style={{ background: 'rgba(255,255,255,0.05)' }} />
           </div>
@@ -84,7 +84,7 @@ export function SettingsClient({ email }: SettingsClientProps) {
   return (
     <div className="space-y-6">
       {/* Profile Section */}
-      <div className="glass-card rounded-2xl p-6 space-y-5">
+      <div className="glass-card p-6 space-y-5">
         <div className="flex items-center gap-3">
           <div className="flex items-center justify-center w-9 h-9 rounded-xl shrink-0"
             style={{ background: 'rgba(16,185,129,0.10)', border: '1px solid rgba(16,185,129,0.18)' }}>
@@ -126,7 +126,7 @@ export function SettingsClient({ email }: SettingsClientProps) {
       </div>
 
       {/* Language Section */}
-      <div className="glass-card rounded-2xl p-6 space-y-5">
+      <div className="glass-card p-6 space-y-5">
         <div className="flex items-center gap-3">
           <div className="flex items-center justify-center w-9 h-9 rounded-xl shrink-0"
             style={{ background: 'rgba(59,130,246,0.10)', border: '1px solid rgba(59,130,246,0.20)' }}>
@@ -170,7 +170,7 @@ export function SettingsClient({ email }: SettingsClientProps) {
       </div>
 
       {/* Notifications Section */}
-      <div className="glass-card rounded-2xl p-6 space-y-5">
+      <div className="glass-card p-6 space-y-5">
         <div className="flex items-center gap-3">
           <div className="flex items-center justify-center w-9 h-9 rounded-xl shrink-0"
             style={{ background: 'rgba(245,158,11,0.10)', border: '1px solid rgba(245,158,11,0.20)' }}>
@@ -282,7 +282,7 @@ function ChangePasswordSection() {
   }
 
   return (
-    <div className="glass-card rounded-2xl p-6 space-y-5">
+    <div className="glass-card p-6 space-y-5">
       <div className="flex items-center gap-3">
         <div className="flex items-center justify-center w-9 h-9 rounded-xl shrink-0"
           style={{ background: 'rgba(168,85,247,0.10)', border: '1px solid rgba(168,85,247,0.20)' }}>

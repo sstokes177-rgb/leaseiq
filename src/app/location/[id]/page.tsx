@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import {
   MessageSquare, Upload, FileText, ArrowRight, ArrowLeft,
-  MapPin, Building2, Menu,
+  MapPin, Building2,
 } from 'lucide-react'
 import { LeaseSummaryCard } from '@/components/LeaseSummaryCard'
 import { ObligationMatrixCard } from '@/components/ObligationMatrixCard'
@@ -21,6 +21,7 @@ import { CriticalDatesCard } from '@/components/CriticalDatesCard'
 import { LocationRiskSection } from '@/components/LocationRiskSection'
 import { NotificationCenter } from '@/components/NotificationCenter'
 import { LeaseComparisonCard } from '@/components/LeaseComparisonCard'
+import { AppLayout } from '@/components/AppLayout'
 
 export default async function LocationPage({
   params,
@@ -60,57 +61,11 @@ export default async function LocationPage({
   const hasDocuments = documents.length > 0
 
   return (
-    <div className="min-h-screen">
-      {/* Header */}
-      <header className="glass border-b border-white/[0.07] px-4 sm:px-6 py-4 flex items-center gap-4">
-        <Link
-          href="/dashboard"
-          className="text-muted-foreground/80 hover:text-foreground transition-colors -ml-1"
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </Link>
-        <div className="flex items-center gap-2.5 flex-1 min-w-0">
-          <div
-            className="flex items-center justify-center w-8 h-8 rounded-xl shrink-0"
-            style={{
-              background: 'linear-gradient(135deg, rgba(16,185,129,0.25), rgba(20,184,166,0.15))',
-              border: '1px solid rgba(16,185,129,0.2)',
-            }}
-          >
-            <span className="text-xs font-extrabold text-emerald-400">PV</span>
-          </div>
-          <span className="font-bold text-base tracking-tight">Provelo</span>
-        </div>
-        <div className="hidden sm:flex items-center gap-2">
-          <NotificationCenter />
-          <form action="/api/auth/signout" method="POST">
-            <button className="text-sm text-muted-foreground/85 hover:text-foreground transition-colors">
-              Sign out
-            </button>
-          </form>
-        </div>
-        {/* Mobile hamburger menu */}
-        <details className="sm:hidden relative">
-          <summary className="list-none cursor-pointer p-2 text-muted-foreground">
-            <Menu className="h-5 w-5" />
-          </summary>
-          <div className="absolute right-0 top-full mt-1 w-44 rounded-xl glass-card p-2 z-50">
-            <Link href="/dashboard" className="block px-3 py-2.5 text-sm rounded-lg hover:bg-white/[0.06] transition-colors">Dashboard</Link>
-            <Link href="/portfolio" className="block px-3 py-2.5 text-sm rounded-lg hover:bg-white/[0.06] transition-colors">Portfolio</Link>
-            <Link href="/settings" className="block px-3 py-2.5 text-sm rounded-lg hover:bg-white/[0.06] transition-colors">Settings</Link>
-            <form action="/api/auth/signout" method="POST">
-              <button className="w-full text-left px-3 py-2.5 text-sm rounded-lg hover:bg-white/[0.06] text-muted-foreground transition-colors">
-                Sign out
-              </button>
-            </form>
-          </div>
-        </details>
-      </header>
-
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-10 space-y-8">
+    <AppLayout>
+      <div className="max-w-4xl mx-auto px-6 sm:px-8 py-10 space-y-8">
         {/* Location header */}
         <div>
-          <Link href="/dashboard" className="inline-flex items-center gap-1.5 text-xs text-muted-foreground/70 hover:text-foreground transition-colors mb-4">
+          <Link href="/dashboard" className="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-white transition-colors mb-4">
             <ArrowLeft className="h-3 w-3" /> All locations
           </Link>
           <div className="flex items-center gap-3">
@@ -121,7 +76,7 @@ export default async function LocationPage({
               <Building2 className="h-5 w-5 text-emerald-400" />
             </div>
             <div>
-              <h1 className="font-bold text-2xl">{store.store_name}</h1>
+              <h1 className="font-semibold text-2xl text-white tracking-tight" style={{ letterSpacing: '-0.025em' }}>{store.store_name}</h1>
               {store.shopping_center_name && (
                 <p className="text-sm text-muted-foreground/70 flex items-center gap-1 mt-0.5">
                   <MapPin className="h-3.5 w-3.5" />
@@ -214,26 +169,26 @@ export default async function LocationPage({
 
         {/* No documents yet — enhanced empty state */}
         {!hasDocuments && (
-          <div className="glass-card rounded-2xl p-10 text-center">
+          <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] backdrop-blur-sm p-10 text-center">
             <div className="mb-5">
               <Upload className="h-14 w-14 text-emerald-400/30 mx-auto" />
             </div>
-            <p className="font-bold text-lg mb-2">Upload your lease to unlock AI intelligence</p>
-            <p className="text-sm text-muted-foreground/70 mb-6 max-w-sm mx-auto">
+            <p className="font-semibold text-white text-lg tracking-tight mb-2">Upload your lease to unlock AI intelligence</p>
+            <p className="text-sm text-gray-300 mb-6 max-w-sm mx-auto">
               Supported: PDF files. Upload your base lease, amendments, exhibits, and any other lease documents.
             </p>
             <Link href={`/upload?store=${id}`}>
-              <Button size="lg" className="gap-2">
+              <Button size="lg" className="gap-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg px-4 py-2.5 font-medium transition-all min-h-[40px]">
                 <Upload className="h-4 w-4" />
                 Upload Documents
               </Button>
             </Link>
-            <p className="text-xs text-muted-foreground/40 mt-5 max-w-xs mx-auto leading-relaxed">
+            <p className="text-xs text-gray-500 mt-5 max-w-xs mx-auto leading-relaxed">
               Your documents are processed securely and encrypted at rest.
             </p>
           </div>
         )}
-      </main>
-    </div>
+      </div>
+    </AppLayout>
   )
 }

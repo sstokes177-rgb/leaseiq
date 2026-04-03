@@ -85,7 +85,7 @@ function LoginForm() {
   return (
     <>
       {/* Form card */}
-      <div className="glass-card rounded-2xl p-7 space-y-5">
+      <div className="glass-card p-7 space-y-5">
         <h2 className="text-sm font-semibold text-foreground">
           {isSignUp ? 'Sign up' : 'Sign in'}
         </h2>
@@ -189,7 +189,7 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <Suspense fallback={<div className="glass-card rounded-2xl p-7 h-48 animate-pulse" />}>
+        <Suspense fallback={<div className="glass-card p-7 h-48 animate-pulse" />}>
           <LoginForm />
         </Suspense>
 

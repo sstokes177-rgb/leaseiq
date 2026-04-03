@@ -257,7 +257,7 @@ export function DashboardGrid({ stores }: DashboardGridProps) {
             <Link
               key={store.id}
               href={`/location/${store.id}`}
-              className="glass-card glass-card-lift rounded-2xl p-5 block transition-all"
+              className="glass-card glass-card-lift p-5 block transition-all"
             >
               <div className="flex items-start gap-3 mb-3">
                 <div

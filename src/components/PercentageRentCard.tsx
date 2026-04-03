@@ -91,7 +91,7 @@ export function PercentageRentCard({ storeId }: PercentageRentCardProps) {
 
   if (loading) {
     return (
-      <div className="glass-card rounded-2xl p-6 animate-pulse space-y-3">
+      <div className="glass-card p-6 animate-pulse space-y-3">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl" style={{ background: 'rgba(255,255,255,0.06)' }} />
           <div className="space-y-1.5">
@@ -105,7 +105,7 @@ export function PercentageRentCard({ storeId }: PercentageRentCardProps) {
 
   if (!config) {
     return (
-      <div className="glass-card rounded-2xl p-6">
+      <div className="glass-card p-6">
         <div className="flex items-center gap-3 mb-4">
           <div
             className="flex items-center justify-center w-9 h-9 rounded-xl shrink-0"
@@ -146,7 +146,7 @@ export function PercentageRentCard({ storeId }: PercentageRentCardProps) {
   const progressPct = breakpoint > 0 ? Math.min(100, (totalSales / breakpoint) * 100) : 0
 
   return (
-    <div className="glass-card rounded-2xl p-6 space-y-5">
+    <div className="glass-card p-6 space-y-5">
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-3 min-w-0">
           <div

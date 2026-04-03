@@ -151,7 +151,7 @@ export function CamAuditCard({ storeId, storeName }: CamAuditCardProps) {
   // No audit yet — show educational content
   if (!loading && !latestAudit) {
     return (
-      <div className="glass-card rounded-2xl p-6 space-y-5">
+      <div className="glass-card p-6 space-y-5">
         {/* Header */}
         <div className="flex items-center gap-3">
           <div
@@ -244,7 +244,7 @@ export function CamAuditCard({ storeId, storeName }: CamAuditCardProps) {
   // Loading skeleton
   if (loading) {
     return (
-      <div className="glass-card rounded-2xl p-6 space-y-4 animate-pulse">
+      <div className="glass-card p-6 space-y-4 animate-pulse">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl shrink-0" style={{ background: 'rgba(255,255,255,0.06)' }} />
           <div className="space-y-1.5 flex-1">
@@ -258,7 +258,7 @@ export function CamAuditCard({ storeId, storeName }: CamAuditCardProps) {
 
   return (
     <>
-      <div className="glass-card rounded-2xl p-6 space-y-5">
+      <div className="glass-card p-6 space-y-5">
         {/* Header */}
         <div className="flex items-center gap-3">
           <div

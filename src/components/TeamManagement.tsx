@@ -107,14 +107,14 @@ export function TeamManagement() {
 
   if (loading) {
     return (
-      <div className="glass-card rounded-2xl p-6 flex items-center justify-center py-12">
+      <div className="glass-card p-6 flex items-center justify-center py-12">
         <Loader2 className="h-5 w-5 animate-spin text-white/30" />
       </div>
     )
   }
 
   return (
-    <div className="glass-card rounded-2xl p-6 space-y-6">
+    <div className="glass-card p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center gap-3">
         <div className="flex items-center justify-center w-9 h-9 rounded-xl shrink-0"

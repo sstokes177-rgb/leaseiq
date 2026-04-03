@@ -68,7 +68,7 @@ export function CamReconciliationCard({ storeId }: CamReconciliationCardProps) {
   const latestResult = records[0]?.reconciliation_data ?? null
 
   return (
-    <div className="glass-card rounded-2xl p-6 space-y-5">
+    <div className="glass-card p-6 space-y-5">
       {/* Header */}
       <div className="flex items-center gap-3">
         <div

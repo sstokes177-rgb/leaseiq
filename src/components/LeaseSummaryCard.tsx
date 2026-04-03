@@ -118,7 +118,7 @@ export function LeaseSummaryCard({ storeId, storeName = 'Lease' }: LeaseSummaryC
   // ── Loading state ────────────────────────────────────────────────────────────
   if (loading) {
     return (
-      <div className="glass-card rounded-2xl p-6 space-y-5 animate-pulse">
+      <div className="glass-card p-6 space-y-5 animate-pulse">
         {/* Header skeleton */}
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl shrink-0" style={{ background: 'rgba(255,255,255,0.06)' }} />
@@ -178,7 +178,7 @@ export function LeaseSummaryCard({ storeId, storeName = 'Lease' }: LeaseSummaryC
   // ── Not yet generated ────────────────────────────────────────────────────────
   if (!summary) {
     return (
-      <div className="glass-card rounded-2xl p-6">
+      <div className="glass-card p-6">
         <div className="flex items-center gap-3 mb-4">
           <div
             className="flex items-center justify-center w-9 h-9 rounded-xl shrink-0"
@@ -208,7 +208,7 @@ export function LeaseSummaryCard({ storeId, storeName = 'Lease' }: LeaseSummaryC
 
   // ── Summary display ──────────────────────────────────────────────────────────
   return (
-    <div className="glass-card rounded-2xl p-6 space-y-5">
+    <div className="glass-card p-6 space-y-5">
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-3 min-w-0">

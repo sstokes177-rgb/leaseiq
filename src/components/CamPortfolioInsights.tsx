@@ -47,7 +47,7 @@ export function CamPortfolioInsights() {
 
   if (loading) {
     return (
-      <div className="glass-card rounded-2xl p-6">
+      <div className="glass-card p-6">
         <div className="flex items-center justify-center py-8">
           <Loader2 className="h-5 w-5 animate-spin text-red-400/40" />
         </div>
@@ -62,7 +62,7 @@ export function CamPortfolioInsights() {
   const systematicPatterns = insights.patterns.filter(p => p.is_systematic)
 
   return (
-    <div className="glass-card rounded-2xl p-6 space-y-5">
+    <div className="glass-card p-6 space-y-5">
       {/* Header */}
       <div className="flex items-center gap-3">
         <div

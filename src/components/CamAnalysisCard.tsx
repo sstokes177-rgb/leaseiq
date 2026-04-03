@@ -68,7 +68,7 @@ export function CamAnalysisCard({ storeId }: CamAnalysisCardProps) {
 
   if (loading) {
     return (
-      <div className="glass-card rounded-2xl p-6 space-y-4 animate-pulse">
+      <div className="glass-card p-6 space-y-4 animate-pulse">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl shrink-0" style={{ background: 'rgba(255,255,255,0.06)' }} />
           <div className="space-y-1.5 flex-1">
@@ -90,7 +90,7 @@ export function CamAnalysisCard({ storeId }: CamAnalysisCardProps) {
 
   if (!analysis) {
     return (
-      <div className="glass-card rounded-2xl p-6">
+      <div className="glass-card p-6">
         <div className="flex items-center gap-3 mb-4">
           <div
             className="flex items-center justify-center w-9 h-9 rounded-xl shrink-0"
@@ -117,7 +117,7 @@ export function CamAnalysisCard({ storeId }: CamAnalysisCardProps) {
   }
 
   return (
-    <div className="glass-card rounded-2xl p-6 space-y-5">
+    <div className="glass-card p-6 space-y-5">
       {/* Audit window warning */}
       {analysis.audit_window_days != null && (
         <div

@@ -41,7 +41,7 @@ export default function ForgotPasswordPage() {
           </p>
         </div>
 
-        <div className="glass-card rounded-2xl p-7 space-y-5">
+        <div className="glass-card p-7 space-y-5">
           {sent ? (
             <div className="text-center space-y-4">
               <div className="flex items-center justify-center w-12 h-12 rounded-xl mx-auto"

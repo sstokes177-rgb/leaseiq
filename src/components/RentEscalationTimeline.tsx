@@ -188,7 +188,7 @@ export function RentEscalationTimeline({ storeId }: RentEscalationTimelineProps)
 
   if (loading) {
     return (
-      <div className="glass-card rounded-2xl p-6 animate-pulse space-y-3">
+      <div className="glass-card p-6 animate-pulse space-y-3">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl" style={{ background: 'rgba(255,255,255,0.06)' }} />
           <div className="space-y-1.5">
@@ -205,7 +205,7 @@ export function RentEscalationTimeline({ storeId }: RentEscalationTimelineProps)
   const maxRent = Math.max(...years.map((y) => y.monthlyRent))
 
   return (
-    <div className="glass-card rounded-2xl p-6 space-y-5">
+    <div className="glass-card p-6 space-y-5">
       <div className="flex items-center gap-3">
         <div
           className="flex items-center justify-center w-9 h-9 rounded-xl shrink-0"
@@ -222,12 +222,12 @@ export function RentEscalationTimeline({ storeId }: RentEscalationTimelineProps)
       {/* Escalation description */}
       {(description || article) && (
         <div
-          className="rounded-lg px-3.5 py-2.5 text-xs text-white/85 leading-relaxed"
+          className="rounded-lg px-3.5 py-2.5 text-xs text-gray-100 leading-relaxed"
           style={{ background: 'rgba(59,130,246,0.05)', border: '1px solid rgba(59,130,246,0.12)' }}
         >
           {description}
           {article && (
-            <span className="ml-1.5 text-[10px] text-white/55">
+            <span className="ml-1.5 text-[10px] text-gray-400">
               — {article}
             </span>
           )}
@@ -249,7 +249,7 @@ export function RentEscalationTimeline({ storeId }: RentEscalationTimelineProps)
             >
               {/* Year label */}
               <div className="w-12 shrink-0 text-center">
-                <span className={`text-xs font-bold ${y.isCurrent ? 'text-emerald-400' : 'text-gray-200'}`}>
+                <span className={`text-xs font-bold ${y.isCurrent ? 'text-emerald-400' : isPast ? 'text-gray-500' : 'text-white'}`}>
                   {y.year}
                 </span>
               </div>
@@ -271,10 +271,10 @@ export function RentEscalationTimeline({ storeId }: RentEscalationTimelineProps)
 
               {/* Amounts */}
               <div className="text-right shrink-0 w-32">
-                <span className={`text-xs font-semibold ${y.isCurrent ? 'text-white' : 'text-white/90'}`}>
+                <span className={`text-xs font-semibold ${isPast ? 'text-gray-500' : y.isCurrent ? 'text-white' : 'text-gray-100'}`}>
                   ${y.monthlyRent.toLocaleString(undefined, { minimumFractionDigits: 2 })}/mo
                 </span>
-                <span className="text-[10px] text-white/60 ml-2">
+                <span className={`text-[10px] ml-2 ${isPast ? 'text-gray-500' : 'text-gray-300'}`}>
                   ${y.annualRent.toLocaleString(undefined, { maximumFractionDigits: 0 })}/yr
                 </span>
               </div>
@@ -282,11 +282,11 @@ export function RentEscalationTimeline({ storeId }: RentEscalationTimelineProps)
               {/* Change indicator */}
               <div className="w-14 text-right shrink-0">
                 {y.escalationPct != null && y.escalationPct > 0 ? (
-                  <span className="text-[10px] font-medium text-amber-400/80">+{y.escalationPct}%</span>
+                  <span className={`text-[10px] font-medium ${isPast ? 'text-gray-500' : 'text-amber-400'}`}>+{y.escalationPct}%</span>
                 ) : y.escalationPct === null && i > 0 ? (
-                  <span className="text-[10px] text-white/50">&mdash;</span>
+                  <span className="text-[10px] text-gray-500">&mdash;</span>
                 ) : (
-                  <span className="text-[10px] text-white/60">Base</span>
+                  <span className={`text-[10px] ${isPast ? 'text-gray-500' : 'text-gray-300'}`}>Base</span>
                 )}
               </div>
 

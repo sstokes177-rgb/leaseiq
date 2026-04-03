@@ -60,7 +60,7 @@ export default function ResetPasswordPage() {
           </p>
         </div>
 
-        <div className="glass-card rounded-2xl p-7 space-y-5">
+        <div className="glass-card p-7 space-y-5">
           <div className="space-y-3">
             <div className="relative">
               <input

@@ -52,7 +52,7 @@ export default function VerifyEmailPage() {
           </p>
         </div>
 
-        <div className="glass-card rounded-2xl p-7 space-y-5">
+        <div className="glass-card p-7 space-y-5">
           <div className="text-center space-y-3">
             <div className="flex items-center justify-center w-12 h-12 rounded-xl mx-auto"
               style={{ background: 'rgba(16,185,129,0.10)', border: '1px solid rgba(16,185,129,0.18)' }}>

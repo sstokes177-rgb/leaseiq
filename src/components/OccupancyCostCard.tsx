@@ -127,7 +127,7 @@ export function OccupancyCostCard({ storeId }: OccupancyCostCardProps) {
 
   if (loading) {
     return (
-      <div className="glass-card rounded-2xl p-6 animate-pulse space-y-3">
+      <div className="glass-card p-6 animate-pulse space-y-3">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl" style={{ background: 'rgba(255,255,255,0.06)' }} />
           <div className="space-y-1.5">
@@ -166,7 +166,7 @@ export function OccupancyCostCard({ storeId }: OccupancyCostCardProps) {
   const perSqFt = sqft > 0 ? totalAnnual / sqft : 0
 
   return (
-    <div className="glass-card rounded-2xl p-6 space-y-5">
+    <div className="glass-card p-6 space-y-5">
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-3 min-w-0">

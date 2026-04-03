@@ -50,7 +50,7 @@ export function UploadPageClient({ stores, activeStoreId, isTenantAdmin }: Uploa
     <div className="space-y-6">
       {/* Store selector for tenant_admin with multiple stores */}
       {isTenantAdmin && stores.length > 1 && (
-        <div className="glass-card rounded-2xl p-5">
+        <div className="glass-card p-5">
           <label className="text-xs font-medium text-muted-foreground/90 mb-2 block">
             Uploading to store
           </label>
@@ -79,7 +79,7 @@ export function UploadPageClient({ stores, activeStoreId, isTenantAdmin }: Uploa
       )}
 
       {/* Upload area */}
-      <div className="glass-card rounded-2xl p-6">
+      <div className="glass-card p-6">
         <div className="flex items-center gap-3 mb-5">
           <div
             className="flex items-center justify-center w-9 h-9 rounded-xl shrink-0"
@@ -100,7 +100,7 @@ export function UploadPageClient({ stores, activeStoreId, isTenantAdmin }: Uploa
       </div>
 
       {/* Document list for this store */}
-      <div className="glass-card rounded-2xl p-6">
+      <div className="glass-card p-6">
         <div className="flex items-center gap-3 mb-5">
           <div
             className="flex items-center justify-center w-9 h-9 rounded-xl shrink-0"

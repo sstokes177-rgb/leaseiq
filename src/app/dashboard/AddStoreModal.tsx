@@ -77,7 +77,7 @@ export function AddStoreButton() {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
       <div
-        className="w-full max-w-sm rounded-2xl p-6 space-y-4"
+        className="w-full max-w-sm rounded-xl p-6 space-y-4 modal-fade-scale"
         style={{ background: 'rgba(12,14,20,0.97)', border: '1px solid rgba(255,255,255,0.10)' }}
       >
         <div className="flex items-center justify-between">

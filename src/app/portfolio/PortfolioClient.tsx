@@ -4,11 +4,11 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import {
   Building2, BarChart3, ShieldCheck, DollarSign, CalendarClock,
-  Plus, Loader2, Send, ArrowRight, Menu, ChevronDown, ChevronUp,
+  Plus, Loader2, Send, ArrowRight, ChevronDown, ChevronUp,
 } from 'lucide-react'
-import { NotificationCenter } from '@/components/NotificationCenter'
 import { CamPortfolioInsights } from '@/components/CamPortfolioInsights'
 import { CrossLocationDates } from '@/components/CrossLocationDates'
+import { AppLayout } from '@/components/AppLayout'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Cell, ReferenceLine,
@@ -265,59 +265,52 @@ export function PortfolioClient({ userName }: { userName: string }) {
   // ── Loading state ──────────────────────────────────────────────────────────
   if (loading) {
     return (
-      <div className="min-h-screen">
-        <Header userName={userName} />
-        <main className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
+      <AppLayout>
+        <div className="max-w-6xl mx-auto px-6 sm:px-8 py-12">
           <div className="flex items-center justify-center py-24">
             <Loader2 className="h-8 w-8 animate-spin text-emerald-400/60" />
           </div>
-        </main>
-      </div>
+        </div>
+      </AppLayout>
     )
   }
 
   if (!data) {
     return (
-      <div className="min-h-screen">
-        <Header userName={userName} />
-        <main className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
-          <div className="glass-card rounded-2xl p-12 text-center">
-            <p className="text-muted-foreground">Failed to load portfolio data. Please refresh.</p>
+      <AppLayout>
+        <div className="max-w-6xl mx-auto px-6 sm:px-8 py-12">
+          <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] backdrop-blur-sm p-12 text-center">
+            <p className="text-gray-300">Failed to load portfolio data. Please refresh.</p>
           </div>
-        </main>
-      </div>
+        </div>
+      </AppLayout>
     )
   }
 
   // Portfolio empty state — less than 2 locations
   if (data.total_locations < 2) {
     return (
-      <div className="min-h-screen">
-        <Header userName={userName} />
-        <main className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
-          <div className="glass-card rounded-2xl p-12 text-center">
+      <AppLayout>
+        <div className="max-w-6xl mx-auto px-6 sm:px-8 py-12">
+          <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] backdrop-blur-sm p-12 text-center">
             <div className="mb-5">
               <BarChart3 className="h-14 w-14 text-emerald-400/25 mx-auto" />
             </div>
-            <p className="font-bold text-lg mb-2">Add more locations to unlock portfolio analytics</p>
-            <p className="text-sm text-muted-foreground/70 mb-6 max-w-sm mx-auto">
+            <p className="font-semibold text-white text-lg tracking-tight mb-2">Add more locations to unlock portfolio analytics</p>
+            <p className="text-sm text-gray-300 mb-6 max-w-sm mx-auto">
               Compare risk scores, track expirations, and spot trends across your entire portfolio.
             </p>
             <Link href="/dashboard">
               <button
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90"
-                style={{
-                  background: 'linear-gradient(135deg, rgba(16,185,129,0.9), rgba(13,148,136,0.9))',
-                  border: '1px solid rgba(16,185,129,0.3)',
-                }}
+                className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg px-4 py-2.5 font-medium transition-all min-h-[40px]"
               >
                 <Plus className="h-4 w-4" />
                 Add Location
               </button>
             </Link>
           </div>
-        </main>
-      </div>
+        </div>
+      </AppLayout>
     )
   }
 
@@ -361,10 +354,8 @@ export function PortfolioClient({ userName }: { userName: string }) {
   ]
 
   return (
-    <div className="min-h-screen">
-      <Header userName={userName} />
-
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-10 space-y-8">
+    <AppLayout>
+      <div className="max-w-6xl mx-auto px-6 sm:px-8 py-10 space-y-8">
         {/* ── Page header ───────────────────────────────────────────────────── */}
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="min-w-0">
@@ -423,7 +414,7 @@ export function PortfolioClient({ userName }: { userName: string }) {
 
         {/* ── Chart 1: Lease Expiration Timeline ────────────────────────────── */}
         {expiryData.length > 0 && (
-          <div className="glass-card rounded-2xl p-6">
+          <div className="glass-card p-6">
             <p className="text-xs font-semibold text-muted-foreground/80 uppercase tracking-widest mb-5">
               Lease Expiration Timeline
             </p>
@@ -464,7 +455,7 @@ export function PortfolioClient({ userName }: { userName: string }) {
 
         {/* ── Chart 2: Risk Score Comparison ─────────────────────────────────── */}
         {riskData.length > 0 && (
-          <div className="glass-card rounded-2xl p-6">
+          <div className="glass-card p-6">
             <p className="text-xs font-semibold text-muted-foreground/80 uppercase tracking-widest mb-5">
               Risk Score Comparison
             </p>
@@ -507,7 +498,7 @@ export function PortfolioClient({ userName }: { userName: string }) {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Chart 3: Rent Comparison */}
           {rentData.length > 0 && (
-            <div className="glass-card rounded-2xl p-6">
+            <div className="glass-card p-6">
               <p className="text-xs font-semibold text-muted-foreground/80 uppercase tracking-widest mb-5">
                 Annual Rent by Location
               </p>
@@ -553,7 +544,7 @@ export function PortfolioClient({ userName }: { userName: string }) {
           )}
 
           {/* Chart 4: Risk Heatmap Table */}
-          <div className="glass-card rounded-2xl p-6 overflow-hidden">
+          <div className="glass-card p-6 overflow-hidden">
             <p className="text-xs font-semibold text-muted-foreground/80 uppercase tracking-widest mb-5">
               Clause Risk Heatmap
             </p>
@@ -661,7 +652,7 @@ export function PortfolioClient({ userName }: { userName: string }) {
         <CamPortfolioInsights />
 
         {/* ── Portfolio AI Chat ──────────────────────────────────────────────── */}
-        <div className="glass-card rounded-2xl p-6">
+        <div className="glass-card p-6">
           <p className="text-xs font-semibold text-muted-foreground/80 uppercase tracking-widest mb-4">
             Portfolio AI Chat
           </p>
@@ -733,66 +724,8 @@ export function PortfolioClient({ userName }: { userName: string }) {
             Searches across all your locations&apos; lease documents. Always specify which location info comes from.
           </p>
         </div>
-      </main>
-    </div>
-  )
-}
-
-// ── Sub-components ───────────────────────────────────────────────────────────
-
-function Header({ userName }: { userName: string }) {
-  return (
-    <header className="glass border-b border-white/[0.07] px-4 sm:px-6 py-4 flex items-center justify-between">
-      <div className="flex items-center gap-5">
-        <Link href="/" className="flex items-center gap-2.5 group">
-          <div
-            className="flex items-center justify-center w-8 h-8 rounded-xl transition-opacity group-hover:opacity-80"
-            style={{
-              background: 'linear-gradient(135deg, rgba(16,185,129,0.25), rgba(20,184,166,0.15))',
-              border: '1px solid rgba(16,185,129,0.2)',
-            }}
-          >
-            <span className="text-xs font-extrabold text-emerald-400">PV</span>
-          </div>
-          <span className="font-bold text-base tracking-tight">Provelo</span>
-        </Link>
-        <nav className="hidden sm:flex items-center gap-1">
-          <Link href="/dashboard" className="text-sm text-muted-foreground/70 hover:text-foreground/90 font-medium px-3 py-1.5 rounded-lg hover:bg-white/[0.04] transition-colors">
-            Dashboard
-          </Link>
-          <Link href="/portfolio" className="text-sm text-foreground/90 font-medium px-3 py-1.5 rounded-lg bg-white/[0.06]">
-            Portfolio
-          </Link>
-          <Link href="/settings" className="text-sm text-muted-foreground/70 hover:text-foreground/90 font-medium px-3 py-1.5 rounded-lg hover:bg-white/[0.04] transition-colors">
-            Settings
-          </Link>
-        </nav>
       </div>
-      <div className="hidden sm:flex items-center gap-2">
-        <NotificationCenter />
-        <form action="/api/auth/signout" method="POST">
-          <button className="text-sm text-muted-foreground/85 hover:text-foreground transition-colors">
-            Sign out
-          </button>
-        </form>
-      </div>
-      {/* Mobile hamburger menu */}
-      <details className="sm:hidden relative">
-        <summary className="list-none cursor-pointer p-2 text-muted-foreground">
-          <Menu className="h-5 w-5" />
-        </summary>
-        <div className="absolute right-0 top-full mt-1 w-44 rounded-xl glass-card p-2 z-50">
-          <Link href="/dashboard" className="block px-3 py-2.5 text-sm rounded-lg hover:bg-white/[0.06] transition-colors">Dashboard</Link>
-          <Link href="/portfolio" className="block px-3 py-2.5 text-sm rounded-lg bg-white/[0.06]">Portfolio</Link>
-          <Link href="/settings" className="block px-3 py-2.5 text-sm rounded-lg hover:bg-white/[0.06] transition-colors">Settings</Link>
-          <form action="/api/auth/signout" method="POST">
-            <button className="w-full text-left px-3 py-2.5 text-sm rounded-lg hover:bg-white/[0.06] text-muted-foreground transition-colors">
-              Sign out
-            </button>
-          </form>
-        </div>
-      </details>
-    </header>
+    </AppLayout>
   )
 }
 

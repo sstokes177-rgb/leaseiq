@@ -653,10 +653,10 @@ function DateRow({
         </div>
 
         <div className="flex-1 min-w-0">
-          <p className={`text-sm font-semibold ${date.urgency === 'past' ? 'text-white/40' : ''}`}>
+          <p className={`text-sm font-semibold ${date.urgency === 'past' ? 'text-gray-500' : date.urgency === 'critical' ? 'text-red-400' : date.urgency === 'warning' ? 'text-amber-400' : 'text-emerald-400'}`}>
             {date.date_type}
           </p>
-          <p className={`text-xs ${date.urgency === 'past' ? 'text-white/25' : 'text-white/50'}`}>
+          <p className={`text-xs ${date.urgency === 'past' ? 'text-gray-500' : 'text-gray-300'}`}>
             {date.date_value ? formatDate(date.date_value) : 'Date unknown'}
             {showStoreName && date.store_name && (
               <span className="text-emerald-400/50 ml-1.5">— {date.store_name}</span>
@@ -667,9 +667,9 @@ function DateRow({
         {/* Reminder badge */}
         <ReminderPopover date={date} onUpdate={onReminderUpdate} />
 
-        {/* Countdown badge */}
+        {/* Countdown badge with urgency label */}
         <span className={`shrink-0 text-xs font-semibold px-2.5 py-1 rounded-md border ${config.badgeBg} ${config.badgeBorder} ${config.badgeText}`}>
-          {date.days === 0 ? 'Today' : date.days < 0 ? 'Passed' : formatCountdown(date.days)}
+          {date.days === 0 ? 'Today' : date.days < 0 ? 'Passed' : date.urgency === 'critical' ? `Urgent · ${formatCountdown(date.days)}` : date.urgency === 'warning' ? `Approaching · ${formatCountdown(date.days)}` : `On Track · ${formatCountdown(date.days)}`}
         </span>
 
         <ChevronDown className={`h-3.5 w-3.5 text-white/30 transition-transform ${expandedId === date.id ? 'rotate-180' : ''}`} />

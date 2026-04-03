@@ -97,7 +97,7 @@ export function OnboardingClient({ userId }: { userId: string }) {
           </p>
         </div>
 
-        <div className="glass-card rounded-2xl p-7 space-y-5">
+        <div className="glass-card p-7 space-y-5">
           <div>
             <label className="text-xs text-muted-foreground/90 mb-1.5 block">
               Name or company name
