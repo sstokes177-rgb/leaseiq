@@ -1,5 +1,6 @@
 import { generateText } from 'ai'
 import { anthropic } from '@ai-sdk/anthropic'
+import { parseAIJson } from './parseAIJson'
 
 export interface CriticalDate {
   date_type: string
@@ -43,8 +44,7 @@ ${text.slice(0, 8000)}`,
       ],
     })
 
-    const trimmed = result.trim().replace(/^```json\s*|\s*```$/g, '')
-    const parsed = JSON.parse(trimmed)
+    const parsed = parseAIJson<unknown>(result)
     if (!Array.isArray(parsed)) return []
 
     return parsed

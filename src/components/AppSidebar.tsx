@@ -42,16 +42,16 @@ export function AppSidebar({ locations = [] }: AppSidebarProps) {
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(false)
 
-  // Load collapsed state from localStorage
+  // Load expanded state from localStorage (default: expanded)
   useEffect(() => {
-    const saved = localStorage.getItem('sidebar-collapsed')
-    if (saved === 'true') setCollapsed(true)
+    const saved = localStorage.getItem('provelo_sidebar_expanded')
+    if (saved === 'false') setCollapsed(true)
   }, [])
 
   const toggleCollapsed = () => {
     const next = !collapsed
     setCollapsed(next)
-    localStorage.setItem('sidebar-collapsed', String(next))
+    localStorage.setItem('provelo_sidebar_expanded', String(!next))
   }
 
   return (

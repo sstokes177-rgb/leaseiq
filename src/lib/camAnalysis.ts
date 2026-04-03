@@ -2,6 +2,7 @@ import { generateText } from 'ai'
 import { anthropic } from '@ai-sdk/anthropic'
 import { createAdminSupabaseClient } from './supabase'
 import { keywordSearchChunks } from './vectorStore'
+import { parseAIJson } from './parseAIJson'
 import type { CamAnalysisData } from '@/types'
 
 const CAM_KEYWORDS = [
@@ -102,7 +103,7 @@ ${contextText.slice(0, 18000)}`,
       ],
     })
 
-    const parsed = JSON.parse(result.trim().replace(/^```json\s*|\s*```$/g, ''))
+    const parsed = parseAIJson<Partial<CamAnalysisData>>(result)
 
     const analysisData: CamAnalysisData = {
       proportionate_share_pct: parsed.proportionate_share_pct ?? null,

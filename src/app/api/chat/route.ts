@@ -217,6 +217,7 @@ export async function POST(request: NextRequest) {
   }
 
   return result.toUIMessageStreamResponse({
+    headers: { 'X-Conversation-Id': conversationId },
     messageMetadata: ({ part }) => part.type === 'finish' ? { citations } : undefined,
   })
 }

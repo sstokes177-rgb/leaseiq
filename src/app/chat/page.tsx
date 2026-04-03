@@ -249,6 +249,7 @@ function ChatInterface({
 function ChatPageInner() {
   const searchParams = useSearchParams()
   const storeParam = searchParams.get('store')
+  const conversationParam = searchParams.get('conversation')
   const { t } = useLanguage()
 
   const [stores, setStores] = useState<StoreInfo[]>([])
@@ -257,11 +258,28 @@ function ChatPageInner() {
   const [activeCitation, setActiveCitation] = useState<Citation | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   // Conversation management
-  const [activeConversationId, setActiveConversationId] = useState<string>(() => crypto.randomUUID())
+  const [activeConversationId, setActiveConversationId] = useState<string>(() => conversationParam ?? crypto.randomUUID())
   const [initialMessages, setInitialMessages] = useState<UIMessage[] | undefined>(undefined)
   const [chatKey, setChatKey] = useState(0)
   const [sidebarRefresh, setSidebarRefresh] = useState(0)
   const chatMessagesRef = useRef<UIMessage[]>([])
+
+  // Load conversation from URL param if provided
+  useEffect(() => {
+    if (!conversationParam) return
+    fetch(`/api/conversations/${conversationParam}`)
+      .then(r => { if (r.ok) return r.json(); throw new Error('not found') })
+      .then(data => {
+        const uiMessages = dbMessagesToUIMessages(data.messages ?? [])
+        setInitialMessages(uiMessages)
+        setActiveConversationId(conversationParam)
+        setChatKey(k => k + 1)
+      })
+      .catch(() => {
+        // Conversation not found — start fresh
+      })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conversationParam])
 
   useEffect(() => {
     fetch('/api/stores')
