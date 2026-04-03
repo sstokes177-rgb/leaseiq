@@ -10,7 +10,7 @@ const plusJakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "ClauseIQ — Understand Your Lease",
+  title: "Provelo — Understand Your Lease",
   description: "Ask plain-language questions about your commercial lease and get answers grounded in your actual lease document.",
 };
 

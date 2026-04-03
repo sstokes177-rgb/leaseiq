@@ -21,7 +21,7 @@ function createPDF(title: string): jsPDF {
   doc.setTextColor(...COLORS.emerald)
   doc.setFontSize(18)
   doc.setFont('helvetica', 'bold')
-  doc.text('ClauseIQ', 15, 18)
+  doc.text('Provelo', 15, 18)
   doc.setFontSize(10)
   doc.setTextColor(...COLORS.lightGrey)
   doc.text(title, 55, 18)
@@ -41,7 +41,7 @@ function addFooter(doc: jsPDF, pageNum: number) {
   doc.setFontSize(7)
   doc.setTextColor(...COLORS.grey)
   doc.text(
-    'ClauseIQ — Informational summary only. Not legal advice. Consult a licensed attorney.',
+    'Provelo — Informational summary only. Not legal advice. Consult a licensed attorney.',
     15, pageHeight - 10
   )
   doc.text(`Page ${pageNum}`, 195, pageHeight - 10, { align: 'right' })
@@ -142,7 +142,7 @@ export function exportLeaseSummary(summary: LeaseSummaryData, storeName: string)
   }
 
   addFooter(doc, 1)
-  doc.save(`ClauseIQ_Summary_${storeName.replace(/\s+/g, '_')}.pdf`)
+  doc.save(`Provelo_Summary_${storeName.replace(/\s+/g, '_')}.pdf`)
 }
 
 // ── Chat History Export ─────────────────────────────────────────────────────
@@ -177,7 +177,7 @@ export function exportChatHistory(messages: ChatMessage[], storeName: string, ti
     } else {
       doc.setTextColor(...COLORS.emerald)
     }
-    doc.text(isUser ? 'You:' : 'ClauseIQ:', 15, y)
+    doc.text(isUser ? 'You:' : 'Provelo:', 15, y)
     y += 5
 
     // Content
@@ -201,7 +201,7 @@ export function exportChatHistory(messages: ChatMessage[], storeName: string, ti
   }
 
   addFooter(doc, pageNum)
-  doc.save(`ClauseIQ_Chat_${storeName.replace(/\s+/g, '_')}.pdf`)
+  doc.save(`Provelo_Chat_${storeName.replace(/\s+/g, '_')}.pdf`)
 }
 
 // ── Obligation Matrix Export ────────────────────────────────────────────────
@@ -282,5 +282,5 @@ export function exportObligationMatrix(obligations: ObligationExportItem[], stor
   }
 
   addFooter(doc, pageNum)
-  doc.save(`ClauseIQ_Obligations_${storeName.replace(/\s+/g, '_')}.pdf`)
+  doc.save(`Provelo_Obligations_${storeName.replace(/\s+/g, '_')}.pdf`)
 }

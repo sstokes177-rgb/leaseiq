@@ -188,8 +188,8 @@ function ArticleRef({ text }: { text: string }) {
 
       {/* Tooltip */}
       {showTooltip && (
-        <div
-          className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 p-3 rounded-xl text-xs text-white/80 leading-relaxed pointer-events-none"
+        <span
+          className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 p-3 rounded-xl text-xs text-white/80 leading-relaxed pointer-events-none block"
           style={{
             background: 'rgba(10,12,18,0.97)',
             border: '1px solid rgba(255,255,255,0.12)',
@@ -197,13 +197,13 @@ function ArticleRef({ text }: { text: string }) {
             animation: 'fade-in 0.15s ease-out both',
           }}
         >
-          <p className="text-[10px] font-semibold text-emerald-400/80 uppercase tracking-widest mb-1.5">
+          <span className="block text-[10px] font-semibold text-emerald-400/80 uppercase tracking-widest mb-1.5">
             {matched.document_name}
-          </p>
-          <p className="italic text-white/65">
+          </span>
+          <span className="block italic text-white/65">
             &ldquo;{tooltipExcerpt}{(matched.content ?? matched.excerpt).length > 200 ? '...' : ''}&rdquo;
-          </p>
-        </div>
+          </span>
+        </span>
       )}
     </span>
   )
@@ -282,17 +282,17 @@ function mdP({ children }: ComponentPropsWithoutRef<'p'>) {
           border: '1px solid rgba(16,185,129,0.22)',
         }}
       >
-        <p className="text-sm leading-[1.7] font-medium text-emerald-100/90">
+        <div className="text-sm leading-[1.7] font-medium text-emerald-100/90">
           {processChildren(children)}
-        </p>
+        </div>
       </div>
     )
   }
 
   return (
-    <p className="text-sm leading-[1.7] text-white/90 mb-3 last:mb-0">
+    <div className="text-sm leading-[1.7] text-white/90 mb-3 last:mb-0">
       {processChildren(children)}
-    </p>
+    </div>
   )
 }
 

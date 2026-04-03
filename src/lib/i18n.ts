@@ -40,7 +40,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'chat.groundedGeneral': 'Questions are answered using the exact language from your uploaded documents.',
     'chat.exampleQuestions': 'Example questions',
     'chat.typeMessage': 'Type your message...',
-    'chat.disclaimer': 'ClauseIQ provides informational summaries only \u2014 not legal advice. Consult a licensed attorney for legal interpretation.',
+    'chat.disclaimer': 'Provelo provides informational summaries only \u2014 not legal advice. Consult a licensed attorney for legal interpretation.',
     'chat.responseDisclaimer': 'Informational summary based on your uploaded documents \u2014 not legal advice. Consult an attorney for legal interpretation.',
 
     // Lease Summary
@@ -151,7 +151,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'chat.groundedGeneral': 'Las preguntas se responden usando el lenguaje exacto de sus documentos subidos.',
     'chat.exampleQuestions': 'Preguntas de ejemplo',
     'chat.typeMessage': 'Escriba su mensaje...',
-    'chat.disclaimer': 'ClauseIQ proporciona res\u00famenes informativos solamente \u2014 no es asesor\u00eda legal. Consulte a un abogado licenciado para interpretaci\u00f3n legal.',
+    'chat.disclaimer': 'Provelo proporciona res\u00famenes informativos solamente \u2014 no es asesor\u00eda legal. Consulte a un abogado licenciado para interpretaci\u00f3n legal.',
     'chat.responseDisclaimer': 'Resumen informativo basado en sus documentos subidos \u2014 no es asesor\u00eda legal. Consulte a un abogado para interpretaci\u00f3n legal.',
 
     // Lease Summary

@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic'
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase'
 import Link from 'next/link'
-import { FileText, Building2 } from 'lucide-react'
+import { Building2 } from 'lucide-react'
 import { PMDashboardClient } from './client'
 
 export default async function PMDashboardPage() {
@@ -28,9 +28,9 @@ export default async function PMDashboardPage() {
           <Link href="/" className="flex items-center gap-2.5 group">
             <div className="flex items-center justify-center w-8 h-8 rounded-xl transition-opacity group-hover:opacity-80"
               style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.25), rgba(20,184,166,0.15))', border: '1px solid rgba(16,185,129,0.2)' }}>
-              <FileText className="h-4 w-4 text-emerald-400" />
+              <span className="text-xs font-extrabold text-emerald-400">PV</span>
             </div>
-            <span className="font-bold text-base tracking-tight">ClauseIQ</span>
+            <span className="font-bold text-base tracking-tight">Provelo</span>
           </Link>
           <nav className="hidden sm:flex items-center gap-1">
             <span className="text-sm text-foreground/90 font-medium px-3 py-1.5 rounded-lg bg-white/[0.06]">

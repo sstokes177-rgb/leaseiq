@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic'
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase'
 import Link from 'next/link'
-import { FileText, ArrowLeft } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { SettingsClient } from './SettingsClient'
 import { TeamManagement } from '@/components/TeamManagement'
 
@@ -30,9 +30,9 @@ export default async function SettingsPage() {
               border: '1px solid rgba(16,185,129,0.2)',
             }}
           >
-            <FileText className="h-4 w-4 text-emerald-400" />
+            <span className="text-xs font-extrabold text-emerald-400">PV</span>
           </div>
-          <span className="font-bold text-base tracking-tight">ClauseIQ</span>
+          <span className="font-bold text-base tracking-tight">Provelo</span>
         </div>
         <Link href="/dashboard" className="text-sm text-muted-foreground/85 hover:text-foreground transition-colors">
           Dashboard

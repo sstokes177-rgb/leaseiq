@@ -177,9 +177,9 @@ export function LandingPage({ isAuthenticated = false }: { isAuthenticated?: boo
           <div className="flex items-center gap-2">
             <div className="flex items-center justify-center w-7 h-7 rounded-lg"
               style={{ background: 'linear-gradient(135deg,rgba(16,185,129,0.25),rgba(20,184,166,0.15))', border: '1px solid rgba(16,185,129,0.25)' }}>
-              <FileSearch className="h-3.5 w-3.5 text-emerald-400" />
+              <span className="text-[10px] font-extrabold text-emerald-400">PV</span>
             </div>
-            <span className="font-bold text-sm tracking-tight">ClauseIQ</span>
+            <span className="font-bold text-sm tracking-tight">Provelo</span>
           </div>
           <div className="flex items-center gap-2">
             {isAuthenticated ? (
@@ -308,7 +308,7 @@ export function LandingPage({ isAuthenticated = false }: { isAuthenticated?: boo
             <p className="text-xs font-semibold text-emerald-400/70 uppercase tracking-widest mb-3">Real questions</p>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Ask what you actually need to know</h2>
             <p className="text-muted-foreground mt-3 font-light max-w-lg mx-auto">
-              Tenants ask hundreds of questions. ClauseIQ answers every one, grounded in the language of your specific document.
+              Tenants ask hundreds of questions. Provelo answers every one, grounded in the language of your specific document.
             </p>
           </div>
 
@@ -345,7 +345,7 @@ export function LandingPage({ isAuthenticated = false }: { isAuthenticated?: boo
             </h2>
 
             <p className="text-muted-foreground mb-8 font-light text-lg max-w-md mx-auto">
-              Join retail tenants who use ClauseIQ to understand their obligations, rights, and deadlines.
+              Join retail tenants who use Provelo to understand their obligations, rights, and deadlines.
             </p>
 
             {isAuthenticated ? (
@@ -367,15 +367,15 @@ export function LandingPage({ isAuthenticated = false }: { isAuthenticated?: boo
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-md flex items-center justify-center"
               style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.20)' }}>
-              <FileSearch className="h-3 w-3 text-emerald-400" />
+              <span className="text-[9px] font-extrabold text-emerald-400">PV</span>
             </div>
-            <span className="text-sm font-bold text-foreground/80">ClauseIQ</span>
+            <span className="text-sm font-bold text-foreground/80">Provelo</span>
           </div>
           <p className="text-xs text-muted-foreground/75 text-center max-w-xl leading-relaxed">
-            ClauseIQ provides informational summaries based on uploaded lease documents.
+            Provelo provides informational summaries based on uploaded lease documents.
             It is not a substitute for legal advice. Always consult a licensed attorney for legal matters.
           </p>
-          <p className="text-xs text-muted-foreground/60">© {new Date().getFullYear()} ClauseIQ</p>
+          <p className="text-xs text-muted-foreground/60">© {new Date().getFullYear()} Provelo</p>
         </div>
       </footer>
     </div>

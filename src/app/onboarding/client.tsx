@@ -97,9 +97,9 @@ export function OnboardingClient({ userId }: { userId: string }) {
           </div>
           {step === 'role' ? (
             <>
-              <h1 className="text-2xl font-bold tracking-tight">Welcome to ClauseIQ</h1>
+              <h1 className="text-2xl font-bold tracking-tight">Welcome to Provelo</h1>
               <p className="text-sm text-muted-foreground mt-1.5 font-light">
-                Tell us how you'll be using ClauseIQ
+                Tell us how you'll be using Provelo
               </p>
             </>
           ) : (

@@ -114,7 +114,7 @@ export function PMDashboardClient() {
           </div>
           <div>
             <p className="font-semibold text-sm">Invite Tenant</p>
-            <p className="text-xs text-muted-foreground/60">Send an invitation for a tenant to join ClauseIQ</p>
+            <p className="text-xs text-muted-foreground/60">Send an invitation for a tenant to join Provelo</p>
           </div>
         </div>
 

@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { X, FileText, ExternalLink, Loader2 } from 'lucide-react'
+import { useEffect, useState, useRef, useCallback } from 'react'
+import { X, FileText, ExternalLink, Loader2, Maximize2, RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import type { Citation } from '@/types'
 
@@ -23,17 +23,18 @@ function getDocConfig(docType?: string) {
 /** Strip non-printable characters and normalize whitespace for clean display */
 function cleanText(text: string): string {
   return text
-    // Remove non-printable chars except newlines and tabs
     .replace(/[^\x20-\x7E\n\t\r\u00A0-\u00FF\u2000-\u206F\u2018-\u201F\u2026]/g, '')
-    // Collapse runs of dots/dashes used as visual separators (e.g., "....." or "-----")
     .replace(/[.]{4,}/g, '...')
     .replace(/[-]{4,}/g, '---')
-    // Collapse excessive whitespace on a single line
     .replace(/[ \t]{3,}/g, '  ')
-    // Normalize line breaks (collapse 3+ newlines to 2)
     .replace(/\n{3,}/g, '\n\n')
     .trim()
 }
+
+const DEFAULT_WIDTH_PCT = 40
+const MIN_WIDTH_PX = 300
+const MAX_WIDTH_PCT = 70
+const FULLSCREEN_WIDTH_PCT = 90
 
 interface CitationSidePanelProps {
   citation: Citation | null
@@ -46,13 +47,19 @@ export function CitationSidePanel({ citation, onClose }: CitationSidePanelProps)
   const [pdfUrl, setPdfUrl] = useState<string | null>(null)
   const [pdfLoading, setPdfLoading] = useState(false)
 
+  // Resizable state
+  const [panelWidthPct, setPanelWidthPct] = useState(DEFAULT_WIDTH_PCT)
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  const isDraggingRef = useRef(false)
+  const startXRef = useRef(0)
+  const startWidthPctRef = useRef(DEFAULT_WIDTH_PCT)
+
   useEffect(() => {
     if (citation) {
       setDisplayCitation(citation)
       setPdfUrl(null)
       requestAnimationFrame(() => setVisible(true))
 
-      // Fetch PDF URL if document_id is available
       if (citation.document_id) {
         setPdfLoading(true)
         fetch(`/api/documents/${citation.document_id}/url`)
@@ -73,11 +80,59 @@ export function CitationSidePanel({ citation, onClose }: CitationSidePanelProps)
     }
   }, [citation])
 
+  // Drag resize handlers
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    isDraggingRef.current = true
+    startXRef.current = e.clientX
+    startWidthPctRef.current = panelWidthPct
+    document.body.style.cursor = 'col-resize'
+    document.body.style.userSelect = 'none'
+  }, [panelWidthPct])
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDraggingRef.current) return
+      const viewportWidth = window.innerWidth
+      const deltaX = startXRef.current - e.clientX // dragging left = wider
+      const deltaPct = (deltaX / viewportWidth) * 100
+      const newPct = Math.min(MAX_WIDTH_PCT, Math.max((MIN_WIDTH_PX / viewportWidth) * 100, startWidthPctRef.current + deltaPct))
+      setPanelWidthPct(newPct)
+      setIsFullscreen(false)
+    }
+
+    const handleMouseUp = () => {
+      if (isDraggingRef.current) {
+        isDraggingRef.current = false
+        document.body.style.cursor = ''
+        document.body.style.userSelect = ''
+      }
+    }
+
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [])
+
+  const handleFullscreen = useCallback(() => {
+    setIsFullscreen(true)
+    setPanelWidthPct(FULLSCREEN_WIDTH_PCT)
+  }, [])
+
+  const handleResetSize = useCallback(() => {
+    setIsFullscreen(false)
+    setPanelWidthPct(DEFAULT_WIDTH_PCT)
+  }, [])
+
   if (!displayCitation) return null
 
   const cfg = getDocConfig(displayCitation.document_type)
   const fullText = cleanText(displayCitation.content ?? displayCitation.excerpt)
   const pageNum = displayCitation.page_number
+  const effectiveWidthPct = isFullscreen ? FULLSCREEN_WIDTH_PCT : panelWidthPct
 
   return (
     <>
@@ -97,6 +152,9 @@ export function CitationSidePanel({ citation, onClose }: CitationSidePanelProps)
             cfg={cfg}
             pdfUrl={pdfUrl}
             onClose={onClose}
+            onFullscreen={undefined}
+            onResetSize={undefined}
+            isFullscreen={false}
           />
           <div className="flex-1 overflow-y-auto">
             <PanelBody
@@ -111,22 +169,34 @@ export function CitationSidePanel({ citation, onClose }: CitationSidePanelProps)
         </div>
       </div>
 
-      {/* Desktop: right side panel */}
+      {/* Desktop: resizable right side panel */}
       <div
-        className="hidden md:flex flex-col border-l border-white/[0.08] overflow-hidden transition-all duration-300 ease-out"
+        className="hidden md:flex flex-col border-l border-white/[0.08] overflow-hidden transition-[opacity] duration-300 ease-out relative"
         style={{
           background: 'rgba(10,12,18,0.95)',
-          width: visible ? '45%' : '0%',
-          minWidth: visible ? '320px' : '0px',
-          maxWidth: visible ? '560px' : '0px',
+          width: visible ? `${effectiveWidthPct}%` : '0%',
+          minWidth: visible ? `${MIN_WIDTH_PX}px` : '0px',
           opacity: visible ? 1 : 0,
         }}
       >
+        {/* Drag handle on left edge */}
+        <div
+          onMouseDown={handleMouseDown}
+          className="absolute left-0 top-0 bottom-0 w-[5px] z-10 cursor-col-resize group hover:bg-emerald-500/20 transition-colors"
+          style={{ background: 'transparent' }}
+        >
+          {/* Grip indicator */}
+          <div className="absolute left-[1px] top-1/2 -translate-y-1/2 w-[3px] h-8 rounded-full bg-white/[0.12] group-hover:bg-emerald-400/50 transition-colors" />
+        </div>
+
         <PanelHeader
           citation={displayCitation}
           cfg={cfg}
           pdfUrl={pdfUrl}
           onClose={onClose}
+          onFullscreen={handleFullscreen}
+          onResetSize={handleResetSize}
+          isFullscreen={isFullscreen}
         />
         <div className="flex-1 overflow-y-auto min-h-0">
           <PanelBody
@@ -148,11 +218,17 @@ function PanelHeader({
   cfg,
   pdfUrl,
   onClose,
+  onFullscreen,
+  onResetSize,
+  isFullscreen,
 }: {
   citation: Citation
   cfg: { label: string; pillCls: string }
   pdfUrl: string | null
   onClose: () => void
+  onFullscreen: (() => void) | undefined
+  onResetSize: (() => void) | undefined
+  isFullscreen: boolean
 }) {
   return (
     <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.08] shrink-0">
@@ -163,6 +239,25 @@ function PanelHeader({
         <p className="text-xs text-white/60 truncate">{citation.document_name}</p>
       </div>
       <div className="flex items-center gap-1 shrink-0">
+        {/* Fullscreen / Reset buttons (desktop only) */}
+        {onFullscreen && !isFullscreen && (
+          <button
+            onClick={onFullscreen}
+            className="p-1.5 rounded-lg text-muted-foreground/50 hover:text-foreground hover:bg-white/[0.06] transition-colors"
+            title="Full screen"
+          >
+            <Maximize2 className="h-3.5 w-3.5" />
+          </button>
+        )}
+        {onResetSize && isFullscreen && (
+          <button
+            onClick={onResetSize}
+            className="p-1.5 rounded-lg text-muted-foreground/50 hover:text-foreground hover:bg-white/[0.06] transition-colors"
+            title="Reset size"
+          >
+            <RotateCcw className="h-3.5 w-3.5" />
+          </button>
+        )}
         {pdfUrl && (
           <Button
             variant="ghost"

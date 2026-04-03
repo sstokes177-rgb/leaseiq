@@ -74,9 +74,9 @@ export default async function LocationPage({
               border: '1px solid rgba(16,185,129,0.2)',
             }}
           >
-            <FileText className="h-4 w-4 text-emerald-400" />
+            <span className="text-xs font-extrabold text-emerald-400">PV</span>
           </div>
-          <span className="font-bold text-base tracking-tight">ClauseIQ</span>
+          <span className="font-bold text-base tracking-tight">Provelo</span>
         </div>
         <form action="/api/auth/signout" method="POST" className="hidden sm:block">
           <button className="text-sm text-muted-foreground/85 hover:text-foreground transition-colors">
@@ -126,6 +126,37 @@ export default async function LocationPage({
           </div>
         </div>
 
+        {/* Primary action buttons — always visible at top */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          <Link href={`/chat?store=${id}`} className="flex-1">
+            <Button
+              size="lg"
+              className="w-full h-14 text-base font-semibold gap-2.5"
+              style={{
+                background: hasDocuments
+                  ? 'linear-gradient(135deg, rgba(16,185,129,0.9), rgba(13,148,136,0.9))'
+                  : undefined,
+                border: hasDocuments ? '1px solid rgba(16,185,129,0.3)' : undefined,
+              }}
+              disabled={!hasDocuments}
+            >
+              <MessageSquare className="h-5 w-5" />
+              {hasDocuments ? 'Ask Your Lease' : 'Upload a lease first'}
+              {hasDocuments && <ArrowRight className="h-4 w-4 ml-1" />}
+            </Button>
+          </Link>
+          <Link href={`/upload?store=${id}`} className="flex-1 sm:flex-initial">
+            <Button
+              variant="outline"
+              size="lg"
+              className="w-full sm:w-auto h-14 text-base font-semibold gap-2.5 px-8"
+            >
+              <Upload className="h-5 w-5" />
+              Upload Documents
+            </Button>
+          </Link>
+        </div>
+
         {/* Lease Summary */}
         {hasDocuments && <LeaseSummaryCard storeId={id} storeName={store.store_name} />}
 
@@ -148,64 +179,6 @@ export default async function LocationPage({
             <LeaseClauseCard storeId={id} clauseType="exclusive-use" />
           </div>
         )}
-
-        {/* Action cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className={`glass-card glass-card-lift rounded-2xl p-6 ${!hasDocuments ? 'ring-1 ring-emerald-500/25' : ''}`}>
-            <div className="flex items-center gap-3 mb-4">
-              <div
-                className="flex items-center justify-center w-10 h-10 rounded-xl"
-                style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.18)' }}
-              >
-                <Upload className="h-5 w-5 text-emerald-400" />
-              </div>
-              <div>
-                <h2 className="font-semibold text-sm">Upload Documents</h2>
-                <p className="text-xs text-muted-foreground">PDF or Word</p>
-              </div>
-            </div>
-            <p className="text-sm text-muted-foreground mb-5 leading-relaxed font-light">
-              Upload your lease, amendments, and addenda. We&apos;ll extract and index them for Q&amp;A.
-            </p>
-            <Link href={`/upload?store=${id}`}>
-              <Button variant={hasDocuments ? 'outline' : 'default'} size="sm" className="w-full">
-                Upload documents <ArrowRight className="h-3.5 w-3.5 ml-1" />
-              </Button>
-            </Link>
-          </div>
-
-          <div className={`glass-card glass-card-lift rounded-2xl p-6 ${hasDocuments ? 'ring-1 ring-emerald-500/25' : 'opacity-50'}`}>
-            <div className="flex items-center gap-3 mb-4">
-              <div
-                className="flex items-center justify-center w-10 h-10 rounded-xl"
-                style={{ background: 'rgba(20,184,166,0.12)', border: '1px solid rgba(20,184,166,0.18)' }}
-              >
-                <MessageSquare className="h-5 w-5 text-teal-400" />
-              </div>
-              <div>
-                <h2 className="font-semibold text-sm">Ask Your Lease</h2>
-                <p className="text-xs text-muted-foreground">AI-powered Q&amp;A</p>
-              </div>
-            </div>
-            <p className="text-sm text-muted-foreground mb-5 leading-relaxed font-light">
-              Ask anything in plain language. Get cited answers from your actual lease text.
-            </p>
-            <Link href={`/chat?store=${id}`}>
-              <Button
-                variant={hasDocuments ? 'default' : 'outline'}
-                size="sm"
-                className="w-full"
-                disabled={!hasDocuments}
-              >
-                {hasDocuments ? (
-                  <>Start chatting <ArrowRight className="h-3.5 w-3.5 ml-1" /></>
-                ) : (
-                  'Upload a lease first'
-                )}
-              </Button>
-            </Link>
-          </div>
-        </div>
 
         {/* Critical Dates */}
         {hasDocuments && <CriticalDatesCard storeId={id} />}

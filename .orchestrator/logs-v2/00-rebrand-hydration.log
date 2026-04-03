@@ -1,0 +1,14 @@
+Both verifications pass:
+
+**Rebrand verification**: `grep -ri "clauseiq|leaseiq" src/` returns **zero results** -- all source code is branded "Provelo".
+
+**Build verification**: `next build` compiled successfully with zero errors.
+
+### Summary of changes:
+
+**Part 1 — Rebrand**: Source code was already fully branded "Provelo". Fixed the only remaining reference:
+- `package-lock.json`: Changed `"name": "leaseiq"` to `"name": "provelo"` (2 occurrences)
+
+**Part 2 — Hydration fix** in `src/components/ChatMessage.tsx`:
+1. **Line 285**: Changed `<p>` to `<div>` inside the summary branch of `mdP` — prevents invalid `<div>` (from ArticleRef tooltip) nested inside `<p>`
+2. **Lines 191-206**: Changed the tooltip container from `<div>` to `<span className="... block">` — prevents invalid `<div>` nested inside the outer `<span>` wrapper of ArticleRef

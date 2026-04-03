@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic'
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase'
 import Link from 'next/link'
-import { ArrowLeft, FileSearch } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { UploadPageClient } from './client'
 
 export default async function UploadPage({
@@ -63,9 +63,9 @@ export default async function UploadPage({
             className="flex items-center justify-center w-7 h-7 rounded-lg"
             style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.18)' }}
           >
-            <FileSearch className="h-3.5 w-3.5 text-emerald-400" />
+            <span className="text-[10px] font-extrabold text-emerald-400">PV</span>
           </div>
-          <span className="hidden sm:block text-sm font-bold tracking-tight text-foreground/80">ClauseIQ</span>
+          <span className="hidden sm:block text-sm font-bold tracking-tight text-foreground/80">Provelo</span>
         </Link>
       </header>
 
