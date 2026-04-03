@@ -1,0 +1,32 @@
+All done. Here's a summary of what was fixed:
+
+### BUG 1: Citation Panel Text Alignment
+- Updated `CitationSidePanel.tsx`: justified text, 16px font, 1.7 line height, 72ch max-width, Inter font family, 24px 28px padding
+- Section headers now bold at 18px with subtle divider borders between sections
+- Paragraph breaks from the original document are preserved
+
+### BUG 2: Chat Saving (Priority #1)
+- **Root cause**: Conversation + user message were only saved in `onFinish` (after stream completes). If user navigated away mid-stream, nothing was saved.
+- **Fix**: Conversation record and user message are now saved **before** streaming starts. Only the assistant response is saved in `onFinish`. 
+- Sidebar now refreshes on both message submit and stream completion for instant visibility
+- Extracted shared `handleFinish` to eliminate code duplication between primary/fallback models
+
+### BUG 3: Risk Score Failures
+- Fixed stale model ID (`claude-sonnet-4-6-20250514` → `claude-sonnet-4-6`)
+- Added haiku fallback when primary model is overloaded
+- Separated JSON parsing with specific error message for parse failures
+- Reduced context from 40 chunks/28k chars to 30 chunks/20k chars to avoid token limits
+- DB write errors no longer mask successful analysis results
+
+### BUG 4: Obligation Matrix for Gate
+- Expanded keyword search from 8 to 15 obligation-related terms
+- Improved fallback: when store_id-scoped query returns nothing, tries tenant-wide search
+- Increased maxOutputTokens from 1200 to 2000 to avoid truncation
+- Better error messages explaining why matrix generation may fail
+
+### BUG 5: Article References Not Clickable
+- Expanded regex to match: Exhibit, Schedule, Appendix, Addendum, Amendment, Clause (in addition to Article/Section/Paragraph)
+- Added prefixes: See, In, Pursuant to (in addition to Per/Under)
+- Handles letter-based references like "Exhibit A" and "Exhibit B-1"
+- **Unmatched references** are now clickable — they create a synthetic citation that triggers an article-chunks API lookup
+- Updated `article-chunks` API to search across all reference types
