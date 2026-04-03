@@ -1,0 +1,68 @@
+▲ Next.js 16.2.1 (Turbopack)
+- Environments: .env.local
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 3.0s
+  Running TypeScript ...
+  Finished TypeScript in 3.3s ...
+  Collecting page data using 23 workers ...
+  Generating static pages using 23 workers (0/39) ...
+  Generating static pages using 23 workers (9/39) 
+  Generating static pages using 23 workers (19/39) 
+  Generating static pages using 23 workers (29/39) 
+✓ Generating static pages using 23 workers (39/39) in 343ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ƒ /
+├ ○ /_not-found
+├ ƒ /api/article-chunks
+├ ƒ /api/auth/signout
+├ ƒ /api/cam-analysis
+├ ƒ /api/cam-audit
+├ ƒ /api/cam-audit/dispute-letter
+├ ƒ /api/cam-audit/portfolio
+├ ƒ /api/cam-reconciliation
+├ ƒ /api/chat
+├ ƒ /api/conversations
+├ ƒ /api/conversations/[id]
+├ ƒ /api/critical-dates
+├ ƒ /api/documents
+├ ƒ /api/documents/[id]/url
+├ ƒ /api/documents/reprocess
+├ ƒ /api/documents/signed-url
+├ ƒ /api/lease-clauses
+├ ƒ /api/lease-compare
+├ ƒ /api/lease-summary
+├ ƒ /api/lease-summary/generate
+├ ƒ /api/notifications
+├ ƒ /api/obligations
+├ ƒ /api/obligations/generate
+├ ƒ /api/occupancy-cost
+├ ƒ /api/onboarding
+├ ƒ /api/percentage-rent
+├ ƒ /api/portfolio
+├ ƒ /api/rent-escalation
+├ ƒ /api/risk-score
+├ ƒ /api/settings
+├ ƒ /api/stores
+├ ƒ /api/stores/[id]/detect-asset-class
+├ ƒ /api/team
+├ ƒ /api/upload
+├ ƒ /auth/callback
+├ ○ /chat
+├ ƒ /dashboard
+├ ○ /forgot-password
+├ ƒ /location/[id]
+├ ○ /login
+├ ƒ /onboarding
+├ ƒ /portfolio
+├ ○ /reset-password
+├ ƒ /settings
+├ ƒ /upload
+└ ○ /verify-email
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

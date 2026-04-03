@@ -1,0 +1,36 @@
+All done. Here's a summary of everything that was changed across 30 files:
+
+**New Components:**
+- `AppSidebar.tsx` — Linear-style collapsible sidebar with logo, nav (Dashboard/Portfolio/Settings), divider, locations section with colored status dots (green >2yr, amber <2yr, red <6mo/expired, gray no data), Add Location button. Collapsed state persists in localStorage.
+- `AppLayout.tsx` — Shared layout wrapper with sidebar (desktop) + mobile hamburger menu, fetches store/location data for sidebar
+
+**CSS Animations (globals.css):**
+- Page fade-in (200ms opacity)
+- Card stagger-in (250ms translateY 8→0 + opacity)
+- Slide-in-right for panels (200ms)
+- Modal fade+scale (200ms)
+- Button active `scale(0.98)` press effect
+- Sidebar width transition
+
+**Glass Card Standardization:**
+- Updated `glass-card` class: `bg: rgba(255,255,255,0.03)`, `border: rgba(255,255,255,0.06)`, `border-radius: 12px` (rounded-xl)
+- Removed `rounded-2xl` overrides from all 24+ components
+- Toned down hover lift effect (subtler shadow, no heavy glow)
+
+**Layout Overhaul (4 pages):**
+- Dashboard, Location, Portfolio, Settings all converted from top header nav → sidebar layout
+- Removed duplicate header code from each page
+- Typography: headings use `font-semibold text-white tracking-tight` with `-0.025em` letter-spacing
+- Body text standardized to `text-gray-300`, captions to `text-gray-500`
+
+**RentEscalationTimeline Brightness:**
+- Active/future years: `text-white` / `text-gray-100` (high contrast)
+- Past years: `text-gray-500` (dimmed)
+- Escalation description: `text-gray-100` instead of `text-white/85`
+
+**CriticalDatesCard Colors:**
+- Date type text colored by urgency: red-400 (urgent), amber-400 (approaching), emerald-400 (on track), gray-500 (past)
+- Badges now show labels: "Urgent", "Approaching", "On Track", "Passed"
+- 19.5yr remaining correctly shows emerald/green (>90 days = safe)
+
+**Build:** `npx next build` passes clean with 0 errors.
