@@ -80,9 +80,9 @@ export default async function DashboardPage() {
 
   return (
     <AppLayout>
-      <div className="max-w-4xl mx-auto px-6 sm:px-8 py-12 space-y-10">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8 sm:space-y-10">
         {/* Top bar with notification + sign out (desktop) */}
-        <div className="hidden md:flex items-center justify-end gap-3 -mt-4 mb-2">
+        <div className="hidden lg:flex items-center justify-end gap-3 -mt-4 mb-2">
           <span data-tour-step="4"><NotificationCenter /></span>
           <form action="/api/auth/signout" method="POST">
             <button className="text-sm text-gray-500 hover:text-white transition-colors">

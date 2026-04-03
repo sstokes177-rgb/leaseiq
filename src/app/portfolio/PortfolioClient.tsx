@@ -266,7 +266,7 @@ export function PortfolioClient({ userName }: { userName: string }) {
   if (loading) {
     return (
       <AppLayout>
-        <div className="max-w-6xl mx-auto px-6 sm:px-8 py-12">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 space-y-6 sm:space-y-8">
           <div className="flex items-center justify-center py-24">
             <Loader2 className="h-8 w-8 animate-spin text-emerald-400/60" />
           </div>
@@ -278,7 +278,7 @@ export function PortfolioClient({ userName }: { userName: string }) {
   if (!data) {
     return (
       <AppLayout>
-        <div className="max-w-6xl mx-auto px-6 sm:px-8 py-12">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 space-y-6 sm:space-y-8">
           <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] backdrop-blur-sm p-12 text-center">
             <p className="text-gray-300">Failed to load portfolio data. Please refresh.</p>
           </div>
@@ -291,7 +291,7 @@ export function PortfolioClient({ userName }: { userName: string }) {
   if (data.total_locations < 2) {
     return (
       <AppLayout>
-        <div className="max-w-6xl mx-auto px-6 sm:px-8 py-12">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 space-y-6 sm:space-y-8">
           <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] backdrop-blur-sm p-12 text-center">
             <div className="mb-5">
               <BarChart3 className="h-14 w-14 text-emerald-400/25 mx-auto" />
@@ -355,7 +355,7 @@ export function PortfolioClient({ userName }: { userName: string }) {
 
   return (
     <AppLayout>
-      <div className="max-w-6xl mx-auto px-6 sm:px-8 py-10 space-y-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 space-y-6 sm:space-y-8">
         {/* ── Page header ───────────────────────────────────────────────────── */}
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="min-w-0">
@@ -553,7 +553,7 @@ export function PortfolioClient({ userName }: { userName: string }) {
                 <table className="w-full min-w-[480px] text-xs">
                   <thead>
                     <tr className="border-b border-white/[0.06]">
-                      <th className="text-left py-2 px-2 font-semibold text-muted-foreground/60">Location</th>
+                      <th className="text-left py-2 px-2 font-semibold text-muted-foreground/60 sticky left-0 z-10" style={{ background: 'rgba(8,10,16,0.95)' }}>Location</th>
                       {HEATMAP_COLUMNS.map(col => (
                         <th
                           key={col.key}
@@ -581,7 +581,7 @@ export function PortfolioClient({ userName }: { userName: string }) {
                   <tbody>
                     {sortedLocations.map(loc => (
                       <tr key={loc.id} className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors">
-                        <td className="py-2.5 px-2">
+                        <td className="py-2.5 px-2 sticky left-0 z-10" style={{ background: 'rgba(8,10,16,0.95)' }}>
                           <Link
                             href={`/location/${loc.id}`}
                             className="text-white/80 hover:text-emerald-400 transition-colors font-medium truncate block max-w-[130px]"
@@ -705,7 +705,7 @@ export function PortfolioClient({ userName }: { userName: string }) {
               onChange={e => setChatInput(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendChat()}
               placeholder="Ask about your entire portfolio..."
-              className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none focus:border-emerald-500/30 transition-colors"
+              className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-base sm:text-sm text-white placeholder:text-white/25 focus:outline-none focus:border-emerald-500/30 transition-colors"
               disabled={chatLoading}
             />
             <button

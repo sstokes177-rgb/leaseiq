@@ -421,7 +421,7 @@ export function ChatMessage({
     <div className={cn('flex flex-col message-in', isUser ? 'items-end' : 'items-start')}>
       <div
         className={cn(
-          'max-w-[82%] px-4 py-3',
+          'max-w-[92%] sm:max-w-[82%] px-4 py-3',
           isUser
             ? [
                 'text-white',

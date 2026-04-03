@@ -248,7 +248,7 @@ function MonthCalendar({ dates }: { dates: ProcessedDate[] }) {
           return (
             <div
               key={day}
-              className={`min-h-[80px] p-1.5 relative transition-colors ${hasEvents ? 'cursor-pointer hover:bg-white/[0.04]' : ''}`}
+              className={`min-h-[56px] sm:min-h-[80px] p-1 sm:p-1.5 relative transition-colors ${hasEvents ? 'cursor-pointer hover:bg-white/[0.04]' : ''}`}
               style={{
                 background: isTodayCell ? 'rgba(16,185,129,0.06)' : 'rgba(0,0,0,0.15)',
                 ...(isTodayCell ? { boxShadow: 'inset 0 0 0 1.5px rgba(16,185,129,0.35)' } : {}),

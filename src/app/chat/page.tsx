@@ -349,7 +349,7 @@ function ChatPageInner() {
               refreshSignal={sidebarRefresh}
             />
           </div>
-          <div className="flex-1" onClick={() => setSidebarOpen(false)} />
+          <div className="flex-1 bg-black/50" onClick={() => setSidebarOpen(false)} />
         </div>
       )}
 

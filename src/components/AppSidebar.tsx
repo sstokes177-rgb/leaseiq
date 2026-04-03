@@ -55,7 +55,7 @@ export function AppSidebar({ locations = [] }: AppSidebarProps) {
 
   return (
     <aside
-      className={`hidden md:flex flex-col shrink-0 border-r border-white/[0.06] sidebar-transition ${
+      className={`hidden lg:flex flex-col shrink-0 border-r border-white/[0.06] sidebar-transition ${
         collapsed ? 'w-12' : 'w-56'
       }`}
       style={{ background: 'rgba(8,10,16,0.95)' }}

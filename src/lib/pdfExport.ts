@@ -407,6 +407,331 @@ export function exportLeaseComparison(
 
 // ── Dispute Letter Export ─────────────────────────────────────────────────
 
+// ── Risk Score Export ──────────────────────────────────────────────────────
+
+interface RiskScoreExportData {
+  overall_score: number
+  clause_scores: Array<{
+    clause: string
+    category: string
+    severity: 'red' | 'yellow' | 'green'
+    summary: string
+    citation: string | null
+    recommendation: string | null
+  }>
+  top_3_priorities: Array<{
+    clause: string
+    current_risk: 'red' | 'yellow' | 'green'
+    why_it_matters: string
+    what_to_negotiate: string
+    suggested_language: string
+  }>
+}
+
+export function exportRiskScore(data: RiskScoreExportData, storeName: string) {
+  const doc = createPDF('Risk Score Report')
+  let y = 40
+  let pageNum = 1
+
+  // Title
+  doc.setFontSize(14)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(40, 40, 50)
+  doc.text(`${storeName} — Lease Risk Report`, 15, y)
+  y += 10
+
+  // Overall score
+  const scoreColor = data.overall_score >= 80 ? COLORS.emerald : data.overall_score >= 50 ? COLORS.amber : COLORS.red
+  doc.setFontSize(32)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(...scoreColor)
+  doc.text(String(data.overall_score), 15, y + 8)
+  doc.setFontSize(10)
+  doc.setTextColor(...COLORS.grey)
+  doc.text('/ 100', 40, y + 8)
+  doc.setFontSize(8)
+  doc.text(
+    data.overall_score >= 80 ? 'Excellent — strong tenant protections' :
+    data.overall_score >= 50 ? 'Fair — some areas need attention' :
+    'Critical — several high-risk clauses detected',
+    60, y + 8
+  )
+  y += 20
+
+  // Clause scores
+  doc.setFontSize(10)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(...COLORS.emerald)
+  doc.text('CLAUSE RATINGS', 15, y)
+  y += 7
+
+  const SEVERITY_LABELS: Record<string, string> = { red: 'HIGH RISK', yellow: 'MODERATE', green: 'LOW RISK' }
+  const SEVERITY_COLORS: Record<string, [number, number, number]> = { red: COLORS.red, yellow: COLORS.amber, green: COLORS.emerald }
+
+  for (const clause of data.clause_scores) {
+    if (y > 260) { addFooter(doc, pageNum); doc.addPage(); pageNum++; y = 20 }
+
+    const color = SEVERITY_COLORS[clause.severity] ?? COLORS.grey
+    doc.setFillColor(...color)
+    doc.rect(15, y - 3, 2, 10, 'F')
+
+    doc.setFontSize(8)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(40, 40, 50)
+    doc.text(clause.clause, 20, y)
+
+    doc.setFontSize(7)
+    doc.setTextColor(...color)
+    doc.text(SEVERITY_LABELS[clause.severity] ?? '', 195, y, { align: 'right' })
+    y += 4
+
+    doc.setFontSize(7)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(80, 80, 90)
+    const summaryLines = doc.splitTextToSize(clause.summary, 170)
+    doc.text(summaryLines, 20, y)
+    y += summaryLines.length * 3.5 + 2
+
+    if (clause.recommendation) {
+      doc.setFontSize(7)
+      doc.setFont('helvetica', 'italic')
+      doc.setTextColor(100, 100, 110)
+      const recLines = doc.splitTextToSize(`Recommendation: ${clause.recommendation}`, 170)
+      doc.text(recLines, 20, y)
+      y += recLines.length * 3.5 + 2
+    }
+
+    y += 3
+  }
+
+  // Top 3 priorities
+  if (data.top_3_priorities.length > 0) {
+    if (y > 220) { addFooter(doc, pageNum); doc.addPage(); pageNum++; y = 20 }
+
+    y += 4
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(...COLORS.emerald)
+    doc.text('TOP NEGOTIATION PRIORITIES', 15, y)
+    y += 8
+
+    for (let i = 0; i < data.top_3_priorities.length; i++) {
+      const priority = data.top_3_priorities[i]
+      if (y > 240) { addFooter(doc, pageNum); doc.addPage(); pageNum++; y = 20 }
+
+      doc.setFontSize(9)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(40, 40, 50)
+      doc.text(`${i + 1}. ${priority.clause}`, 15, y)
+      y += 5
+
+      doc.setFontSize(7.5)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(80, 80, 90)
+      const whyLines = doc.splitTextToSize(`Why it matters: ${priority.why_it_matters}`, 175)
+      doc.text(whyLines, 20, y)
+      y += whyLines.length * 3.5 + 2
+
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(60, 60, 70)
+      const whatLines = doc.splitTextToSize(`Negotiate: ${priority.what_to_negotiate}`, 175)
+      doc.text(whatLines, 20, y)
+      y += whatLines.length * 3.5 + 2
+
+      if (priority.suggested_language) {
+        if (y > 260) { addFooter(doc, pageNum); doc.addPage(); pageNum++; y = 20 }
+        doc.setFontSize(7)
+        doc.setFont('helvetica', 'italic')
+        doc.setTextColor(100, 100, 110)
+        const langLines = doc.splitTextToSize(`Suggested language: "${priority.suggested_language}"`, 170)
+        doc.text(langLines, 20, y)
+        y += langLines.length * 3.5 + 2
+      }
+
+      y += 4
+    }
+  }
+
+  addFooter(doc, pageNum)
+  doc.save(`Provelo_Risk_Report_${storeName.replace(/\s+/g, '_')}.pdf`)
+}
+
+// ── CAM Audit Export ──────────────────────────────────────────────────────
+
+interface CamAuditExportData {
+  statement_file_name: string
+  total_potential_overcharge: number
+  audit_date: string
+  dispute_deadline: string | null
+  findings: Array<{
+    rule_name: string
+    status: 'violation_found' | 'within_limits' | 'insufficient_data'
+    estimated_overcharge: number
+    explanation: string
+    lease_reference: string | null
+    statement_reference: string | null
+  }>
+  dispute_letter?: string | null
+}
+
+export function exportCamAudit(data: CamAuditExportData, storeName: string) {
+  const doc = createPDF('CAM Forensic Audit')
+  let y = 40
+  let pageNum = 1
+
+  // Title
+  doc.setFontSize(14)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(40, 40, 50)
+  doc.text(`${storeName} — CAM Forensic Audit Report`, 15, y)
+  y += 8
+
+  // Summary header
+  doc.setFontSize(8)
+  doc.setFont('helvetica', 'normal')
+  doc.setTextColor(...COLORS.grey)
+  doc.text(`Statement: ${data.statement_file_name}`, 15, y)
+  y += 4
+  doc.text(`Audit date: ${new Date(data.audit_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`, 15, y)
+  y += 4
+  if (data.dispute_deadline) {
+    doc.text(`Dispute deadline: ${new Date(data.dispute_deadline).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`, 15, y)
+    y += 4
+  }
+  y += 4
+
+  // Total overcharge banner
+  const overchargeColor = data.total_potential_overcharge > 0 ? COLORS.red : COLORS.emerald
+  doc.setFillColor(245, 245, 250)
+  doc.rect(15, y - 4, 180, 16, 'F')
+  doc.setFontSize(8)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(...COLORS.grey)
+  doc.text('TOTAL POTENTIAL OVERCHARGE', 17, y)
+  y += 6
+  doc.setFontSize(16)
+  doc.setTextColor(...overchargeColor)
+  doc.text(`$${data.total_potential_overcharge.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 17, y)
+  y += 10
+
+  // Findings count
+  const violations = data.findings.filter(f => f.status === 'violation_found')
+  const ok = data.findings.filter(f => f.status === 'within_limits')
+  const noData = data.findings.filter(f => f.status === 'insufficient_data')
+
+  doc.setFontSize(8)
+  doc.setTextColor(80, 80, 90)
+  doc.text(`${violations.length} violation${violations.length !== 1 ? 's' : ''} · ${ok.length} within limits · ${noData.length} insufficient data`, 15, y)
+  y += 8
+
+  // Findings detail
+  doc.setFontSize(10)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(...COLORS.emerald)
+  doc.text('FINDINGS', 15, y)
+  y += 7
+
+  const STATUS_LABELS: Record<string, string> = { violation_found: 'VIOLATION', within_limits: 'OK', insufficient_data: 'NO DATA' }
+  const STATUS_COLORS: Record<string, [number, number, number]> = { violation_found: COLORS.red, within_limits: COLORS.emerald, insufficient_data: COLORS.grey }
+
+  for (const finding of data.findings) {
+    if (y > 255) { addFooter(doc, pageNum); doc.addPage(); pageNum++; y = 20 }
+
+    const color = STATUS_COLORS[finding.status] ?? COLORS.grey
+    doc.setFillColor(...color)
+    doc.rect(15, y - 3, 2, 10, 'F')
+
+    doc.setFontSize(8)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(40, 40, 50)
+    doc.text(finding.rule_name, 20, y)
+
+    // Status + amount
+    const label = STATUS_LABELS[finding.status] ?? ''
+    const amount = finding.estimated_overcharge > 0
+      ? `$${finding.estimated_overcharge.toLocaleString('en-US', { minimumFractionDigits: 2 })} `
+      : ''
+    doc.setFontSize(7)
+    doc.setTextColor(...color)
+    doc.text(`${amount}${label}`, 195, y, { align: 'right' })
+    y += 4.5
+
+    doc.setFontSize(7)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(80, 80, 90)
+    const expLines = doc.splitTextToSize(finding.explanation, 170)
+    doc.text(expLines, 20, y)
+    y += expLines.length * 3.5 + 4
+  }
+
+  // Dispute letter
+  if (data.dispute_letter) {
+    addFooter(doc, pageNum)
+    doc.addPage()
+    pageNum++
+    y = 20
+
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(...COLORS.emerald)
+    doc.text('DISPUTE LETTER', 15, y)
+    y += 7
+
+    doc.setFontSize(8)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(40, 40, 50)
+    const letterLines = doc.splitTextToSize(data.dispute_letter, 175)
+    for (const line of letterLines) {
+      if (y > 270) { addFooter(doc, pageNum); doc.addPage(); pageNum++; y = 20 }
+      doc.text(line, 15, y)
+      y += 4
+    }
+  }
+
+  addFooter(doc, pageNum)
+  doc.save(`Provelo_CAM_Audit_${storeName.replace(/\s+/g, '_')}.pdf`)
+}
+
+// ── Portfolio CSV Export ───────────────────────────────────────────────────
+
+interface PortfolioExportRow {
+  store_name: string
+  address: string | null
+  risk_score: number | null
+  lease_expiry: string | null
+  annual_rent: number | null
+  rent_per_sf: number | null
+  top_risk: string | null
+  square_footage: number | null
+}
+
+export function exportPortfolioCSV(locations: PortfolioExportRow[]) {
+  const headers = ['Location', 'Address', 'Risk Score', 'Lease Expiry', 'Annual Rent', 'Rent/SF', 'Top Risk', 'Sq Ft']
+  const rows = [headers.join(',')]
+  for (const loc of locations) {
+    rows.push([
+      `"${(loc.store_name ?? '').replace(/"/g, '""')}"`,
+      `"${(loc.address ?? '').replace(/"/g, '""')}"`,
+      loc.risk_score != null ? String(loc.risk_score) : '',
+      loc.lease_expiry ? `"${loc.lease_expiry}"` : '',
+      loc.annual_rent != null ? String(loc.annual_rent) : '',
+      loc.rent_per_sf != null ? loc.rent_per_sf.toFixed(2) : '',
+      `"${(loc.top_risk ?? '').replace(/"/g, '""')}"`,
+      loc.square_footage != null ? String(loc.square_footage) : '',
+    ].join(','))
+  }
+  const csv = rows.join('\n')
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `Provelo_Portfolio_${new Date().toISOString().slice(0, 10)}.csv`
+  link.click()
+  URL.revokeObjectURL(url)
+}
+
+// ── Dispute Letter Export ─────────────────────────────────────────────────
+
 export function exportDisputeLetter(letterText: string, storeName: string) {
   const doc = createPDF('CAM Dispute Letter')
   let y = 40

@@ -347,3 +347,32 @@ img {
   max-width: 100%;
   height: auto;
 }
+
+/* ─── Mobile responsive rules ─── */
+@media (max-width: 639px) {
+  /* Prevent iOS zoom on input focus */
+  input, textarea, select {
+    font-size: 16px !important;
+  }
+
+  /* Cards and containers should be full width */
+  .glass-card {
+    border-radius: 12px;
+  }
+}
+
+/* Mobile drawer overlay */
+@keyframes drawer-slide-in {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(0); }
+}
+@keyframes drawer-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.drawer-slide-in {
+  animation: drawer-slide-in 250ms cubic-bezier(0.22,1,0.36,1) both;
+}
+.drawer-fade-in {
+  animation: drawer-fade-in 200ms ease-out both;
+}

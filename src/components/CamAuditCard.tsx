@@ -521,7 +521,7 @@ export function CamAuditCard({ storeId, storeName }: CamAuditCardProps) {
 
           {/* Modal */}
           <div
-            className="relative w-full max-w-2xl max-h-[85vh] flex flex-col rounded-2xl overflow-hidden"
+            className="relative w-full max-w-2xl max-h-[85vh] sm:rounded-2xl flex flex-col overflow-hidden h-full sm:h-auto"
             style={{ background: 'rgba(20,22,30,0.98)', border: '1px solid rgba(255,255,255,0.10)' }}
           >
             {/* Modal header */}
@@ -568,7 +568,7 @@ export function CamAuditCard({ storeId, storeName }: CamAuditCardProps) {
             </div>
 
             {/* Modal footer */}
-            <div className="flex items-center justify-between gap-3 px-6 py-4 border-t border-white/[0.06]">
+            <div className="flex flex-wrap items-center justify-between gap-3 px-4 sm:px-6 py-4 border-t border-white/[0.06]">
               <button
                 onClick={() => {
                   if (isEditing) {
