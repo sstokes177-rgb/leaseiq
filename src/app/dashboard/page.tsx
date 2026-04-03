@@ -49,8 +49,6 @@ export default async function DashboardPage() {
   }
 
   if (!profile) redirect('/onboarding')
-  if ((profile as any).role === 'property_manager') redirect('/pm-dashboard')
-
   const userName = profile.company_name ?? user.email?.split('@')[0] ?? 'there'
   const storeList = stores ?? []
 

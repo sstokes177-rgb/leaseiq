@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import {
   Users, UserPlus, Mail, Shield, Eye, Crown,
-  Loader2, X, AlertCircle
+  Loader2, X
 } from 'lucide-react'
 
 interface Invitation {
@@ -125,16 +125,6 @@ export function TeamManagement() {
           <p className="font-semibold text-sm">Team</p>
           <p className="text-xs text-muted-foreground/60">Invite members to collaborate on your leases</p>
         </div>
-      </div>
-
-      {/* Pricing note */}
-      <div className="rounded-xl px-4 py-3 flex items-start gap-2"
-        style={{ background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.15)' }}>
-        <AlertCircle className="h-3.5 w-3.5 text-amber-400/70 mt-0.5 shrink-0" />
-        <p className="text-xs text-amber-300/60">
-          <span className="font-semibold text-amber-300/80">$15/month</span> per additional team member.
-          The account owner is always included.
-        </p>
       </div>
 
       {/* Invite form */}

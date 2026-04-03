@@ -1,4 +1,4 @@
-export type UserRole = 'individual' | 'tenant_admin' | 'property_manager' | 'super_admin'
+export type UserRole = 'individual' | 'tenant_admin' | 'super_admin'
 
 export interface TenantProfile {
   id: string
