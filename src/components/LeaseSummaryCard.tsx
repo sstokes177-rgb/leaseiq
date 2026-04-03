@@ -45,19 +45,26 @@ function DaysRemaining({ dateStr }: { dateStr: string | null }) {
       </span>
     )
   }
-  if (days <= 180) {
-    const cls = days <= 90
-      ? 'bg-red-500/15 text-red-400 border-red-500/25'
-      : 'bg-amber-500/15 text-amber-400 border-amber-500/25'
+  if (days <= 30) {
     return (
-      <span className={`text-xs font-semibold px-2 py-0.5 rounded-md border ${cls}`}>
+      <span className="text-xs font-semibold px-2 py-0.5 rounded-md border bg-red-500/15 text-red-400 border-red-500/25">
         {days}d remaining
       </span>
     )
   }
+  if (days <= 90) {
+    return (
+      <span className="text-xs font-semibold px-2 py-0.5 rounded-md border bg-amber-500/15 text-amber-400 border-amber-500/25">
+        {days}d remaining
+      </span>
+    )
+  }
+  const label = days < 365
+    ? `${Math.round(days / 30)} mo remaining`
+    : `${Math.round(days / 365 * 10) / 10}yr remaining`
   return (
-    <span className="text-xs font-medium px-2 py-0.5 rounded-md bg-emerald-500/12 text-emerald-400/80 border border-emerald-500/20">
-      {Math.round(days / 365 * 10) / 10}yr remaining
+    <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-emerald-500/12 text-emerald-400 border border-emerald-500/20">
+      {label}
     </span>
   )
 }

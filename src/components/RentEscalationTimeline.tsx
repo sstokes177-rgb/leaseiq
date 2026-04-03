@@ -215,19 +215,19 @@ export function RentEscalationTimeline({ storeId }: RentEscalationTimelineProps)
         </div>
         <div>
           <p className="font-semibold text-sm">Rent Escalation Timeline</p>
-          <p className="text-xs text-muted-foreground/60">Projected rent schedule over the lease term</p>
+          <p className="text-xs text-white/60">Projected rent schedule over the lease term</p>
         </div>
       </div>
 
       {/* Escalation description */}
       {(description || article) && (
         <div
-          className="rounded-lg px-3.5 py-2.5 text-xs text-white/55 leading-relaxed"
+          className="rounded-lg px-3.5 py-2.5 text-xs text-white/85 leading-relaxed"
           style={{ background: 'rgba(59,130,246,0.05)', border: '1px solid rgba(59,130,246,0.12)' }}
         >
           {description}
           {article && (
-            <span className="ml-1.5 text-[10px] text-white/30">
+            <span className="ml-1.5 text-[10px] text-white/55">
               — {article}
             </span>
           )}
@@ -241,15 +241,15 @@ export function RentEscalationTimeline({ storeId }: RentEscalationTimelineProps)
           return (
             <div
               key={y.year}
-              className={`rounded-lg px-4 py-3 flex items-center gap-4 transition-all ${isPast ? 'opacity-45' : ''}`}
+              className={`rounded-lg px-4 py-3 flex items-center gap-4 transition-all ${isPast ? 'opacity-65' : ''}`}
               style={{
-                background: y.isCurrent ? 'rgba(59,130,246,0.10)' : 'rgba(255,255,255,0.02)',
-                border: y.isCurrent ? '1px solid rgba(59,130,246,0.22)' : '1px solid rgba(255,255,255,0.05)',
+                background: y.isCurrent ? 'rgba(16,185,129,0.10)' : 'rgba(255,255,255,0.03)',
+                border: y.isCurrent ? '1px solid rgba(16,185,129,0.22)' : '1px solid rgba(255,255,255,0.06)',
               }}
             >
               {/* Year label */}
               <div className="w-12 shrink-0 text-center">
-                <span className={`text-xs font-bold ${y.isCurrent ? 'text-blue-400' : 'text-white/50'}`}>
+                <span className={`text-xs font-bold ${y.isCurrent ? 'text-emerald-400' : 'text-gray-200'}`}>
                   {y.year}
                 </span>
               </div>
@@ -262,8 +262,8 @@ export function RentEscalationTimeline({ storeId }: RentEscalationTimelineProps)
                     style={{
                       width: `${maxRent > 0 ? (y.monthlyRent / maxRent) * 100 : 100}%`,
                       background: y.isCurrent
-                        ? 'linear-gradient(90deg, rgba(59,130,246,0.6), rgba(59,130,246,0.9))'
-                        : 'linear-gradient(90deg, rgba(255,255,255,0.08), rgba(255,255,255,0.15))',
+                        ? 'linear-gradient(90deg, rgba(16,185,129,0.6), rgba(16,185,129,0.9))'
+                        : 'linear-gradient(90deg, rgba(255,255,255,0.12), rgba(255,255,255,0.22))',
                     }}
                   />
                 </div>
@@ -271,10 +271,10 @@ export function RentEscalationTimeline({ storeId }: RentEscalationTimelineProps)
 
               {/* Amounts */}
               <div className="text-right shrink-0 w-32">
-                <span className={`text-xs font-semibold ${y.isCurrent ? 'text-white' : 'text-white/70'}`}>
+                <span className={`text-xs font-semibold ${y.isCurrent ? 'text-white' : 'text-white/90'}`}>
                   ${y.monthlyRent.toLocaleString(undefined, { minimumFractionDigits: 2 })}/mo
                 </span>
-                <span className="text-[10px] text-white/30 ml-2">
+                <span className="text-[10px] text-white/60 ml-2">
                   ${y.annualRent.toLocaleString(undefined, { maximumFractionDigits: 0 })}/yr
                 </span>
               </div>
@@ -284,15 +284,15 @@ export function RentEscalationTimeline({ storeId }: RentEscalationTimelineProps)
                 {y.escalationPct != null && y.escalationPct > 0 ? (
                   <span className="text-[10px] font-medium text-amber-400/80">+{y.escalationPct}%</span>
                 ) : y.escalationPct === null && i > 0 ? (
-                  <span className="text-[10px] text-white/25">&mdash;</span>
+                  <span className="text-[10px] text-white/50">&mdash;</span>
                 ) : (
-                  <span className="text-[10px] text-white/35">Base</span>
+                  <span className="text-[10px] text-white/60">Base</span>
                 )}
               </div>
 
               {/* Current badge */}
               {y.isCurrent && (
-                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-blue-500/15 text-blue-400 border border-blue-500/25 shrink-0">
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 shrink-0">
                   Current
                 </span>
               )}
@@ -301,7 +301,7 @@ export function RentEscalationTimeline({ storeId }: RentEscalationTimelineProps)
         })}
       </div>
 
-      <p className="text-[10px] text-white/25 italic">
+      <p className="text-[10px] text-white/50 italic">
         Projected based on lease summary — actual amounts may vary.
       </p>
     </div>

@@ -1,0 +1,24 @@
+Build passes cleanly. Here's a summary of all changes:
+
+**FIX 1 — Critical Dates Color Coding** (`CriticalDatesCard.tsx`):
+- Removed the `distant` urgency level that was making dates >365 days grey
+- Now all dates >90 days in the future map to `safe` (GREEN/emerald)
+- Color logic: RED (0-30d) → AMBER (31-90d) → GREEN (>90d) → GREY (past)
+
+**FIX 2 — Rent Escalation Timeline Brightness** (`RentEscalationTimeline.tsx`):
+- Description text: `text-white/55` → `text-white/85`
+- Article reference: `text-white/30` → `text-white/55`
+- Past period opacity: `opacity-45` → `opacity-65`
+- Year labels: `text-white/50` → `text-gray-200`
+- Monthly rent amounts: `text-white/70` → `text-white/90`
+- Annual rent amounts: `text-white/30` → `text-white/60`
+- Dash/Base indicators: brightened from `/25`-`/35` to `/50`-`/60`
+- Footer note: `text-white/25` → `text-white/50`
+- Current period accent changed from blue to emerald (matching app theme)
+- Future period bars brightened from `0.08-0.15` to `0.12-0.22`
+
+**FIX 3 — Lease Expiration Display** (`LeaseSummaryCard.tsx`):
+- Aligned `DaysRemaining` badge colors to same spec: RED (0-30d), AMBER (31-90d), GREEN (>90d)
+- Previously used amber for 91-180 days; now shows green for all >90 days
+- Added month-based label for 91-364 day range (e.g. "4 mo remaining")
+- Brightened green badge text from `text-emerald-400/80` to `text-emerald-400`

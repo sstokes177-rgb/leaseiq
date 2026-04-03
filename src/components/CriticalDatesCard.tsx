@@ -48,14 +48,13 @@ function formatCountdown(days: number): string {
   return `${years} year${years !== 1 ? 's' : ''}`
 }
 
-type UrgencyLevel = 'critical' | 'warning' | 'safe' | 'distant' | 'past'
+type UrgencyLevel = 'critical' | 'warning' | 'safe' | 'past'
 
 function getUrgency(days: number): UrgencyLevel {
   if (days < 0) return 'past'
   if (days <= 30) return 'critical'
   if (days <= 90) return 'warning'
-  if (days <= 365) return 'safe'
-  return 'distant'
+  return 'safe'
 }
 
 const URGENCY_CONFIG: Record<UrgencyLevel, {
@@ -76,11 +75,6 @@ const URGENCY_CONFIG: Record<UrgencyLevel, {
     bgColor: 'rgba(16,185,129,0.08)', borderColor: 'rgba(16,185,129,0.18)',
     iconColor: 'text-emerald-400', textColor: 'text-emerald-300',
     badgeBg: 'bg-emerald-500/12', badgeBorder: 'border-emerald-500/20', badgeText: 'text-emerald-400/80',
-  },
-  distant: {
-    bgColor: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.07)',
-    iconColor: 'text-white/40', textColor: 'text-white/60',
-    badgeBg: 'bg-white/[0.05]', badgeBorder: 'border-white/[0.08]', badgeText: 'text-white/50',
   },
   past: {
     bgColor: 'rgba(255,255,255,0.02)', borderColor: 'rgba(255,255,255,0.05)',
