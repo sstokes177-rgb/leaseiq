@@ -1,0 +1,24 @@
+All done. Here's what was changed:
+
+**Types** (`src/types/index.ts`):
+- Added `negotiation_language: string | null` to `ClauseScore`
+- Added new `NegotiationPriority` interface
+- Added `top_3_priorities: NegotiationPriority[]` to `LeaseRiskScore`
+
+**API** (`src/app/api/risk-score/route.ts`):
+- Updated prompt to request `negotiation_language` per clause and `top_3_priorities` (top 3 red/yellow clauses with business impact, negotiation instructions, and suggested contract language)
+- Increased `maxOutputTokens` from 4000 to 6000 for the larger response
+- Parses and stores both new fields in Supabase
+
+**RiskScoreCard** (`src/components/RiskScoreCard.tsx`):
+- **Clickable citations**: `onArticleClick` prop wired up — citations styled with emerald underline, open the citation side panel on click
+- **Suggested language per clause**: Collapsible "View suggested language" toggle in each expanded clause, with `font-mono` styled block and Copy button
+- **Top Negotiation Priorities**: New section with Lightbulb header, showing top 3 priority cards with severity-colored left border, "Why it matters", "What to negotiate", and "Suggested language" with Copy button
+- **View all recommendations**: Expandable section below the top 3 showing all red/yellow clause recommendations with negotiation language
+- **Copy button**: Shows "Copied!" toast feedback on click
+
+**Location page** (`src/app/location/[id]/page.tsx`):
+- New `LocationRiskSection` client wrapper passes the `CitationSidePanel` handler to `RiskScoreCard`
+
+**Migration** (`supabase/migrations/010_risk_score_priorities.sql`):
+- Adds `top_3_priorities JSONB` column to `lease_risk_scores`
