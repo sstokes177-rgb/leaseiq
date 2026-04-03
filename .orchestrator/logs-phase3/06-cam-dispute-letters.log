@@ -1,0 +1,20 @@
+All done. Here's what was implemented:
+
+### PART 1: Dispute Letter Generation
+- **`POST /api/cam-audit/dispute-letter/route.ts`** — Dedicated API route accepting `audit_id`, fetches audit findings, store details, lease provisions, and generates a professional dispute letter via Claude
+- **CamAuditCard updated** with:
+  - "Generate Dispute Letter" button (only when violations exist)
+  - Full-screen modal to display the letter
+  - **Copy to Clipboard** button (with checkmark feedback)
+  - **Download as PDF** button (uses existing `exportDisputeLetter`)
+  - **Edit mode** — toggleable textarea with monospace font so users can modify the letter before copying/downloading
+
+### PART 2: Cross-Portfolio CAM Pattern Detection
+- **`GET /api/cam-audit/portfolio/route.ts`** — Aggregates CAM audits across all tenant locations, detects rules violated at multiple locations, calculates portfolio-wide overcharges
+- **`CamPortfolioInsights` component** showing:
+  - Total portfolio-wide potential overcharges
+  - Systematic pattern alerts ("Rule X violated at Y of Z locations — may indicate systematic billing practice")
+  - Location-by-location table with violations, overcharges, and last audit date
+- Added to the **Portfolio page** between Critical Dates and Portfolio AI Chat sections
+
+Build passes cleanly. Pushed to main.
