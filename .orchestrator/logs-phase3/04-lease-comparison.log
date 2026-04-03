@@ -1,0 +1,25 @@
+All done. Here's what was built:
+
+**API Route** (`src/app/api/lease-compare/route.ts`):
+- POST accepts `store_id`, verifies ownership
+- Fetches all documents, separates base lease from amendments
+- Requires both a base lease and at least one amendment
+- Fetches chunks per document type, sends to Claude with the comparison prompt
+- Falls back to Haiku if Sonnet is overloaded
+- Returns typed `LeaseComparisonResult` JSON
+
+**UI Component** (`src/components/LeaseComparisonCard.tsx`):
+- Only renders when `documentCount >= 2`
+- Empty state with "Compare Versions" button (indigo-themed)
+- Results view with summary section (change count, net impact badge, breakdown counts)
+- Sticky two-column headers (Base Lease / Amendment)
+- Each comparison row: left=original, right=amended, color-coded border (green/red/gray), impact + significance badges, expandable explanation
+- Mobile: stacks vertically
+- "Export Comparison" button → PDF download via `exportLeaseComparison`
+- "Discuss Changes with AI" → links to chat pre-filled with the amendment question
+
+**Supporting changes**:
+- Types added to `src/types/index.ts`
+- PDF export function in `src/lib/pdfExport.ts`
+- i18n translations (en + es) in `src/lib/i18n.ts`
+- Card placed on location detail page after Risk Score, before Obligation Matrix
