@@ -4,6 +4,7 @@ import { generateText } from 'ai'
 import { anthropic } from '@ai-sdk/anthropic'
 import { keywordSearchChunks } from '@/lib/vectorStore'
 import { parseAIJson } from '@/lib/parseAIJson'
+import { isRateLimited } from '@/lib/rateLimit'
 
 export const maxDuration = 60
 
@@ -59,6 +60,10 @@ export async function GET(request: NextRequest) {
 
   if (!CLAUSE_KEYWORDS[clauseType]) {
     return NextResponse.json({ error: 'Invalid clause type' }, { status: 400 })
+  }
+
+  if (isRateLimited(user.id, 'lease-clauses')) {
+    return NextResponse.json({ error: 'Please wait before analyzing another clause.' }, { status: 429 })
   }
 
   // Verify store belongs to user

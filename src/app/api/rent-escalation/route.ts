@@ -4,6 +4,7 @@ import { generateText } from 'ai'
 import { anthropic } from '@ai-sdk/anthropic'
 import { keywordSearchChunks } from '@/lib/vectorStore'
 import { parseAIJson } from '@/lib/parseAIJson'
+import { isRateLimited } from '@/lib/rateLimit'
 
 export const maxDuration = 60
 
@@ -15,6 +16,11 @@ export async function GET(request: NextRequest) {
   const storeId = new URL(request.url).searchParams.get('store_id')
   if (!storeId) return NextResponse.json({ error: 'store_id required' }, { status: 400 })
 
+  if (isRateLimited(user.id, 'rent-escalation')) {
+    return NextResponse.json({ error: 'Please wait before requesting again.' }, { status: 429 })
+  }
+
+  try {
   // First try to get the lease summary for basic data
   const admin = createAdminSupabaseClient()
   const { data: summaryRow } = await admin
@@ -82,4 +88,8 @@ ${chunks.slice(0, 15).join('\n\n---\n\n').slice(0, 15000)}`,
   }
 
   return NextResponse.json({ schedule: detailedSchedule, summary })
+  } catch (error) {
+    console.error('[RentEscalation] Error:', error)
+    return NextResponse.json({ error: 'Failed to analyze rent escalation' }, { status: 500 })
+  }
 }

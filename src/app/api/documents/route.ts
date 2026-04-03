@@ -12,24 +12,30 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const storeId = searchParams.get('store_id')
 
-  let query = supabase
-    .from('documents')
-    .select('id, file_name, file_path, document_type, display_name, store_id, uploaded_at')
-    .eq('tenant_id', user.id)
-    .order('uploaded_at', { ascending: false })
+  try {
+    let query = supabase
+      .from('documents')
+      .select('id, file_name, file_path, document_type, display_name, store_id, uploaded_at')
+      .eq('tenant_id', user.id)
+      .order('uploaded_at', { ascending: false })
+      .limit(200)
 
-  if (storeId) {
-    query = query.eq('store_id', storeId)
-  }
+    if (storeId) {
+      query = query.eq('store_id', storeId)
+    }
 
-  const { data: documents, error } = await query
+    const { data: documents, error } = await query
 
-  if (error) {
-    console.error('[Documents] GET error:', error.message)
+    if (error) {
+      console.error('[Documents] GET error:', error.message)
+      return NextResponse.json({ error: 'Failed to fetch documents' }, { status: 500 })
+    }
+
+    return NextResponse.json({ documents })
+  } catch (error) {
+    console.error('[Documents] GET error:', error)
     return NextResponse.json({ error: 'Failed to fetch documents' }, { status: 500 })
   }
-
-  return NextResponse.json({ documents })
 }
 
 export async function DELETE(request: NextRequest) {
@@ -47,16 +53,21 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: 'Document ID required' }, { status: 400 })
   }
 
-  const { error } = await supabase
-    .from('documents')
-    .delete()
-    .eq('id', documentId)
-    .eq('tenant_id', user.id)
+  try {
+    const { error } = await supabase
+      .from('documents')
+      .delete()
+      .eq('id', documentId)
+      .eq('tenant_id', user.id)
 
-  if (error) {
-    console.error('[Documents] DELETE error:', error.message)
+    if (error) {
+      console.error('[Documents] DELETE error:', error.message)
+      return NextResponse.json({ error: 'Failed to delete document' }, { status: 500 })
+    }
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('[Documents] DELETE error:', error)
     return NextResponse.json({ error: 'Failed to delete document' }, { status: 500 })
   }
-
-  return NextResponse.json({ success: true })
 }

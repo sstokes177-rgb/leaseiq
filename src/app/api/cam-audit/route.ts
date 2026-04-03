@@ -4,6 +4,7 @@ import { generateText } from 'ai'
 import { anthropic } from '@ai-sdk/anthropic'
 import { keywordSearchChunks } from '@/lib/vectorStore'
 import { parseAIJson } from '@/lib/parseAIJson'
+import { isRateLimited } from '@/lib/rateLimit'
 import type { CamAuditFinding } from '@/types'
 
 export const maxDuration = 120
@@ -84,6 +85,10 @@ export async function POST(request: NextRequest) {
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  if (isRateLimited(user.id, 'cam-audit')) {
+    return NextResponse.json({ error: 'Please wait before running another audit.' }, { status: 429 })
+  }
 
   const contentType = request.headers.get('content-type') ?? ''
 

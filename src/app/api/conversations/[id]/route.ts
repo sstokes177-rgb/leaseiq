@@ -20,11 +20,17 @@ export async function GET(
 
   if (!conv) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-  const { data: messages } = await supabase
-    .from('messages')
-    .select('id, role, content, citations, created_at')
-    .eq('conversation_id', id)
-    .order('created_at', { ascending: true })
+  try {
+    const { data: messages } = await supabase
+      .from('messages')
+      .select('id, role, content, citations, created_at')
+      .eq('conversation_id', id)
+      .order('created_at', { ascending: true })
+      .limit(200)
 
-  return NextResponse.json({ conversation: conv, messages: messages ?? [] })
+    return NextResponse.json({ conversation: conv, messages: messages ?? [] })
+  } catch (error) {
+    console.error('[Conversations] GET by id error:', error)
+    return NextResponse.json({ error: 'Failed to fetch conversation' }, { status: 500 })
+  }
 }

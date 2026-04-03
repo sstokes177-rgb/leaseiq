@@ -4,6 +4,7 @@ import { generateText } from 'ai'
 import { anthropic } from '@ai-sdk/anthropic'
 import { keywordSearchChunks } from '@/lib/vectorStore'
 import { parseAIJson } from '@/lib/parseAIJson'
+import { isRateLimited } from '@/lib/rateLimit'
 
 export const maxDuration = 90
 
@@ -90,6 +91,10 @@ export async function POST(request: NextRequest) {
 
   if (action !== 'extract_config') {
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
+  }
+
+  if (isRateLimited(user.id, 'percentage-rent')) {
+    return NextResponse.json({ error: 'Please wait before extracting again.' }, { status: 429 })
   }
 
   // Extract percentage rent config from lease

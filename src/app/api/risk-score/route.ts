@@ -4,6 +4,7 @@ import { generateText } from 'ai'
 import { anthropic } from '@ai-sdk/anthropic'
 import { keywordSearchChunks } from '@/lib/vectorStore'
 import { parseAIJson } from '@/lib/parseAIJson'
+import { isRateLimited } from '@/lib/rateLimit'
 import type { ClauseScore, NegotiationPriority } from '@/types'
 
 export const maxDuration = 90
@@ -150,6 +151,10 @@ export async function POST(request: NextRequest) {
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  if (isRateLimited(user.id, 'risk-score')) {
+    return NextResponse.json({ error: 'Please wait before generating another analysis.' }, { status: 429 })
+  }
 
   const body = await request.json()
   const storeId = body.store_id

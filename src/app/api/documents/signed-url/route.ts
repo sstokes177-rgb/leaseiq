@@ -19,21 +19,26 @@ export async function GET(request: NextRequest) {
 
   if (!doc) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-  const admin = createAdminSupabaseClient()
+  try {
+    const admin = createAdminSupabaseClient()
 
-  const [previewRes, downloadRes] = await Promise.all([
-    admin.storage.from('leases').createSignedUrl(doc.file_path, 3600),
-    admin.storage.from('leases').createSignedUrl(doc.file_path, 3600, {
-      download: doc.file_name,
-    }),
-  ])
+    const [previewRes, downloadRes] = await Promise.all([
+      admin.storage.from('leases').createSignedUrl(doc.file_path, 3600),
+      admin.storage.from('leases').createSignedUrl(doc.file_path, 3600, {
+        download: doc.file_name,
+      }),
+    ])
 
-  if (previewRes.error || downloadRes.error) {
+    if (previewRes.error || downloadRes.error) {
+      return NextResponse.json({ error: 'Could not generate file URL' }, { status: 500 })
+    }
+
+    return NextResponse.json({
+      preview_url: previewRes.data.signedUrl,
+      download_url: downloadRes.data.signedUrl,
+    })
+  } catch (error) {
+    console.error('[Documents] Signed URL error:', error)
     return NextResponse.json({ error: 'Could not generate file URL' }, { status: 500 })
   }
-
-  return NextResponse.json({
-    preview_url: previewRes.data.signedUrl,
-    download_url: downloadRes.data.signedUrl,
-  })
 }

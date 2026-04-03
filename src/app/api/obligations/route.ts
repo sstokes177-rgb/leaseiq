@@ -9,16 +9,21 @@ export async function GET(request: NextRequest) {
   const storeId = new URL(request.url).searchParams.get('store_id')
   if (!storeId) return NextResponse.json({ error: 'store_id required' }, { status: 400 })
 
-  const { data, error } = await supabase
-    .from('obligation_matrices')
-    .select('*')
-    .eq('store_id', storeId)
-    .eq('tenant_id', user.id)
-    .maybeSingle()
+  try {
+    const { data, error } = await supabase
+      .from('obligation_matrices')
+      .select('*')
+      .eq('store_id', storeId)
+      .eq('tenant_id', user.id)
+      .maybeSingle()
 
-  if (error) {
+    if (error) {
+      return NextResponse.json({ matrix: null })
+    }
+
+    return NextResponse.json({ matrix: data ?? null })
+  } catch (error) {
+    console.error('[Obligations] GET error:', error)
     return NextResponse.json({ matrix: null })
   }
-
-  return NextResponse.json({ matrix: data ?? null })
 }

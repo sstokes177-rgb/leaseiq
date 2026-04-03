@@ -8,6 +8,7 @@ export async function GET(request: NextRequest) {
 
   const storeId = new URL(request.url).searchParams.get('store_id')
 
+  try {
   let query = supabase
     .from('critical_dates')
     .select('id, date_type, date_value, description, alert_days_before, store_id, reminder_days')
@@ -39,6 +40,10 @@ export async function GET(request: NextRequest) {
   }
 
   return NextResponse.json({ dates: data ?? [] })
+  } catch (error) {
+    console.error('[CriticalDates] GET error:', error)
+    return NextResponse.json({ dates: [] })
+  }
 }
 
 export async function PATCH(request: NextRequest) {
@@ -61,12 +66,17 @@ export async function PATCH(request: NextRequest) {
 
   const sorted = [...new Set(reminder_days)].sort((a, b) => a - b)
 
-  const { error } = await supabase
-    .from('critical_dates')
-    .update({ reminder_days: sorted })
-    .eq('id', id)
-    .eq('tenant_id', user.id)
+  try {
+    const { error } = await supabase
+      .from('critical_dates')
+      .update({ reminder_days: sorted })
+      .eq('id', id)
+      .eq('tenant_id', user.id)
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json({ success: true, reminder_days: sorted })
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ success: true, reminder_days: sorted })
+  } catch (error) {
+    console.error('[CriticalDates] PATCH error:', error)
+    return NextResponse.json({ error: 'Failed to update reminder' }, { status: 500 })
+  }
 }

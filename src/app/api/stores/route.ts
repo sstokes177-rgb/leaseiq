@@ -9,18 +9,24 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { data: stores, error } = await supabase
-    .from('stores')
-    .select('*')
-    .eq('tenant_id', user.id)
-    .order('created_at', { ascending: true })
+  try {
+    const { data: stores, error } = await supabase
+      .from('stores')
+      .select('*')
+      .eq('tenant_id', user.id)
+      .order('created_at', { ascending: true })
+      .limit(100)
 
-  if (error) {
-    console.error('[Stores] GET error:', error.message)
+    if (error) {
+      console.error('[Stores] GET error:', error.message)
+      return NextResponse.json({ error: 'Failed to fetch stores' }, { status: 500 })
+    }
+
+    return NextResponse.json({ stores })
+  } catch (error) {
+    console.error('[Stores] GET error:', error)
     return NextResponse.json({ error: 'Failed to fetch stores' }, { status: 500 })
   }
-
-  return NextResponse.json({ stores })
 }
 
 export async function POST(request: NextRequest) {

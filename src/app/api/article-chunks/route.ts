@@ -15,6 +15,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'article parameter required' }, { status: 400 })
   }
 
+  try {
   const admin = createAdminSupabaseClient()
 
   // Build query — search document_chunks for this article reference
@@ -35,6 +36,8 @@ export async function GET(request: NextRequest) {
     `content.ilike.%Article ${artNum}%,content.ilike.%ARTICLE ${artNum}%,content.ilike.%Section ${artNum}%,content.ilike.%SECTION ${artNum}%,content.ilike.%Exhibit ${artNum}%,content.ilike.%EXHIBIT ${artNum}%,content.ilike.%Schedule ${artNum}%,content.ilike.%SCHEDULE ${artNum}%,content.ilike.%Appendix ${artNum}%,content.ilike.%APPENDIX ${artNum}%,content.ilike.%Addendum ${artNum}%,content.ilike.%ADDENDUM ${artNum}%,content.ilike.%Amendment ${artNum}%,content.ilike.%AMENDMENT ${artNum}%,content.ilike.%Clause ${artNum}%,content.ilike.%CLAUSE ${artNum}%`
   )
 
+  query = query.limit(50)
+
   const { data: chunks, error } = await query
 
   if (error) {
@@ -52,6 +55,10 @@ export async function GET(request: NextRequest) {
   const text = trimToArticleBoundary(rawText, artNum)
 
   return NextResponse.json({ text, chunk_count: sorted.length })
+  } catch (error) {
+    console.error('[ArticleChunks] Error:', error)
+    return NextResponse.json({ error: 'Failed to fetch article chunks' }, { status: 500 })
+  }
 }
 
 /**

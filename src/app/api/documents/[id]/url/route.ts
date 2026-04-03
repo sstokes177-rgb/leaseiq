@@ -20,17 +20,22 @@ export async function GET(
 
   if (!doc) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-  const admin = createAdminSupabaseClient()
-  const { data: urlData, error } = await admin.storage
-    .from('leases')
-    .createSignedUrl(doc.file_path, 3600)
+  try {
+    const admin = createAdminSupabaseClient()
+    const { data: urlData, error } = await admin.storage
+      .from('leases')
+      .createSignedUrl(doc.file_path, 3600)
 
-  if (error || !urlData) {
+    if (error || !urlData) {
+      return NextResponse.json({ error: 'Could not generate URL' }, { status: 500 })
+    }
+
+    return NextResponse.json({
+      url: urlData.signedUrl,
+      file_name: doc.file_name,
+    })
+  } catch (error) {
+    console.error('[Documents] URL generation error:', error)
     return NextResponse.json({ error: 'Could not generate URL' }, { status: 500 })
   }
-
-  return NextResponse.json({
-    url: urlData.signedUrl,
-    file_name: doc.file_name,
-  })
 }

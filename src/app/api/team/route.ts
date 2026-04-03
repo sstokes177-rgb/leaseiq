@@ -6,15 +6,21 @@ export async function GET() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const admin = createAdminSupabaseClient()
-  const { data, error } = await admin
-    .from('team_invitations')
-    .select('*')
-    .eq('tenant_id', user.id)
-    .order('created_at', { ascending: false })
+  try {
+    const admin = createAdminSupabaseClient()
+    const { data, error } = await admin
+      .from('team_invitations')
+      .select('*')
+      .eq('tenant_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(100)
 
-  if (error) return NextResponse.json({ invitations: [] })
-  return NextResponse.json({ invitations: data ?? [] })
+    if (error) return NextResponse.json({ invitations: [] })
+    return NextResponse.json({ invitations: data ?? [] })
+  } catch (error) {
+    console.error('[Team] GET error:', error)
+    return NextResponse.json({ invitations: [] })
+  }
 }
 
 export async function POST(request: NextRequest) {

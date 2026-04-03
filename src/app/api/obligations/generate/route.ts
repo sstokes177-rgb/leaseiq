@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase'
 import { generateObligationMatrix } from '@/lib/obligationMatrix'
+import { isRateLimited } from '@/lib/rateLimit'
 
 export const maxDuration = 90
 
@@ -8,6 +9,10 @@ export async function POST(request: NextRequest) {
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  if (isRateLimited(user.id, 'obligations')) {
+    return NextResponse.json({ error: 'Please wait before generating another matrix.' }, { status: 429 })
+  }
 
   const body = await request.json().catch(() => ({}))
   const storeId = body?.store_id as string | undefined

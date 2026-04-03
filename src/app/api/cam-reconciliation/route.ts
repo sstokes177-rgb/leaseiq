@@ -3,6 +3,7 @@ import { createServerSupabaseClient, createAdminSupabaseClient } from '@/lib/sup
 import { generateText } from 'ai'
 import { anthropic } from '@ai-sdk/anthropic'
 import { parseAIJson } from '@/lib/parseAIJson'
+import { isRateLimited } from '@/lib/rateLimit'
 import type { CamReconciliationData } from '@/types'
 
 export const maxDuration = 120
@@ -31,6 +32,10 @@ export async function POST(request: NextRequest) {
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  if (isRateLimited(user.id, 'cam-reconciliation')) {
+    return NextResponse.json({ error: 'Please wait before running another reconciliation.' }, { status: 429 })
+  }
 
   const formData = await request.formData()
   const file = formData.get('file') as File | null

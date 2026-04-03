@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase'
 import { generateCamAnalysis } from '@/lib/camAnalysis'
+import { isRateLimited } from '@/lib/rateLimit'
 
 export const maxDuration = 90
 
@@ -31,6 +32,10 @@ export async function POST(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+  if (isRateLimited(user.id, 'cam-analysis')) {
+    return NextResponse.json({ error: 'Please wait before running another analysis.' }, { status: 429 })
+  }
+
   const body = await request.json().catch(() => ({}))
   const storeId = body?.store_id as string | undefined
   if (!storeId) return NextResponse.json({ error: 'store_id required' }, { status: 400 })
@@ -44,10 +49,15 @@ export async function POST(request: NextRequest) {
 
   if (!store) return NextResponse.json({ error: 'Store not found' }, { status: 404 })
 
-  const analysisData = await generateCamAnalysis(storeId, user.id)
-  if (!analysisData) {
-    return NextResponse.json({ error: 'Could not analyze CAM charges — upload lease documents first' }, { status: 422 })
-  }
+  try {
+    const analysisData = await generateCamAnalysis(storeId, user.id)
+    if (!analysisData) {
+      return NextResponse.json({ error: 'Could not analyze CAM charges — upload lease documents first' }, { status: 422 })
+    }
 
-  return NextResponse.json({ success: true, analysis_data: analysisData })
+    return NextResponse.json({ success: true, analysis_data: analysisData })
+  } catch (error) {
+    console.error('[CamAnalysis] Error:', error)
+    return NextResponse.json({ error: 'CAM analysis failed. Please try again.' }, { status: 500 })
+  }
 }

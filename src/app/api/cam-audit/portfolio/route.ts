@@ -9,12 +9,14 @@ export async function GET() {
 
   const admin = createAdminSupabaseClient()
 
+  try {
   // Fetch all CAM audits for this tenant
   const { data: audits, error } = await admin
     .from('cam_audits')
     .select('id, store_id, statement_file_name, total_potential_overcharge, findings, audit_date')
     .eq('tenant_id', user.id)
     .order('audit_date', { ascending: false })
+    .limit(100)
 
   if (error || !audits || audits.length === 0) {
     return NextResponse.json({ insights: null })
@@ -101,4 +103,8 @@ export async function GET() {
       location_summaries: locationSummaries,
     },
   })
+  } catch (error) {
+    console.error('[CAM Portfolio] Error:', error)
+    return NextResponse.json({ insights: null })
+  }
 }

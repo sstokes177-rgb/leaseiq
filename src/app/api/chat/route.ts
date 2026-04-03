@@ -1,8 +1,9 @@
-import { NextRequest } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { streamText, generateText, convertToModelMessages, type UIMessage, type TextUIPart } from 'ai'
 import { anthropic } from '@ai-sdk/anthropic'
 import { createServerSupabaseClient, createAdminSupabaseClient } from '@/lib/supabase'
 import { buildRAGContext } from '@/lib/ragChain'
+import { isRateLimited } from '@/lib/rateLimit'
 
 async function generateConversationTitle(question: string, answer: string): Promise<string | null> {
   try {
@@ -40,6 +41,10 @@ export async function POST(request: NextRequest) {
 
   if (!user) {
     return new Response('Unauthorized', { status: 401 })
+  }
+
+  if (isRateLimited(user.id, 'chat')) {
+    return NextResponse.json({ error: 'Please wait a moment before sending another message.' }, { status: 429 })
   }
 
   let body: { messages: UIMessage[]; id?: string; store_id?: string | null }

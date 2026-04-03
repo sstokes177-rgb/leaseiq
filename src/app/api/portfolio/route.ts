@@ -74,14 +74,15 @@ export async function GET() {
 
   const admin = createAdminSupabaseClient()
 
+  try {
   // Fetch all data in parallel
   const [storesRes, docsRes, summariesRes, risksRes, datesRes, camRes] = await Promise.all([
-    admin.from('stores').select('id, store_name, shopping_center_name, address').eq('tenant_id', user.id).order('created_at', { ascending: true }),
-    admin.from('documents').select('store_id').eq('tenant_id', user.id).not('store_id', 'is', null),
-    admin.from('lease_summaries').select('store_id, summary_data').eq('tenant_id', user.id),
-    admin.from('lease_risk_scores').select('store_id, overall_score, clause_scores').eq('tenant_id', user.id),
-    admin.from('critical_dates').select('date_type, date_value, description, store_id').eq('tenant_id', user.id),
-    admin.from('cam_analysis').select('store_id, analysis_data').eq('tenant_id', user.id),
+    admin.from('stores').select('id, store_name, shopping_center_name, address').eq('tenant_id', user.id).order('created_at', { ascending: true }).limit(100),
+    admin.from('documents').select('store_id').eq('tenant_id', user.id).not('store_id', 'is', null).limit(1000),
+    admin.from('lease_summaries').select('store_id, summary_data').eq('tenant_id', user.id).limit(100),
+    admin.from('lease_risk_scores').select('store_id, overall_score, clause_scores').eq('tenant_id', user.id).limit(100),
+    admin.from('critical_dates').select('date_type, date_value, description, store_id').eq('tenant_id', user.id).limit(500),
+    admin.from('cam_analysis').select('store_id, analysis_data').eq('tenant_id', user.id).limit(100),
   ])
 
   const stores = storesRes.data ?? []
@@ -188,4 +189,8 @@ export async function GET() {
   cache.set(user.id, { data: result, ts: Date.now() })
 
   return NextResponse.json(result)
+  } catch (error) {
+    console.error('[Portfolio] Error:', error)
+    return NextResponse.json({ error: 'Failed to load portfolio data' }, { status: 500 })
+  }
 }

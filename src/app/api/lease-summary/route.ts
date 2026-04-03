@@ -9,17 +9,22 @@ export async function GET(request: NextRequest) {
   const storeId = new URL(request.url).searchParams.get('store_id')
   if (!storeId) return NextResponse.json({ error: 'store_id required' }, { status: 400 })
 
-  const { data, error } = await supabase
-    .from('lease_summaries')
-    .select('*')
-    .eq('store_id', storeId)
-    .eq('tenant_id', user.id)
-    .maybeSingle()
+  try {
+    const { data, error } = await supabase
+      .from('lease_summaries')
+      .select('*')
+      .eq('store_id', storeId)
+      .eq('tenant_id', user.id)
+      .maybeSingle()
 
-  if (error) {
-    console.error('[LeaseSummary] GET error:', error.message)
+    if (error) {
+      console.error('[LeaseSummary] GET error:', error.message)
+      return NextResponse.json({ summary: null })
+    }
+
+    return NextResponse.json({ summary: data ?? null })
+  } catch (error) {
+    console.error('[LeaseSummary] GET error:', error)
     return NextResponse.json({ summary: null })
   }
-
-  return NextResponse.json({ summary: data ?? null })
 }
