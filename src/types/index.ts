@@ -218,6 +218,27 @@ export interface OccupancyCostOverrides {
   other_label: string | null
 }
 
+// Risk Scoring
+export type ClauseSeverity = 'red' | 'yellow' | 'green'
+
+export interface ClauseScore {
+  clause: string
+  category: 'expansion_blockers' | 'financial_exposure' | 'tenant_protections'
+  severity: ClauseSeverity
+  summary: string
+  citation: string | null
+  recommendation: string | null
+}
+
+export interface LeaseRiskScore {
+  id: string
+  store_id: string
+  tenant_id: string
+  overall_score: number
+  clause_scores: ClauseScore[]
+  analyzed_at: string
+}
+
 // Team
 export interface TeamInvitation {
   id: string
