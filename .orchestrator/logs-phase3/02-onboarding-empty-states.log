@@ -1,0 +1,20 @@
+All done. Build passed, committed, and pushed. Here's what was built:
+
+**PART 1: Onboarding Checklist**
+- `src/app/api/onboarding/route.ts` — API that queries stores, documents, conversations, lease_summaries, and lease_risk_scores tables to determine step completion
+- `src/components/OnboardingChecklist.tsx` — 5-step checklist card with progress bar, emerald gradient styling, clickable incomplete items that navigate to relevant actions
+- `src/app/dashboard/DashboardOnboarding.tsx` — Client wrapper integrating checklist + tour into the server-rendered dashboard
+- `src/app/api/settings/route.ts` — Updated to accept `onboarding_completed` field for dismissal
+
+**PART 2: Empty States**
+- **Dashboard** (no locations) — SVG building illustration, "Welcome to Provelo!" heading, description, Add Location button, tagline
+- **Location page** (no documents) — Large upload icon, "Upload your lease to unlock AI intelligence", file format info, security note
+- **Chat** (no conversations) — 6 suggested question chips in flex-wrap layout with `rounded-full` pill styling, emerald hover effects
+- **Risk Score** (not analyzed) — Shield icon with "Your lease hasn't been analyzed yet", description, "Analyze Now" button
+- **CAM Audit** (no statements) — File search icon, expandable "What is a CAM reconciliation?" explanation
+- **Portfolio** (< 2 locations) — Chart icon, "Add more locations to unlock portfolio analytics", Add Location button
+
+**PART 3: Welcome Tour**
+- `src/components/WelcomeTour.tsx` — 4-step tooltip tour using `data-tour-step` attributes, dark overlay with highlighted cutout, positioned tooltips, Next/Skip controls, localStorage persistence
+- Tour steps target: navigation sidebar, Chat link, Add Location button, notification bell
+- Auto-starts 1 second after first dashboard visit, stored in `provelo_tour_completed` localStorage key
