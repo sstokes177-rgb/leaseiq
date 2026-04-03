@@ -9,6 +9,7 @@ interface ConversationItem {
   created_at: string
   updated_at: string | null
   store_id: string | null
+  message_count?: number
 }
 
 interface ChatSidebarProps {
@@ -121,7 +122,12 @@ export function ChatSidebar({
                     <p className={`text-xs leading-snug truncate ${isActive ? 'text-white/90 font-medium' : 'text-white/70'}`}>
                       {title}
                     </p>
-                    <p className="text-[10px] text-muted-foreground/45 mt-0.5">{date}</p>
+                    <p className="text-[10px] text-muted-foreground/45 mt-0.5">
+                      {date}
+                      {conv.message_count != null && conv.message_count > 0 && (
+                        <span className="ml-1.5">&middot; {conv.message_count} msg{conv.message_count !== 1 ? 's' : ''}</span>
+                      )}
+                    </p>
                   </div>
                   <button
                     onClick={(e) => handleDelete(e, conv.id)}

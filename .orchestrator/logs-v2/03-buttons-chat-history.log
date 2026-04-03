@@ -1,0 +1,19 @@
+All done. Build passes. Here's a summary of changes:
+
+### Part 1: Buttons moved to top with proper styling
+**`src/app/location/[id]/page.tsx`** — Buttons were already at the top (below location header, above all cards). Adjusted:
+- Both buttons constrained to `sm:w-[250px]` on desktop, full-width on mobile (stacked)
+- "Ask Your Lease" — emerald gradient, explicit `text-white`, chat icon (unchanged)
+- "Upload Documents" — now has `border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-300`
+
+### Part 2: Chat history (already largely implemented, enhanced)
+The existing codebase already had:
+- Conversation/message saving on every assistant response
+- AI-powered auto-title generation
+- Sidebar with conversation list, new chat, delete, store-scoped filtering
+- Past conversation loading, mobile toggle, RLS policies
+
+**New additions:**
+1. **`supabase/migrations/005_conversations_updated_at.sql`** — Adds `updated_at` column to conversations table (required for ordering by recent activity)
+2. **`src/app/api/conversations/route.ts`** — Now returns `message_count` for each conversation via Supabase's relational count
+3. **`src/components/ChatSidebar.tsx`** — Each conversation item now shows message count (e.g., "Today · 4 msgs")

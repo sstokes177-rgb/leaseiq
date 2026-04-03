@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
 
   let query = supabase
     .from('conversations')
-    .select('id, title, created_at, updated_at, store_id')
+    .select('id, title, created_at, updated_at, store_id, messages(count)')
     .eq('tenant_id', user.id)
     .order('updated_at', { ascending: false })
     .limit(30)
@@ -21,7 +21,15 @@ export async function GET(request: NextRequest) {
 
   const { data, error } = await query
   if (error) return NextResponse.json({ conversations: [] })
-  return NextResponse.json({ conversations: data ?? [] })
+
+  // Flatten message count from Supabase's nested { count } format
+  const conversations = (data ?? []).map((c) => ({
+    ...c,
+    message_count: (c.messages as unknown as { count: number }[])?.[0]?.count ?? 0,
+    messages: undefined,
+  }))
+
+  return NextResponse.json({ conversations })
 }
 
 export async function PATCH(request: NextRequest) {

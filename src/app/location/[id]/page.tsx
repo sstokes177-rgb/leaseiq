@@ -128,10 +128,10 @@ export default async function LocationPage({
 
         {/* Primary action buttons — always visible at top */}
         <div className="flex flex-col sm:flex-row gap-3">
-          <Link href={`/chat?store=${id}`} className="flex-1">
+          <Link href={`/chat?store=${id}`} className="sm:w-[250px]">
             <Button
               size="lg"
-              className="w-full h-14 text-base font-semibold gap-2.5"
+              className="w-full h-14 text-base font-semibold gap-2.5 text-white"
               style={{
                 background: hasDocuments
                   ? 'linear-gradient(135deg, rgba(16,185,129,0.9), rgba(13,148,136,0.9))'
@@ -145,11 +145,11 @@ export default async function LocationPage({
               {hasDocuments && <ArrowRight className="h-4 w-4 ml-1" />}
             </Button>
           </Link>
-          <Link href={`/upload?store=${id}`} className="flex-1 sm:flex-initial">
+          <Link href={`/upload?store=${id}`} className="sm:w-[250px]">
             <Button
               variant="outline"
               size="lg"
-              className="w-full sm:w-auto h-14 text-base font-semibold gap-2.5 px-8"
+              className="w-full h-14 text-base font-semibold gap-2.5 border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-300"
             >
               <Upload className="h-5 w-5" />
               Upload Documents
