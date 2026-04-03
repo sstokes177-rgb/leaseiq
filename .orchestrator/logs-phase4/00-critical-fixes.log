@@ -1,0 +1,11 @@
+All 5 fixes are done, build passes, committed and pushed. Here's a summary:
+
+**FIX 1 - Chat UUID**: Added `X-Conversation-Id` header to the stream response in `chat/route.ts`. The UUID validation was already in place (lines 55-58). Added `?conversation=` query param support to the chat page so location tab links work.
+
+**FIX 2 - JSON Parse**: Enhanced `parseAIJson.ts` with array `[...]` fallback extraction and more robust fence stripping. Updated `camAnalysis.ts` and `extractCriticalDates.ts` to use `parseAIJson` instead of raw `JSON.parse`. All other routes (`risk-score`, `lease-compare`, `cam-audit`, `lease-clauses`, `cam-reconciliation`, `leaseSummary`, `obligationMatrix`) were already using `parseAIJson`.
+
+**FIX 3 - Tab Bar Styling**: Replaced pill/badge tab style with clean underline style -- active tabs show `text-emerald-400` with a 2px emerald bottom border, inactive tabs are `text-gray-400 hover:text-gray-200`. Sticky with `backdrop-blur-xl bg-gray-950/80`. Content area has `min-height: calc(100vh - 300px)` and `gap-6`.
+
+**FIX 4 - Chat History**: The Chat tab now fetches conversations from `/api/conversations?store_id=X`, displays them as clickable cards with title, relative date, and message count. Clicking navigates to `/chat?store=STORE_ID&conversation=CONV_ID`. Empty state shows suggested questions.
+
+**FIX 5 - Sidebar Toggle**: Changed localStorage key to `provelo_sidebar_expanded`, defaults to expanded. Toggle button was already implemented with the right positioning.
