@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef, useCallback } from 'react'
-import { X, FileText, ExternalLink, Loader2, Maximize2, RotateCcw } from 'lucide-react'
+import { X, ExternalLink, Loader2, Maximize2, RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import type { Citation } from '@/types'
 
@@ -49,6 +49,8 @@ export function CitationSidePanel({ citation, onClose }: CitationSidePanelProps)
   const [pdfUrl, setPdfUrl] = useState<string | null>(null)
   const [pdfLoading, setPdfLoading] = useState(false)
   const [activeTab, setActiveTab] = useState<PanelTab>('text')
+  const [articleText, setArticleText] = useState<string | null>(null)
+  const [articleLoading, setArticleLoading] = useState(false)
 
   // Resizable state
   const [panelWidthPct, setPanelWidthPct] = useState(DEFAULT_WIDTH_PCT)
@@ -61,9 +63,11 @@ export function CitationSidePanel({ citation, onClose }: CitationSidePanelProps)
     if (citation) {
       setDisplayCitation(citation)
       setPdfUrl(null)
+      setArticleText(null)
       setActiveTab('text')
       requestAnimationFrame(() => setVisible(true))
 
+      // Fetch PDF signed URL
       if (citation.document_id) {
         setPdfLoading(true)
         fetch(`/api/documents/${citation.document_id}/url`)
@@ -74,14 +78,28 @@ export function CitationSidePanel({ citation, onClose }: CitationSidePanelProps)
           .catch(() => {})
           .finally(() => setPdfLoading(false))
       }
+
+      // Fetch article-specific chunks when an article number is present
+      if (citation.articleNumber) {
+        setArticleLoading(true)
+        const params = new URLSearchParams({ article: citation.articleNumber })
+        if (citation.document_id) params.set('document_id', citation.document_id)
+        fetch(`/api/article-chunks?${params}`)
+          .then(r => r.ok ? r.json() : null)
+          .then(data => {
+            if (data?.text) setArticleText(data.text)
+          })
+          .catch(() => {})
+          .finally(() => setArticleLoading(false))
+      }
     } else {
       setVisible(false)
-      // FIX 3: Reset to default size on close
       setPanelWidthPct(DEFAULT_WIDTH_PCT)
       setIsFullscreen(false)
       const timer = setTimeout(() => {
         setDisplayCitation(null)
         setPdfUrl(null)
+        setArticleText(null)
       }, 300)
       return () => clearTimeout(timer)
     }
@@ -137,10 +155,13 @@ export function CitationSidePanel({ citation, onClose }: CitationSidePanelProps)
   if (!displayCitation) return null
 
   const cfg = getDocConfig(displayCitation.document_type)
-  const fullText = cleanText(displayCitation.content ?? displayCitation.excerpt)
+  // Use article-specific text when available, otherwise fall back to single chunk content
+  const rawText = articleText ?? displayCitation.content ?? displayCitation.excerpt
+  const fullText = cleanText(rawText)
   const pageNum = displayCitation.page_number
   const effectiveWidthPct = isFullscreen ? FULLSCREEN_WIDTH_PCT : panelWidthPct
   const isNotDefaultSize = Math.abs(panelWidthPct - DEFAULT_WIDTH_PCT) > 0.5 || isFullscreen
+  const textLoading = articleLoading
 
   return (
     <>
@@ -172,6 +193,7 @@ export function CitationSidePanel({ citation, onClose }: CitationSidePanelProps)
               fullText={fullText}
               pdfUrl={pdfUrl}
               pdfLoading={pdfLoading}
+              textLoading={textLoading}
               pageNum={pageNum}
               activeTab={activeTab}
               onTabChange={setActiveTab}
@@ -223,6 +245,7 @@ export function CitationSidePanel({ citation, onClose }: CitationSidePanelProps)
             fullText={fullText}
             pdfUrl={pdfUrl}
             pdfLoading={pdfLoading}
+            textLoading={textLoading}
             pageNum={pageNum}
             activeTab={activeTab}
             onTabChange={setActiveTab}
@@ -303,12 +326,50 @@ function PanelHeader({
   )
 }
 
+/** Format extracted text with bold section headers and proper paragraph breaks. */
+function formatExtractedText(text: string) {
+  // Split into paragraphs on double newlines
+  const paragraphs = text.split(/\n{2,}/)
+
+  return paragraphs.map((para, i) => {
+    const trimmed = para.trim()
+    if (!trimmed) return null
+
+    // Detect section/article headings: lines that start with ARTICLE, SECTION, EXHIBIT, or numbered sections
+    const isHeading = /^(ARTICLE|SECTION|EXHIBIT|ADDENDUM|SCHEDULE|AMENDMENT)\s/i.test(trimmed)
+      || /^\d+\.\d+[\s.]/.test(trimmed)
+      || (/^[A-Z][A-Z\s:.\-]{4,}$/.test(trimmed.split('\n')[0]) && trimmed.split('\n')[0].length < 80)
+
+    if (isHeading) {
+      return (
+        <p key={i} className="font-bold text-white/90 mt-4 first:mt-0 mb-1">
+          {trimmed}
+        </p>
+      )
+    }
+
+    // Regular paragraph — handle single newlines as line breaks within
+    const lines = trimmed.split('\n')
+    return (
+      <p key={i} className="mb-3 last:mb-0">
+        {lines.map((line, j) => (
+          <span key={j}>
+            {j > 0 && <br />}
+            {line}
+          </span>
+        ))}
+      </p>
+    )
+  })
+}
+
 function PanelBody({
   citation,
   cfg: _cfg,
   fullText,
   pdfUrl,
   pdfLoading,
+  textLoading,
   pageNum,
   activeTab,
   onTabChange,
@@ -318,6 +379,7 @@ function PanelBody({
   fullText: string
   pdfUrl: string | null
   pdfLoading: boolean
+  textLoading: boolean
   pageNum?: number
   activeTab: PanelTab
   onTabChange: (tab: PanelTab) => void
@@ -328,7 +390,7 @@ function PanelBody({
     <div className="flex flex-col h-full">
       {/* Section + page info */}
       {(citation.section_heading || citation.page_number) && (
-        <div className="flex flex-wrap gap-2 px-4 pt-3">
+        <div className="flex flex-wrap gap-2 px-6 pt-3">
           {citation.section_heading && (
             <span
               className="text-[11px] font-medium px-2 py-0.5 rounded-md"
@@ -351,7 +413,7 @@ function PanelBody({
 
       {/* Tab toggle — only show when PDF is available */}
       {(hasPdf || pdfLoading) && (
-        <div className="flex gap-1 px-4 pt-3">
+        <div className="flex gap-1 px-6 pt-3">
           <button
             onClick={() => onTabChange('text')}
             className={`min-h-[44px] px-4 rounded-lg text-sm font-medium transition-colors ${
@@ -376,7 +438,7 @@ function PanelBody({
       )}
 
       {/* Loading state */}
-      {pdfLoading && (
+      {(pdfLoading || textLoading) && (
         <div className="flex items-center justify-center py-8">
           <Loader2 className="h-5 w-5 animate-spin text-muted-foreground/50" />
         </div>
@@ -384,7 +446,7 @@ function PanelBody({
 
       {/* PDF view — only shown when "Original PDF" tab active */}
       {hasPdf && activeTab === 'pdf' && (
-        <div className="px-4 pt-3 flex-1 min-h-[300px]">
+        <div className="px-6 pt-3 flex-1 min-h-[300px]">
           <iframe
             src={`${pdfUrl}${pageNum ? `#page=${pageNum}` : ''}`}
             className="w-full h-full min-h-[400px] rounded-lg border border-white/[0.08]"
@@ -394,18 +456,21 @@ function PanelBody({
       )}
 
       {/* Extracted text view — shown when "Extracted Text" tab active, or always if no PDF */}
-      {(activeTab === 'text' || (!hasPdf && !pdfLoading)) && (
-        <div className="px-4 py-3">
+      {(activeTab === 'text' || (!hasPdf && !pdfLoading)) && !textLoading && (
+        <div className="px-6 py-4">
           <div
-            className="rounded-xl px-4 py-3"
+            className="rounded-xl px-6 py-5"
             style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}
           >
-            <p className="text-[10px] font-semibold text-white/30 uppercase tracking-widest mb-2">
+            <p className="text-[10px] font-semibold text-white/30 uppercase tracking-widest mb-3">
               Source Text
             </p>
-            <p className="text-base text-white/80 leading-[1.7] whitespace-pre-wrap">
-              {fullText}
-            </p>
+            <div
+              className="text-[15px] text-white/80"
+              style={{ textAlign: 'justify', lineHeight: '1.6' }}
+            >
+              {formatExtractedText(fullText)}
+            </div>
           </div>
         </div>
       )}

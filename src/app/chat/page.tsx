@@ -268,7 +268,9 @@ function ChatPageInner() {
 
   const handleCitationClick = (citation: Citation) => {
     setActiveCitation(prev =>
-      prev?.chunk_id === citation.chunk_id ? null : citation
+      prev?.chunk_id === citation.chunk_id && prev?.articleNumber === citation.articleNumber
+        ? null
+        : citation
     )
   }
 

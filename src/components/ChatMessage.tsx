@@ -104,26 +104,27 @@ function findMatchingCitation(articleRef: string, citations: Citation[]): Citati
   if (!num) return null
   const numLower = num.toLowerCase()
 
-  // Try matching against section_heading first, then content
-  for (const c of citations) {
-    if (c.section_heading) {
-      const heading = c.section_heading.toLowerCase()
-      if (heading.includes(numLower) || heading.includes(`article ${numLower}`) || heading.includes(`section ${numLower}`)) {
-        return c
-      }
-    }
-  }
+  // Build a word-boundary-aware regex so "5" doesn't match "50"
+  const numRe = new RegExp(`\\b${numLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i')
 
-  // Fallback: search content for the article/section reference
+  // Try matching against section_heading first
   for (const c of citations) {
-    const content = (c.content ?? c.excerpt).toLowerCase()
-    if (content.includes(`article ${numLower}`) || content.includes(`section ${numLower}`)) {
+    if (c.section_heading && numRe.test(c.section_heading)) {
       return c
     }
   }
 
-  // Last resort: return first citation if we have any
-  return citations.length > 0 ? citations[0] : null
+  // Fallback: search content for the article/section reference
+  const articleRe = new RegExp(`(?:article|section)\\s+${numLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i')
+  for (const c of citations) {
+    const content = c.content ?? c.excerpt
+    if (articleRe.test(content)) {
+      return c
+    }
+  }
+
+  // No fallback to first citation — only return an actual match
+  return null
 }
 
 // ── Article tooltip component ───────────────────────────────────────────────
@@ -148,8 +149,11 @@ function ArticleRef({ text }: { text: string }) {
   const handleClick = useCallback(() => {
     clearTimeout(timeoutRef.current)
     setShowTooltip(false)
-    if (matched && ctx) ctx.onArticleClick(matched)
-  }, [matched, ctx])
+    if (matched && ctx) {
+      const artNum = extractArticleNumber(text)
+      ctx.onArticleClick({ ...matched, articleNumber: artNum ?? undefined })
+    }
+  }, [matched, ctx, text])
 
   if (!matched || !ctx) {
     // No citation match — render as non-clickable badge

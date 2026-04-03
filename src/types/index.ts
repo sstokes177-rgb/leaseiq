@@ -84,6 +84,8 @@ export interface Citation {
   page_number?: number
   excerpt: string
   content?: string
+  /** Set by ArticleRef click — drives article-specific chunk lookup in the side panel */
+  articleNumber?: string
 }
 
 export interface LeaseSummaryData {
