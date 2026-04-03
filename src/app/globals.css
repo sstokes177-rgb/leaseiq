@@ -278,6 +278,16 @@ body::after {
   }
 }
 
+/* ─── Command palette animations ─── */
+@keyframes cmd-overlay-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes cmd-card-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
 /* ─── Mobile safe areas ─── */
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
   .pb-safe {

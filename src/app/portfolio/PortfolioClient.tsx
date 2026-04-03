@@ -6,6 +6,7 @@ import {
   Building2, BarChart3, ShieldCheck, DollarSign, CalendarClock,
   Plus, Loader2, Send, ArrowRight, Menu, ChevronDown, ChevronUp,
 } from 'lucide-react'
+import { NotificationCenter } from '@/components/NotificationCenter'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Cell, ReferenceLine,
@@ -768,11 +769,14 @@ function Header({ userName }: { userName: string }) {
           </Link>
         </nav>
       </div>
-      <form action="/api/auth/signout" method="POST" className="hidden sm:block">
-        <button className="text-sm text-muted-foreground/85 hover:text-foreground transition-colors">
-          Sign out
-        </button>
-      </form>
+      <div className="hidden sm:flex items-center gap-2">
+        <NotificationCenter />
+        <form action="/api/auth/signout" method="POST">
+          <button className="text-sm text-muted-foreground/85 hover:text-foreground transition-colors">
+            Sign out
+          </button>
+        </form>
+      </div>
       {/* Mobile hamburger menu */}
       <details className="sm:hidden relative">
         <summary className="list-none cursor-pointer p-2 text-muted-foreground">

@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { SettingsClient } from './SettingsClient'
 import { TeamManagement } from '@/components/TeamManagement'
+import { NotificationCenter } from '@/components/NotificationCenter'
 
 export default async function SettingsPage() {
   const supabase = await createServerSupabaseClient()
@@ -34,9 +35,12 @@ export default async function SettingsPage() {
           </div>
           <span className="font-bold text-base tracking-tight">Provelo</span>
         </div>
-        <Link href="/dashboard" className="text-sm text-muted-foreground/85 hover:text-foreground transition-colors">
-          Dashboard
-        </Link>
+        <div className="flex items-center gap-2">
+          <NotificationCenter />
+          <Link href="/dashboard" className="text-sm text-muted-foreground/85 hover:text-foreground transition-colors">
+            Dashboard
+          </Link>
+        </div>
       </header>
 
       <main className="max-w-2xl mx-auto px-4 sm:px-6 py-10 space-y-8">

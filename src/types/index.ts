@@ -264,6 +264,21 @@ export interface CamAuditResult {
   dispute_deadline: string | null
 }
 
+// Notifications
+export type NotificationType = 'critical_date' | 'risk_score' | 'cam_audit' | 'document' | 'system'
+
+export interface Notification {
+  id: string
+  tenant_id: string
+  store_id: string | null
+  type: NotificationType
+  title: string
+  message: string
+  link: string | null
+  read: boolean
+  created_at: string
+}
+
 // Team
 export interface TeamInvitation {
   id: string

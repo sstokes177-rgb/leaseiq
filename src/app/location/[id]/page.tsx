@@ -19,6 +19,7 @@ import { LeaseClauseCard } from '@/components/LeaseClauseCard'
 import { DocumentListItem } from '@/components/DocumentListItem'
 import { CriticalDatesCard } from '@/components/CriticalDatesCard'
 import { RiskScoreCard } from '@/components/RiskScoreCard'
+import { NotificationCenter } from '@/components/NotificationCenter'
 
 export default async function LocationPage({
   params,
@@ -79,11 +80,14 @@ export default async function LocationPage({
           </div>
           <span className="font-bold text-base tracking-tight">Provelo</span>
         </div>
-        <form action="/api/auth/signout" method="POST" className="hidden sm:block">
-          <button className="text-sm text-muted-foreground/85 hover:text-foreground transition-colors">
-            Sign out
-          </button>
-        </form>
+        <div className="hidden sm:flex items-center gap-2">
+          <NotificationCenter />
+          <form action="/api/auth/signout" method="POST">
+            <button className="text-sm text-muted-foreground/85 hover:text-foreground transition-colors">
+              Sign out
+            </button>
+          </form>
+        </div>
         {/* Mobile hamburger menu */}
         <details className="sm:hidden relative">
           <summary className="list-none cursor-pointer p-2 text-muted-foreground">
