@@ -1,0 +1,22 @@
+Frontend code audit complete. Here's the summary:
+
+### Fixes Applied (6 files, 21 insertions, 15 deletions)
+
+**Hydration Errors Fixed:**
+- `AppLayout.tsx` — `navigator.userAgent` check moved from inline JSX to `useEffect` + `useState`
+- `AppSidebar.tsx` — Same fix for keyboard shortcut display
+- `CommandPalette.tsx` — `isMac` computation moved from module-level to `useEffect`
+
+**Console Errors Fixed:**
+- `NotificationCenter.tsx` — `fetchNotifications` wrapped in `useCallback`, added to dependency arrays
+- `CriticalDatesCard.tsx` — Removed unused `urgencies` variable
+
+**Dead Code Removed:**
+- `CriticalDatesCard.tsx` — Removed unused `Plus` import
+- `dashboard/page.tsx` — Removed unused `Building2` and `Link` imports
+
+**Verified Clean:**
+- All 13 navigation targets match existing pages (no broken links)
+- `tsc --noEmit` passes with zero errors
+- All data-fetching components (LeaseSummaryCard, ObligationMatrixCard, RiskScoreCard, CamAuditCard, CamAnalysisCard, CriticalDatesCard, ChatSidebar, PortfolioClient) have loading skeletons, error states, and empty states
+- `next build` passes with zero errors
