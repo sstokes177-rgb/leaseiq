@@ -97,6 +97,29 @@ export async function POST(request: NextRequest) {
     systemPrompt += '\n\nIMPORTANT: The user prefers Spanish. You MUST respond entirely in Spanish. Use clear, professional Spanish. Translate all lease terminology appropriately (e.g., "tenant" = "arrendatario", "landlord" = "arrendador", "lease" = "contrato de arrendamiento").'
   }
 
+  // ── Persist conversation & user message BEFORE streaming ──────────────────
+  // This ensures data is saved even if the user navigates away mid-stream.
+  const adminSupabase = createAdminSupabaseClient()
+
+  if (conversationId) {
+    try {
+      await adminSupabase
+        .from('conversations')
+        .upsert(
+          { id: conversationId, tenant_id: user.id, store_id: storeId ?? null, updated_at: new Date().toISOString() },
+          { onConflict: 'id' }
+        )
+      // Save the user message immediately
+      await adminSupabase.from('messages').insert({
+        conversation_id: conversationId,
+        role: 'user',
+        content: userText,
+      })
+    } catch (err) {
+      console.error('[Chat] Failed to pre-save conversation/user message:', err)
+    }
+  }
+
   const modelMessages = await convertToModelMessages(messages)
 
   // Try primary model (sonnet), fall back to haiku if overloaded
@@ -108,6 +131,49 @@ export async function POST(request: NextRequest) {
 
   console.info(`[Chat] Sending ${citations.length} chunks to Claude with model: ${modelId}`)
 
+  // Shared onFinish handler — saves assistant response and auto-titles
+  const handleFinish = async ({ text, finishReason }: { text: string; finishReason?: string }) => {
+    if (finishReason === 'error') {
+      console.error(`[Chat] Stream finished with error`)
+    } else {
+      console.info(`[Chat] Response received — model: ${modelId}, length: ${text.length} chars`)
+    }
+    if (conversationId && text) {
+      try {
+        // Update conversation timestamp
+        await adminSupabase
+          .from('conversations')
+          .update({ updated_at: new Date().toISOString() })
+          .eq('id', conversationId)
+        // Save assistant response
+        const { error: msgErr } = await adminSupabase.from('messages').insert({
+          conversation_id: conversationId,
+          role: 'assistant',
+          content: text,
+          citations,
+        })
+        if (msgErr) console.error('[Chat] Failed to save assistant message:', msgErr.message)
+        // Auto-title: generate if conversation has no title yet (fire-and-forget)
+        generateConversationTitle(userText, text).then(async (title) => {
+          if (!title) return
+          const { data: existing } = await adminSupabase
+            .from('conversations')
+            .select('title')
+            .eq('id', conversationId)
+            .maybeSingle()
+          if (existing && (!existing.title || existing.title === 'New conversation')) {
+            await adminSupabase
+              .from('conversations')
+              .update({ title })
+              .eq('id', conversationId)
+          }
+        }).catch(() => {})
+      } catch (err) {
+        console.error('[Chat] Failed to save assistant message:', err)
+      }
+    }
+  }
+
   try {
     result = streamText({
       model: anthropic(modelId),
@@ -115,48 +181,7 @@ export async function POST(request: NextRequest) {
       messages: modelMessages,
       maxOutputTokens: 1024,
       maxRetries: 6,
-      onFinish: async ({ text, finishReason }) => {
-        if (finishReason === 'error') {
-          console.error(`[Chat] Stream finished with error`)
-        } else {
-          console.info(`[Chat] Response received successfully — model: ${modelId}, length: ${text.length} chars`)
-        }
-        if (conversationId && text) {
-          try {
-            const adminSupabase = createAdminSupabaseClient()
-            // Upsert conversation (create if new, update timestamp if existing)
-            await adminSupabase
-              .from('conversations')
-              .upsert(
-                { id: conversationId, tenant_id: user.id, store_id: storeId ?? null, updated_at: new Date().toISOString() },
-                { onConflict: 'id' }
-              )
-            // Always save this message pair
-            const { error: msgErr } = await adminSupabase.from('messages').insert([
-              { conversation_id: conversationId, role: 'user', content: userText },
-              { conversation_id: conversationId, role: 'assistant', content: text, citations },
-            ])
-            if (msgErr) console.error('[Chat] Failed to save messages:', msgErr.message)
-            // Auto-title: generate if conversation has no title yet (fire-and-forget)
-            generateConversationTitle(userText, text).then(async (title) => {
-              if (!title) return
-              const { data: existing } = await adminSupabase
-                .from('conversations')
-                .select('title')
-                .eq('id', conversationId)
-                .maybeSingle()
-              if (existing && !existing.title) {
-                await adminSupabase
-                  .from('conversations')
-                  .update({ title })
-                  .eq('id', conversationId)
-              }
-            }).catch(() => {})
-          } catch (err) {
-            console.error('[Chat] Failed to save conversation:', err)
-          }
-        }
-      },
+      onFinish: handleFinish,
     })
   } catch (err) {
     // streamText exhausted all retries — try haiku fallback
@@ -170,34 +195,7 @@ export async function POST(request: NextRequest) {
           messages: modelMessages,
           maxOutputTokens: 1024,
           maxRetries: 3,
-          onFinish: async ({ text }) => {
-            console.info(`[Chat] Response received successfully — model: ${modelId} (fallback), length: ${text.length} chars`)
-            if (conversationId && text) {
-              try {
-                const adminSupabase = createAdminSupabaseClient()
-                await adminSupabase
-                  .from('conversations')
-                  .upsert(
-                    { id: conversationId, tenant_id: user.id, store_id: storeId ?? null, updated_at: new Date().toISOString() },
-                    { onConflict: 'id' }
-                  )
-                await adminSupabase.from('messages').insert([
-                  { conversation_id: conversationId, role: 'user', content: userText },
-                  { conversation_id: conversationId, role: 'assistant', content: text, citations },
-                ])
-                generateConversationTitle(userText, text).then(async (title) => {
-                  if (!title) return
-                  const { data: existing } = await adminSupabase
-                    .from('conversations').select('title').eq('id', conversationId).maybeSingle()
-                  if (existing && !existing.title) {
-                    await adminSupabase.from('conversations').update({ title }).eq('id', conversationId)
-                  }
-                }).catch(() => {})
-              } catch (saveErr) {
-                console.error('[Chat] Failed to save conversation:', saveErr)
-              }
-            }
-          },
+          onFinish: handleFinish,
         })
       } catch (haikusErr) {
         console.error('[Chat] Both models overloaded:', haikusErr)

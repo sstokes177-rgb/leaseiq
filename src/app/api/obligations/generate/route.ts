@@ -22,10 +22,19 @@ export async function POST(request: NextRequest) {
 
   if (!store) return NextResponse.json({ error: 'Store not found' }, { status: 404 })
 
-  const obligations = await generateObligationMatrix(storeId, user.id)
-  if (!obligations) {
-    return NextResponse.json({ error: 'Could not generate matrix — upload lease documents first' }, { status: 422 })
-  }
+  try {
+    const obligations = await generateObligationMatrix(storeId, user.id)
+    if (!obligations) {
+      return NextResponse.json({
+        error: 'No obligation data could be extracted. This may be because: (1) No lease documents have been uploaded yet, (2) The uploaded documents don\'t contain standard lease obligation clauses. Upload your complete lease to enable this feature.',
+      }, { status: 422 })
+    }
 
-  return NextResponse.json({ success: true, obligations })
+    return NextResponse.json({ success: true, obligations })
+  } catch (err) {
+    console.error('[Obligations] Generation failed:', err)
+    return NextResponse.json({
+      error: 'Obligation matrix generation failed. Please try again.',
+    }, { status: 500 })
+  }
 }

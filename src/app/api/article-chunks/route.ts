@@ -29,10 +29,10 @@ export async function GET(request: NextRequest) {
     query = query.eq('store_id', storeId)
   }
 
-  // Match chunks whose content mentions this article/section number
+  // Match chunks whose content mentions this article/section/exhibit number
   const artNum = articleNumber.replace(/['"]/g, '')
   query = query.or(
-    `content.ilike.%Article ${artNum}%,content.ilike.%ARTICLE ${artNum}%,content.ilike.%Section ${artNum}%,content.ilike.%SECTION ${artNum}%`
+    `content.ilike.%Article ${artNum}%,content.ilike.%ARTICLE ${artNum}%,content.ilike.%Section ${artNum}%,content.ilike.%SECTION ${artNum}%,content.ilike.%Exhibit ${artNum}%,content.ilike.%EXHIBIT ${artNum}%,content.ilike.%Schedule ${artNum}%,content.ilike.%SCHEDULE ${artNum}%,content.ilike.%Appendix ${artNum}%,content.ilike.%APPENDIX ${artNum}%,content.ilike.%Addendum ${artNum}%,content.ilike.%ADDENDUM ${artNum}%,content.ilike.%Amendment ${artNum}%,content.ilike.%AMENDMENT ${artNum}%,content.ilike.%Clause ${artNum}%,content.ilike.%CLAUSE ${artNum}%`
   )
 
   const { data: chunks, error } = await query
@@ -61,9 +61,9 @@ export async function GET(request: NextRequest) {
 function trimToArticleBoundary(text: string, articleNumber: string): string {
   if (!text) return text
 
-  // Try to find the article heading — e.g. "ARTICLE 5" or "Article 5.1"
+  // Try to find the article heading — e.g. "ARTICLE 5", "Article 5.1", "EXHIBIT A"
   const headingRe = new RegExp(
-    `(ARTICLE|Article|SECTION|Section)\\s+${escapeRegex(articleNumber)}\\b`,
+    `(ARTICLE|Article|SECTION|Section|EXHIBIT|Exhibit|SCHEDULE|Schedule|APPENDIX|Appendix|ADDENDUM|Addendum|AMENDMENT|Amendment|CLAUSE|Clause)\\s+${escapeRegex(articleNumber)}\\b`,
     'm'
   )
   const match = headingRe.exec(text)

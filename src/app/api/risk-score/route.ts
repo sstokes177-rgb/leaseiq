@@ -178,57 +178,106 @@ export async function POST(request: NextRequest) {
   }
 
   if (chunks.length === 0) {
-    return NextResponse.json({ error: 'No lease documents found for this location.' }, { status: 400 })
+    return NextResponse.json(
+      { error: 'Upload your lease documents to enable risk analysis.' },
+      { status: 400 }
+    )
   }
 
+  // Limit context to 30 chunks and 20k chars to avoid token limits
+  const contextText = chunks.slice(0, 30).join('\n\n---\n\n').slice(0, 20000)
+
+  let text: string
   try {
-    const { text } = await generateText({
-      model: anthropic('claude-sonnet-4-6-20250514'),
+    const result = await generateText({
+      model: anthropic('claude-sonnet-4-6'),
       maxOutputTokens: 4000,
       messages: [{
         role: 'user',
-        content: `${SYSTEM_PROMPT}
-
-Lease excerpts to analyze:
-${chunks.slice(0, 40).join('\n\n---\n\n').slice(0, 28000)}`,
+        content: `${SYSTEM_PROMPT}\n\nLease excerpts to analyze:\n${contextText}`,
       }],
     })
-
-    const parsed = JSON.parse(text.trim().replace(/^```json\s*|\s*```$/g, ''))
-    const clauseScores: ClauseScore[] = (parsed.clauses ?? []).map((c: ClauseScore) => ({
-      clause: c.clause,
-      category: c.category,
-      severity: c.severity,
-      summary: c.summary,
-      citation: c.citation || null,
-      recommendation: c.recommendation || null,
-    }))
-
-    // Ensure all clauses are present — fill missing ones as yellow
-    const allClauses: Array<{ clause: string; category: string }> = []
-    for (const [category, clauses] of Object.entries(CLAUSE_CATEGORIES)) {
-      for (const clause of clauses) {
-        allClauses.push({ clause, category })
-      }
-    }
-
-    const existingClauses = new Set(clauseScores.map(c => c.clause))
-    for (const { clause, category } of allClauses) {
-      if (!existingClauses.has(clause)) {
-        clauseScores.push({
-          clause,
-          category: category as ClauseScore['category'],
-          severity: 'yellow',
-          summary: 'Could not be determined from available lease text.',
-          citation: null,
-          recommendation: 'Review your lease document for this clause.',
+    text = result.text
+  } catch (err) {
+    const msg = String(err).toLowerCase()
+    if (msg.includes('overload') || msg.includes('529')) {
+      console.warn('[RiskScore] Model overloaded, retrying with haiku')
+      try {
+        const fallback = await generateText({
+          model: anthropic('claude-haiku-4-5-20251001'),
+          maxOutputTokens: 4000,
+          messages: [{
+            role: 'user',
+            content: `${SYSTEM_PROMPT}\n\nLease excerpts to analyze:\n${contextText}`,
+          }],
         })
+        text = fallback.text
+      } catch (haikuErr) {
+        console.error('[RiskScore] Both models failed:', haikuErr)
+        return NextResponse.json(
+          { error: 'AI service is currently busy. Please try again in a moment.' },
+          { status: 503 }
+        )
       }
+    } else {
+      console.error('[RiskScore] AI generation failed:', err)
+      return NextResponse.json(
+        { error: 'Risk analysis failed. Please try again.' },
+        { status: 500 }
+      )
     }
+  }
 
-    const overallScore = calculateOverallScore(clauseScores)
+  // Parse the JSON response — handle various wrapping formats
+  let parsed: { clauses?: ClauseScore[] }
+  try {
+    const cleaned = text.trim()
+      .replace(/^```(?:json)?\s*/i, '')
+      .replace(/\s*```$/i, '')
+    parsed = JSON.parse(cleaned)
+  } catch (parseErr) {
+    console.error('[RiskScore] JSON parse failed. Raw text:', text.slice(0, 500))
+    return NextResponse.json(
+      { error: 'Risk analysis returned an unexpected format. Please try again.' },
+      { status: 500 }
+    )
+  }
 
-    // Upsert to database
+  const clauseScores: ClauseScore[] = (parsed.clauses ?? []).map((c: ClauseScore) => ({
+    clause: c.clause,
+    category: c.category,
+    severity: c.severity,
+    summary: c.summary,
+    citation: c.citation || null,
+    recommendation: c.recommendation || null,
+  }))
+
+  // Ensure all clauses are present — fill missing ones as yellow
+  const allClauses: Array<{ clause: string; category: string }> = []
+  for (const [category, clauses] of Object.entries(CLAUSE_CATEGORIES)) {
+    for (const clause of clauses) {
+      allClauses.push({ clause, category })
+    }
+  }
+
+  const existingClauses = new Set(clauseScores.map(c => c.clause))
+  for (const { clause, category } of allClauses) {
+    if (!existingClauses.has(clause)) {
+      clauseScores.push({
+        clause,
+        category: category as ClauseScore['category'],
+        severity: 'yellow',
+        summary: 'Could not be determined from available lease text.',
+        citation: null,
+        recommendation: 'Review your lease document for this clause.',
+      })
+    }
+  }
+
+  const overallScore = calculateOverallScore(clauseScores)
+
+  // Upsert to database
+  try {
     const admin = createAdminSupabaseClient()
     const { data: existing } = await admin
       .from('lease_risk_scores')
@@ -252,14 +301,14 @@ ${chunks.slice(0, 40).join('\n\n---\n\n').slice(0, 28000)}`,
         analyzed_at: new Date().toISOString(),
       })
     }
-
-    return NextResponse.json({
-      overall_score: overallScore,
-      clause_scores: clauseScores,
-      analyzed_at: new Date().toISOString(),
-    })
-  } catch (err) {
-    console.error('[RiskScore] Analysis failed:', err)
-    return NextResponse.json({ error: 'Risk analysis failed. Please try again.' }, { status: 500 })
+  } catch (dbErr) {
+    console.error('[RiskScore] DB write failed:', dbErr)
+    // Still return the result even if caching fails
   }
+
+  return NextResponse.json({
+    overall_score: overallScore,
+    clause_scores: clauseScores,
+    analyzed_at: new Date().toISOString(),
+  })
 }

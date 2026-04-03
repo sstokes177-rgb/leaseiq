@@ -123,9 +123,12 @@ function ChatInterface({
   }, [messages, showTypingIndicator])
 
   // Notify parent when a chat turn completes (for sidebar refresh)
+  // Also refresh when submitted (user message was pre-saved server-side)
   useEffect(() => {
-    if (prevStatusRef.current !== 'ready' && status === 'ready') {
-      onChatComplete?.()
+    if (prevStatusRef.current !== status) {
+      if (status === 'submitted' || (prevStatusRef.current !== 'ready' && status === 'ready')) {
+        onChatComplete?.()
+      }
     }
     prevStatusRef.current = status
   }, [status, onChatComplete])

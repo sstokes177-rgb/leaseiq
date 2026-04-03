@@ -55,9 +55,9 @@ const DOC_TAG_STYLES: Record<string, string> = {
   commencement_letter: 'bg-sky-500/20 text-sky-300 border-sky-500/30',
 }
 
-// Combined regex: **bold**, [Doc Type tags], Article/Section references
+// Combined regex: **bold**, [Doc Type tags], Article/Section/Exhibit references
 const INLINE_RE =
-  /(\*\*[^*\n]{1,120}\*\*|\[[^\]\n]{1,80}\]|(?:(?:Per|Under|per|under)\s+)?(?:Article|Section|Paragraph|Clause)\s+\d+(?:\.\d+)*[a-zA-Z]?(?:\([a-z\d]+\))?)/g
+  /(\*\*[^*\n]{1,120}\*\*|\[[^\]\n]{1,80}\]|(?:(?:Per|Under|See|In|Pursuant to)\s+)?(?:Article|Section|Clause|Paragraph|Exhibit|Schedule|Appendix|Addendum|Amendment)\s+(?:\d+(?:\.\d+)*[a-zA-Z]?(?:\([a-zA-Z0-9]+\))*|[A-Z](?:-\d+)?))/gi
 
 function tokenize(text: string): Token[] {
   const tokens: Token[] = []
@@ -93,9 +93,9 @@ function tokenize(text: string): Token[] {
 
 // ── Match article reference to citation ─────────────────────────────────────
 
-/** Extract the numeric part from "Section 5.1" or "Article 23" etc. */
+/** Extract the identifier from "Section 5.1", "Article 23", "Exhibit A", etc. */
 function extractArticleNumber(ref: string): string | null {
-  const m = ref.match(/(?:Article|Section|Paragraph|Clause)\s+(\d+(?:\.\d+)*[a-zA-Z]?(?:\([a-z\d]+\))?)/i)
+  const m = ref.match(/(?:Article|Section|Paragraph|Clause|Exhibit|Schedule|Appendix|Addendum|Amendment)\s+((?:\d+(?:\.\d+)*[a-zA-Z]?(?:\([a-zA-Z0-9]+\))*|[A-Z](?:-\d+)?))/i)
   return m ? m[1] : null
 }
 
@@ -103,9 +103,10 @@ function findMatchingCitation(articleRef: string, citations: Citation[]): Citati
   const num = extractArticleNumber(articleRef)
   if (!num) return null
   const numLower = num.toLowerCase()
+  const escaped = numLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
   // Build a word-boundary-aware regex so "5" doesn't match "50"
-  const numRe = new RegExp(`\\b${numLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i')
+  const numRe = new RegExp(`\\b${escaped}\\b`, 'i')
 
   // Try matching against section_heading first
   for (const c of citations) {
@@ -114,8 +115,9 @@ function findMatchingCitation(articleRef: string, citations: Citation[]): Citati
     }
   }
 
-  // Fallback: search content for the article/section reference
-  const articleRe = new RegExp(`(?:article|section)\\s+${numLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i')
+  // Fallback: search content for the article/section/exhibit reference
+  const refTypes = 'article|section|clause|paragraph|exhibit|schedule|appendix|addendum|amendment'
+  const articleRe = new RegExp(`(?:${refTypes})\\s+${escaped}\\b`, 'i')
   for (const c of citations) {
     const content = c.content ?? c.excerpt
     if (articleRe.test(content)) {
@@ -156,7 +158,34 @@ function ArticleRef({ text }: { text: string }) {
   }, [matched, ctx, text])
 
   if (!matched || !ctx) {
-    // No citation match — render as non-clickable badge
+    // No citation match — still render as clickable if we have a context and an article number
+    const artNum = extractArticleNumber(text)
+    if (ctx && artNum) {
+      const handleUnmatchedClick = () => {
+        // Create a synthetic citation to open the side panel with an article lookup
+        const syntheticCitation: Citation = {
+          chunk_id: '',
+          document_name: 'Lease Document',
+          excerpt: `Fetching ${text}...`,
+          articleNumber: artNum,
+        }
+        ctx.onArticleClick(syntheticCitation)
+      }
+      return (
+        <button
+          onClick={handleUnmatchedClick}
+          className="inline-flex items-center mx-0.5 px-2 py-0.5 rounded-md text-[11px] font-semibold leading-tight cursor-pointer transition-all hover:scale-105"
+          style={{
+            background: 'rgba(16,185,129,0.15)',
+            border: '1px solid rgba(16,185,129,0.32)',
+            color: 'rgb(52,211,153)',
+          }}
+        >
+          {text}
+        </button>
+      )
+    }
+
     return (
       <span
         className="inline-flex items-center mx-0.5 px-2 py-0.5 rounded-md text-[11px] font-semibold leading-tight"

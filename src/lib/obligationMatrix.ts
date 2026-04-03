@@ -13,6 +13,13 @@ const OBLIGATION_KEYWORDS = [
   'hvac',
   'insurance',
   'structural',
+  'obligation',
+  'shall maintain',
+  'lessee',
+  'lessor',
+  'common area',
+  'utilities',
+  'premises',
 ]
 
 const OBLIGATION_CATEGORIES = [
@@ -66,29 +73,48 @@ export async function generateObligationMatrix(
     }
   }
 
-  // Fallback: if keyword search returns nothing (function not deployed yet),
-  // fetch chunks from DB and filter for obligation language
-  if (chunks.length === 0) {
-    console.info('[Obligations] Keyword search returned 0 results — using DB fallback for store', storeId)
-    const { data: rawChunks, error: fetchError } = await admin
+  // Fallback: if keyword search returns too few results, fetch chunks directly from DB
+  if (chunks.length < 5) {
+    console.info('[Obligations] Keyword search returned', chunks.length, 'results — using DB fallback for store', storeId)
+
+    // First try with store_id filter
+    let { data: rawChunks, error: fetchError } = await admin
       .from('document_chunks')
       .select('id, content')
       .eq('tenant_id', tenantId)
       .eq('store_id', storeId)
-      .limit(35)
+      .order('created_at', { ascending: true })
+      .limit(50)
 
     if (fetchError) {
       console.error('[Obligations] DB fallback fetch error:', fetchError.message)
     }
 
+    // If store_id filter returned nothing, try without it (in case store_id wasn't set on chunks)
+    if ((!rawChunks || rawChunks.length === 0) && !fetchError) {
+      console.info('[Obligations] No chunks with store_id, trying tenant-only fallback')
+      const tenantFallback = await admin
+        .from('document_chunks')
+        .select('id, content')
+        .eq('tenant_id', tenantId)
+        .order('created_at', { ascending: true })
+        .limit(50)
+
+      rawChunks = tenantFallback.data
+      if (tenantFallback.error) {
+        console.error('[Obligations] Tenant fallback error:', tenantFallback.error.message)
+      }
+    }
+
     const toUse = rawChunks ?? []
     console.info('[Obligations] DB fallback fetched', toUse.length, 'chunks for store', storeId)
 
-    if (toUse.length === 0) {
-      console.warn('[Obligations] No chunks found — store_id:', storeId, 'tenant_id:', tenantId)
+    for (const chunk of toUse) {
+      if (!seen.has(chunk.id)) {
+        seen.add(chunk.id)
+        chunks.push(chunk)
+      }
     }
-
-    chunks.push(...toUse)
   }
 
   if (chunks.length === 0) {
@@ -105,7 +131,7 @@ export async function generateObligationMatrix(
   try {
     const { text: result } = await generateText({
       model: anthropic('claude-haiku-4-5-20251001'),
-      maxOutputTokens: 1200,
+      maxOutputTokens: 2000,
       messages: [
         {
           role: 'user',

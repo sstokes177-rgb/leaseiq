@@ -84,6 +84,13 @@ export function CitationSidePanel({ citation, onClose }: CitationSidePanelProps)
         setArticleLoading(true)
         const params = new URLSearchParams({ article: citation.articleNumber })
         if (citation.document_id) params.set('document_id', citation.document_id)
+        // Fall back to store_id from URL for unmatched references
+        if (!citation.document_id) {
+          try {
+            const urlStoreId = new URLSearchParams(window.location.search).get('store')
+            if (urlStoreId) params.set('store_id', urlStoreId)
+          } catch { /* ignore */ }
+        }
         fetch(`/api/article-chunks?${params}`)
           .then(r => r.ok ? r.json() : null)
           .then(data => {
@@ -342,9 +349,15 @@ function formatExtractedText(text: string) {
 
     if (isHeading) {
       return (
-        <p key={i} className="font-bold text-white/90 mt-4 first:mt-0 mb-1">
-          {trimmed}
-        </p>
+        <div key={i}>
+          {i > 0 && <div className="border-t border-white/[0.07] mt-6 mb-4" />}
+          <p
+            className="font-bold text-white/90 first:mt-0 mb-2"
+            style={{ fontSize: '18px', marginTop: i > 0 ? '0' : undefined }}
+          >
+            {trimmed}
+          </p>
+        </div>
       )
     }
 
@@ -459,15 +472,25 @@ function PanelBody({
       {(activeTab === 'text' || (!hasPdf && !pdfLoading)) && !textLoading && (
         <div className="px-6 py-4">
           <div
-            className="rounded-xl px-6 py-5"
-            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}
+            className="rounded-xl"
+            style={{
+              background: 'rgba(255,255,255,0.03)',
+              border: '1px solid rgba(255,255,255,0.08)',
+              padding: '24px 28px',
+            }}
           >
             <p className="text-[10px] font-semibold text-white/30 uppercase tracking-widest mb-3">
               Source Text
             </p>
             <div
-              className="text-[15px] text-white/80"
-              style={{ textAlign: 'justify', lineHeight: '1.6' }}
+              className="text-white/80 mx-auto"
+              style={{
+                textAlign: 'justify',
+                lineHeight: '1.7',
+                fontSize: '16px',
+                maxWidth: '72ch',
+                fontFamily: "'Inter', 'Plus Jakarta Sans', -apple-system, sans-serif",
+              }}
             >
               {formatExtractedText(fullText)}
             </div>
