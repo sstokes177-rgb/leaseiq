@@ -7,6 +7,7 @@ import {
   Plus, Loader2, Send, ArrowRight, Menu, ChevronDown, ChevronUp,
 } from 'lucide-react'
 import { NotificationCenter } from '@/components/NotificationCenter'
+import { CamPortfolioInsights } from '@/components/CamPortfolioInsights'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Cell, ReferenceLine,
@@ -692,6 +693,9 @@ export function PortfolioClient({ userName }: { userName: string }) {
             </div>
           </div>
         )}
+
+        {/* ── CAM Portfolio Insights ───────────────────────────────────────── */}
+        <CamPortfolioInsights />
 
         {/* ── Portfolio AI Chat ──────────────────────────────────────────────── */}
         <div className="glass-card rounded-2xl p-6">
