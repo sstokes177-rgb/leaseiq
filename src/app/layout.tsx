@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { ClientProviders } from "@/components/ClientProviders";
+import { ScrollToTop } from "@/components/ScrollToTop";
 
 const plusJakarta = Plus_Jakarta_Sans({
   variable: "--font-sans",
@@ -45,6 +46,7 @@ export default function RootLayout({
         </div>
         <div className="relative flex flex-col min-h-full" style={{ zIndex: 1 }}>
           <ClientProviders>{children}</ClientProviders>
+          <ScrollToTop />
         </div>
       </body>
     </html>

@@ -91,7 +91,7 @@ export function LocationTabs({ storeId, storeName, hasDocuments, documents }: Lo
   return (
     <>
       {/* Tab bar — underline style, left-aligned, sticky */}
-      <div className="sticky top-0 z-10 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 mt-2 mb-6 border-b border-white/[0.06] backdrop-blur-xl bg-[rgba(15,17,24,0.85)]">
+      <div className="sticky top-0 z-10 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 mt-4 mb-6 border-b border-white/[0.06] backdrop-blur-xl">
         <div className="flex overflow-x-auto scrollbar-none -mb-px">
           {TABS.map((tab) => (
             <button
@@ -99,14 +99,11 @@ export function LocationTabs({ storeId, storeName, hasDocuments, documents }: Lo
               onClick={() => setActiveTab(tab.key)}
               className={`px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors relative ${
                 activeTab === tab.key
-                  ? 'text-emerald-400'
-                  : 'text-gray-500 hover:text-gray-300'
+                  ? 'text-emerald-400 border-b-2 border-emerald-500'
+                  : 'text-gray-400 hover:text-gray-200'
               }`}
             >
               {tab.label}
-              {activeTab === tab.key && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-500 rounded-full" />
-              )}
             </button>
           ))}
         </div>

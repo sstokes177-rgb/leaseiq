@@ -80,7 +80,7 @@ function Navbar({ isAuthenticated }: { isAuthenticated: boolean }) {
               </Link>
               <Link href="/login?mode=signup"
                 className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg px-5 py-2.5 text-sm font-semibold transition-colors">
-                Start Free
+                Start 14-Day Trial
               </Link>
             </>
           )}
@@ -121,7 +121,7 @@ function Navbar({ isAuthenticated }: { isAuthenticated: boolean }) {
                   </Link>
                   <Link href="/login?mode=signup"
                     className="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg px-5 py-3 text-sm font-semibold transition-colors">
-                    Start Free
+                    Start 14-Day Trial
                   </Link>
                 </>
               )}
@@ -205,7 +205,7 @@ const STEPS = [
 
 export function LandingPage({ isAuthenticated = false }: { isAuthenticated?: boolean }) {
   const ctaHref = isAuthenticated ? '/dashboard' : '/login?mode=signup'
-  const ctaText = isAuthenticated ? 'Go to Dashboard' : 'Start Free'
+  const ctaText = isAuthenticated ? 'Go to Dashboard' : 'Start 14-Day Trial'
 
   return (
     <div className="min-h-screen flex flex-col">

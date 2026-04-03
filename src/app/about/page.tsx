@@ -68,7 +68,7 @@ function Navbar() {
           </Link>
           <Link href="/login?mode=signup"
             className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg px-5 py-2.5 text-sm font-semibold transition-colors">
-            Start Free
+            Start 14-Day Trial
           </Link>
         </div>
 
@@ -98,7 +98,7 @@ function Navbar() {
               </Link>
               <Link href="/login?mode=signup"
                 className="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg px-5 py-3 text-sm font-semibold transition-colors">
-                Start Free
+                Start 14-Day Trial
               </Link>
             </div>
           </div>
@@ -269,7 +269,7 @@ export default function AboutPage() {
           <section
             key={s.num}
             className={`relative py-20 sm:py-28 ${
-              s.accent ? 'bg-white/[0.015]' : ''
+              s.accent ? 'bg-white/[0.01]' : 'bg-transparent'
             }`}
           >
             <div className="max-w-5xl mx-auto px-4 sm:px-6">
@@ -377,16 +377,11 @@ export default function AboutPage() {
         <RevealSection>
           <div className="max-w-3xl mx-auto px-4 sm:px-6">
             <div
-              className="relative rounded-3xl px-6 py-16 sm:px-12 sm:py-20 text-center overflow-hidden"
+              className="relative rounded-3xl px-6 py-16 sm:px-12 sm:py-20 text-center overflow-hidden bg-white/[0.02]"
               style={{
-                background: 'linear-gradient(135deg, rgba(6,78,59,0.25) 0%, rgba(16,185,129,0.08) 100%)',
                 border: '1px solid rgba(16,185,129,0.15)',
               }}
             >
-              <div
-                className="absolute inset-0 -z-10"
-                style={{ background: 'radial-gradient(ellipse at 50% 100%, rgba(16,185,129,0.12) 0%, transparent 60%)' }}
-              />
 
               <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-4">
                 Whether you manage 1 location or 1,000, Provelo gives you the lease intelligence you need to protect your business.
@@ -400,7 +395,7 @@ export default function AboutPage() {
                 href="/login?mode=signup"
                 className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl px-8 py-4 text-lg font-semibold transition-colors shadow-[0_4px_24px_rgba(16,185,129,0.3)]"
               >
-                Start Free <ArrowRight className="h-5 w-5" />
+                Start 14-Day Trial <ArrowRight className="h-5 w-5" />
               </Link>
             </div>
           </div>

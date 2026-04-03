@@ -66,10 +66,10 @@ export function AppSidebar({ locations = [] }: AppSidebarProps) {
       {/* Toggle button — prominent, on the right edge */}
       <button
         onClick={toggleCollapsed}
-        className="absolute top-16 -right-4 z-10 w-8 h-8 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 border border-white/10 transition-colors text-gray-300 hover:text-white"
+        className="absolute right-[-14px] top-[50%] -translate-y-1/2 z-20 w-7 h-7 rounded-full flex items-center justify-center bg-white/[0.08] hover:bg-white/[0.15] border border-white/[0.1] transition-colors text-gray-300 hover:text-white shadow-lg"
         aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
       >
-        {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+        {collapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}
       </button>
 
       {/* Top: Logo */}

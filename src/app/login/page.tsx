@@ -22,6 +22,7 @@ function LoginForm() {
   const searchParams = useSearchParams()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [isSignUp, setIsSignUp] = useState(false)
   const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
@@ -46,6 +47,11 @@ function LoginForm() {
         setLoading(false)
         return
       }
+      if (password !== confirmPassword) {
+        setMessage({ type: 'error', text: 'Passwords do not match.' })
+        setLoading(false)
+        return
+      }
       const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -53,7 +59,11 @@ function LoginForm() {
       })
       setLoading(false)
       if (error) {
-        setMessage({ type: 'error', text: error.message })
+        if (error.message?.toLowerCase().includes('already registered') || error.message?.toLowerCase().includes('already been registered') || error.message?.toLowerCase().includes('user already registered')) {
+          setMessage({ type: 'error', text: 'EMAIL_EXISTS' })
+        } else {
+          setMessage({ type: 'error', text: error.message })
+        }
       } else {
         sessionStorage.setItem('verify-email', email)
         router.push('/verify-email')
@@ -124,12 +134,25 @@ function LoginForm() {
             placeholder={isSignUp ? 'Password (min 8 characters)' : 'Password'}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleAuth()}
+            onKeyDown={(e) => !isSignUp && e.key === 'Enter' && handleAuth()}
             className="w-full rounded-xl px-4 py-2.5 text-sm placeholder:text-muted-foreground/55 focus:outline-none transition-all"
             style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.09)' }}
             onFocus={(e) => { e.target.style.borderColor = 'rgba(16,185,129,0.45)'; e.target.style.boxShadow = '0 0 0 3px rgba(16,185,129,0.10)' }}
             onBlur={(e) => { e.target.style.borderColor = 'rgba(255,255,255,0.09)'; e.target.style.boxShadow = 'none' }}
           />
+          {isSignUp && (
+            <input
+              type="password"
+              placeholder="Confirm password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleAuth()}
+              className="w-full rounded-xl px-4 py-2.5 text-sm placeholder:text-muted-foreground/55 focus:outline-none transition-all"
+              style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.09)' }}
+              onFocus={(e) => { e.target.style.borderColor = 'rgba(16,185,129,0.45)'; e.target.style.boxShadow = '0 0 0 3px rgba(16,185,129,0.10)' }}
+              onBlur={(e) => { e.target.style.borderColor = 'rgba(255,255,255,0.09)'; e.target.style.boxShadow = 'none' }}
+            />
+          )}
         </div>
 
         {!isSignUp && (
@@ -141,9 +164,21 @@ function LoginForm() {
         )}
 
         {message && (
-          <p className={`text-xs ${message.type === 'error' ? 'text-red-400' : 'text-emerald-400'}`}>
-            {message.text}
-          </p>
+          <div className={`text-xs ${message.type === 'error' ? 'text-red-400' : 'text-emerald-400'}`}>
+            {message.text === 'EMAIL_EXISTS' ? (
+              <p>
+                This email is already associated with an account.{' '}
+                <button
+                  onClick={() => { setIsSignUp(false); setMessage(null); setConfirmPassword('') }}
+                  className="text-emerald-400 hover:text-emerald-300 underline transition-colors"
+                >
+                  Please sign in instead.
+                </button>
+              </p>
+            ) : (
+              <p>{message.text}</p>
+            )}
+          </div>
         )}
 
         <Button
@@ -157,7 +192,7 @@ function LoginForm() {
         </Button>
 
         <button
-          onClick={() => { setIsSignUp(!isSignUp); setMessage(null) }}
+          onClick={() => { setIsSignUp(!isSignUp); setMessage(null); setConfirmPassword('') }}
           className="w-full text-xs text-muted-foreground/80 hover:text-foreground transition-colors text-center"
         >
           {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
