@@ -1,0 +1,17 @@
+Done. Here's what was built:
+
+**API Route — `GET /api/portfolio`**
+- Authenticates tenant, fetches all stores + lease summaries + risk scores + critical dates + CAM analysis + document counts in parallel
+- Computes derived fields (years remaining, rent/SF, top risk clause)
+- Returns aggregated `PortfolioData` with 5-minute in-memory cache
+
+**Page — `/portfolio`**
+- **Stats bar**: 4 cards — Total Locations, Avg Risk Score (mini circular gauge), Total Annual Rent, Critical Dates (90d)
+- **Chart 1**: Lease Expiration Timeline (vertical bars, green/yellow/red by years remaining, reference line at 0)
+- **Chart 2**: Risk Score Comparison (bars per location, reference lines at 50 & 80, tooltip shows top risk clause)
+- **Chart 3**: Annual Rent Comparison (horizontal bars, emerald gradient, sorted highest first)
+- **Chart 4**: Clause Risk Heatmap Table (6 columns: Exclusivity, Assignment, Rent Escalation, CAM Cap, Renewal, Termination — color-coded dots, hover tooltips, sortable columns, click navigates to location)
+- **Critical Dates Section**: Urgency badges (red/yellow/green/gray), sorted nearest-first, past dates grayed out
+- **Portfolio AI Chat**: Sends `store_id: null` to existing chat API for cross-location search, streaming responses, example question chips
+
+**Navigation**: "Portfolio" link added to dashboard, location, and portfolio page headers (desktop + mobile menus).
