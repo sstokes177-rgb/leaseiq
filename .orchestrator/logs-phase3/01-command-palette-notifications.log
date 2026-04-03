@@ -1,0 +1,28 @@
+All done. Build passed cleanly and pushed to `main`. Here's what was built:
+
+**Command Palette** (`src/components/CommandPalette.tsx`)
+- Triggered via Cmd+K / Ctrl+K globally
+- Fuzzy search across navigation (Dashboard, Portfolio, Settings, all stores), actions (New Chat, Upload, Risk Score), and search placeholders
+- Keyboard navigation (Arrow Up/Down, Enter, Escape)
+- Animated overlay + card (scale/fade 150ms)
+- Shows shortcut badges on right side of commands
+
+**Notification Center** (`src/components/NotificationCenter.tsx`)
+- Bell icon with red unread count badge in all page headers (dashboard, location, settings, portfolio)
+- Dropdown panel (380px) with notification list, type-specific icons (Calendar, Shield, FileText)
+- Unread indicator via 3px emerald left border
+- Mark individual or all as read
+- Click navigates to relevant page
+
+**API Routes** (`src/app/api/notifications/route.ts`)
+- `GET` — fetch 20 most recent notifications for current user
+- `PATCH` — mark one or all as read
+
+**Keyboard Shortcuts** (in `src/components/ClientProviders.tsx`)
+- Cmd/Ctrl+K — command palette
+- Cmd/Ctrl+N — new chat (context-aware: uses current store if on location page)
+- Cmd/Ctrl+U — upload document (context-aware)
+- Escape — close palette/panels
+
+**Database** (`supabase/migrations/009_notifications.sql`)
+- `notifications` table with RLS policies, indexed on tenant_id + created_at
