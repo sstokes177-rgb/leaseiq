@@ -41,11 +41,13 @@ function getStatusDotColor(leaseExpiry: string | null): string {
 export function AppSidebar({ locations = [] }: AppSidebarProps) {
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(false)
+  const [isMac, setIsMac] = useState(false)
 
   // Load expanded state from localStorage (default: expanded)
   useEffect(() => {
     const saved = localStorage.getItem('provelo_sidebar_expanded')
     if (saved === 'false') setCollapsed(true)
+    setIsMac(/Mac|iPhone|iPad/.test(navigator.userAgent))
   }, [])
 
   const toggleCollapsed = () => {
@@ -221,7 +223,7 @@ export function AppSidebar({ locations = [] }: AppSidebarProps) {
             <>
               <span className="text-xs truncate">Search</span>
               <kbd className="ml-auto bg-white/[0.05] border border-white/10 rounded-md px-1.5 py-0.5 text-[10px] text-gray-500 shrink-0">
-                {typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.userAgent) ? '⌘K' : 'Ctrl+K'}
+                {isMac ? '⌘K' : 'Ctrl+K'}
               </kbd>
             </>
           )}

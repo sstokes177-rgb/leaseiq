@@ -2,10 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase'
-import Link from 'next/link'
-import {
-  Sparkles, Building2,
-} from 'lucide-react'
+import { Sparkles } from 'lucide-react'
 import { AddStoreButton } from './AddStoreModal'
 import { DashboardGrid } from '@/components/DashboardGrid'
 import { NotificationCenter } from '@/components/NotificationCenter'

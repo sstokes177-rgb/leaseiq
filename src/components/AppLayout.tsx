@@ -19,6 +19,11 @@ interface AppLayoutProps {
 export function AppLayout({ children }: AppLayoutProps) {
   const [locations, setLocations] = useState<SidebarLocation[]>([])
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [isMac, setIsMac] = useState(false)
+
+  useEffect(() => {
+    setIsMac(/Mac|iPhone|iPad/.test(navigator.userAgent))
+  }, [])
 
   useEffect(() => {
     fetch('/api/stores')
@@ -92,7 +97,7 @@ export function AppLayout({ children }: AppLayoutProps) {
               <Search className="h-3.5 w-3.5" />
               <span className="text-xs hidden sm:inline">Search...</span>
               <kbd className="bg-white/[0.05] border border-white/10 rounded px-1.5 py-0.5 text-[10px] text-gray-500 hidden sm:inline">
-                {typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.userAgent) ? '⌘K' : 'Ctrl+K'}
+                {isMac ? '⌘K' : 'Ctrl+K'}
               </kbd>
             </button>
             <NotificationCenter />

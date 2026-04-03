@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import {
   Calendar, AlertCircle, AlertTriangle,
   ChevronDown, ChevronLeft, ChevronRight, Bell,
-  List, CalendarDays, X, Plus, Check,
+  List, CalendarDays, X, Check,
 } from 'lucide-react'
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -241,8 +241,6 @@ function MonthCalendar({ dates }: { dates: ProcessedDate[] }) {
           const isTodayCell = isToday(day)
           const isSelected = selectedDay === day
 
-          // Get most urgent level for this day
-          const urgencies = events.map(e => e.urgency)
           const displayDots = events.slice(0, 3) // max 3 dots
 
           return (

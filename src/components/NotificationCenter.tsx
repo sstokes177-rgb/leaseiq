@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Bell, Calendar, Shield, FileText, X, Check } from 'lucide-react'
 import type { Notification } from '@/types'
@@ -37,7 +37,7 @@ export function NotificationCenter() {
   const unreadCount = notifications.filter(n => !n.read).length
 
   // Fetch notifications
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     setLoading(true)
     try {
       const res = await fetch('/api/notifications')
@@ -50,16 +50,16 @@ export function NotificationCenter() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
     fetchNotifications()
-  }, [])
+  }, [fetchNotifications])
 
   // Re-fetch when panel opens
   useEffect(() => {
     if (open) fetchNotifications()
-  }, [open])
+  }, [open, fetchNotifications])
 
   // Close on outside click
   useEffect(() => {

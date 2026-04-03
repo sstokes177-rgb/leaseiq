@@ -32,8 +32,13 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
   const [query, setQuery] = useState('')
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [stores, setStores] = useState<Store[]>([])
+  const [isMac, setIsMac] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    setIsMac(/Mac|iPhone|iPad/.test(navigator.userAgent))
+  }, [])
 
   // Fetch stores when palette opens
   useEffect(() => {
@@ -53,7 +58,6 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
     }
   }, [open])
 
-  const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.userAgent)
   const mod = isMac ? '\u2318' : 'Ctrl+'
 
   const execute = (action: () => void) => {
