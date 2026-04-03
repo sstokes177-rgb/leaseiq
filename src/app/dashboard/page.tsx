@@ -97,6 +97,9 @@ export default async function DashboardPage() {
             <Link href="/dashboard" className="text-sm text-foreground/90 font-medium px-3 py-1.5 rounded-lg bg-white/[0.06]">
               Dashboard
             </Link>
+            <Link href="/portfolio" className="text-sm text-muted-foreground/70 hover:text-foreground/90 font-medium px-3 py-1.5 rounded-lg hover:bg-white/[0.04] transition-colors">
+              Portfolio
+            </Link>
             <Link href="/settings" className="text-sm text-muted-foreground/70 hover:text-foreground/90 font-medium px-3 py-1.5 rounded-lg hover:bg-white/[0.04] transition-colors">
               Settings
             </Link>
@@ -114,6 +117,7 @@ export default async function DashboardPage() {
           </summary>
           <div className="absolute right-0 top-full mt-1 w-44 rounded-xl glass-card p-2 z-50">
             <Link href="/dashboard" className="block px-3 py-2.5 text-sm rounded-lg bg-white/[0.06]">Dashboard</Link>
+            <Link href="/portfolio" className="block px-3 py-2.5 text-sm rounded-lg hover:bg-white/[0.06] transition-colors">Portfolio</Link>
             <Link href="/settings" className="block px-3 py-2.5 text-sm rounded-lg hover:bg-white/[0.06] transition-colors">Settings</Link>
             <form action="/api/auth/signout" method="POST">
               <button className="w-full text-left px-3 py-2.5 text-sm rounded-lg hover:bg-white/[0.06] text-muted-foreground transition-colors">

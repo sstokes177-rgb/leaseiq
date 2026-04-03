@@ -91,6 +91,7 @@ export default async function LocationPage({
           </summary>
           <div className="absolute right-0 top-full mt-1 w-44 rounded-xl glass-card p-2 z-50">
             <Link href="/dashboard" className="block px-3 py-2.5 text-sm rounded-lg hover:bg-white/[0.06] transition-colors">Dashboard</Link>
+            <Link href="/portfolio" className="block px-3 py-2.5 text-sm rounded-lg hover:bg-white/[0.06] transition-colors">Portfolio</Link>
             <Link href="/settings" className="block px-3 py-2.5 text-sm rounded-lg hover:bg-white/[0.06] transition-colors">Settings</Link>
             <form action="/api/auth/signout" method="POST">
               <button className="w-full text-left px-3 py-2.5 text-sm rounded-lg hover:bg-white/[0.06] text-muted-foreground transition-colors">
