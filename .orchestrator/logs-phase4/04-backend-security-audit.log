@@ -1,0 +1,25 @@
+Build passes, committed, and pushed. Here's the full audit summary:
+
+## Backend & Security Audit Results
+
+### Authentication (33/33 routes)
+All routes verify auth via `createServerSupabaseClient()` + `getUser()` and filter by `tenant_id = user.id`. No cross-tenant data exposure.
+
+### Error Handling
+Added try-catch wrappers to 15 routes that were missing them:
+- `conversations/[id]`, `lease-summary`, `obligations`, `documents` (GET/DELETE), `documents/[id]/url`, `documents/signed-url`, `article-chunks`, `notifications` (GET/PATCH), `portfolio`, `cam-audit/portfolio`, `critical-dates` (GET/PATCH), `rent-escalation`, `auth/signout`
+
+### Rate Limiting
+Created `src/lib/rateLimit.ts` — simple in-memory 3s cooldown per user per route. Added to all 13 AI-powered routes: `chat`, `risk-score`, `cam-audit`, `cam-analysis`, `cam-reconciliation`, `lease-compare`, `lease-summary/generate`, `obligations/generate`, `lease-clauses`, `percentage-rent`, `rent-escalation`, `cam-audit/dispute-letter` (inherited), `stores/[id]/detect-asset-class` (inherited).
+
+### AI JSON Parsing
+All AI routes already use `parseAIJson` — no raw `JSON.parse` found.
+
+### Database Query Safety
+Added `.limit()` to 7 unbounded queries: `documents` (200), `stores` (100), `team` (100), `portfolio` queries (100-1000), `cam-audit/portfolio` (100), `article-chunks` (50), `conversations/[id] messages` (200).
+
+### Environment Variables
+Already handled gracefully in `supabase.ts` with placeholder fallbacks.
+
+### Branding
+Zero instances of ClauseIQ/LeaseIQ/Tenora in source code.
