@@ -1,0 +1,26 @@
+Build passes cleanly. Here's a summary of everything implemented:
+
+### PART 1: Email Verification
+- **`src/app/verify-email/page.tsx`** — "Check your email" page with a "Resend verification email" button (uses `sessionStorage` to remember the email)
+- **`src/app/auth/callback/route.ts`** — Exchanges the auth code for a session and redirects to `/dashboard` on success, or `/login?error=auth` on failure
+- Signup in login page now passes `emailRedirectTo` pointing to `/auth/callback` and redirects to `/verify-email` after signup
+
+### PART 2: Password Reset
+- **`src/app/forgot-password/page.tsx`** — Email input, calls `resetPasswordForEmail()`, always shows generic "If an account exists..." message (prevents user enumeration per NIST)
+- **`src/app/reset-password/page.tsx`** — New password + confirm fields with strength meter, calls `updateUser({ password })`, redirects to `/dashboard` on success
+- "Forgot password?" link added to login page (visible in sign-in mode)
+
+### PART 3: Change Password in Settings
+- **`src/app/settings/SettingsClient.tsx`** — New "Change Password" section with current password, new password + confirm, strength meter, and success/error messaging
+- **`src/components/PasswordStrengthMeter.tsx`** — Shared strength meter component (4-bar visual + Weak/Fair/Good/Strong label), reused in both reset-password and settings
+
+### PART 4: Google OAuth
+- "Continue with Google" button with Google logo SVG added to login page (both sign-in and sign-up modes)
+- Calls `signInWithOAuth({ provider: 'google' })` with `redirectTo` pointing to `/auth/callback`
+- "or" divider separates Google from email/password form
+
+### Security (NIST SP 800-63B)
+- Min 8 chars enforced, no forced complexity rules
+- Generic error messages on login ("Invalid email or password") and password reset
+- No periodic forced resets
+- Rate limiting delegated to Supabase built-in
