@@ -1,381 +1,457 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import {
-  FileSearch, MessageSquare, FileStack, Scale, Calendar,
-  BookOpen, Upload, ArrowRight, CheckCircle, Zap, Building2,
-  ChevronRight, Sparkles,
+  ArrowRight, Menu, X,
+  Search, Calendar, Scale,
+  MessageSquare, ShieldCheck, BarChart3, Bell,
+  Upload, Brain, Sparkles,
+  Lock, Shield, EyeOff,
 } from 'lucide-react'
 
-/* ─── Data ───────────────────────────────────────────────────── */
+/* ─── Nav ─────────────────────────────────────────────────────── */
+
+function Navbar({ isAuthenticated }: { isAuthenticated: boolean }) {
+  const [scrolled, setScrolled] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 10)
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  // Close mobile menu on resize
+  useEffect(() => {
+    const onResize = () => { if (window.innerWidth >= 768) setMobileOpen(false) }
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+
+  const navLinks = [
+    { label: 'Features', href: '#features' },
+    { label: 'How It Works', href: '#how-it-works' },
+    { label: 'For Tenants', href: '#for-tenants' },
+  ]
+
+  return (
+    <nav className={`sticky top-0 z-50 transition-all duration-300 ${
+      scrolled
+        ? 'bg-gray-950/80 backdrop-blur-xl border-b border-white/5'
+        : 'bg-transparent border-b border-transparent'
+    }`}>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+        {/* Left: Logo */}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center justify-center w-8 h-8 rounded-lg"
+              style={{ background: 'linear-gradient(135deg,rgba(16,185,129,0.25),rgba(20,184,166,0.15))', border: '1px solid rgba(16,185,129,0.25)' }}>
+              <span className="text-[11px] font-extrabold text-emerald-400">PV</span>
+            </div>
+            <span className="font-bold text-base tracking-tight text-white">Provelo</span>
+          </div>
+          <span className="hidden sm:block text-xs text-gray-500">Commercial Lease Intelligence</span>
+        </div>
+
+        {/* Center: Nav links (desktop) */}
+        <div className="hidden md:flex items-center gap-8">
+          {navLinks.map((l) => (
+            <a key={l.href} href={l.href}
+              className="text-sm text-gray-400 hover:text-white transition-colors">
+              {l.label}
+            </a>
+          ))}
+        </div>
+
+        {/* Right: Auth buttons (desktop) */}
+        <div className="hidden md:flex items-center gap-3">
+          {isAuthenticated ? (
+            <Link href="/dashboard"
+              className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg px-5 py-2.5 text-sm font-semibold transition-colors">
+              Dashboard <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          ) : (
+            <>
+              <Link href="/login"
+                className="text-sm text-gray-300 hover:text-white transition-colors px-3 py-2">
+                Sign In
+              </Link>
+              <Link href="/login?mode=signup"
+                className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg px-5 py-2.5 text-sm font-semibold transition-colors">
+                Start Free
+              </Link>
+            </>
+          )}
+        </div>
+
+        {/* Mobile hamburger */}
+        <button
+          onClick={() => setMobileOpen(!mobileOpen)}
+          className="md:hidden p-2 text-gray-400 hover:text-white transition-colors"
+          aria-label="Toggle menu"
+        >
+          {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        </button>
+      </div>
+
+      {/* Mobile menu */}
+      {mobileOpen && (
+        <div className="md:hidden bg-gray-950/95 backdrop-blur-xl border-b border-white/5 px-4 pb-6 pt-2">
+          <div className="flex flex-col gap-4">
+            {navLinks.map((l) => (
+              <a key={l.href} href={l.href}
+                onClick={() => setMobileOpen(false)}
+                className="text-sm text-gray-300 hover:text-white transition-colors py-2">
+                {l.label}
+              </a>
+            ))}
+            <div className="border-t border-white/10 pt-4 flex flex-col gap-3">
+              {isAuthenticated ? (
+                <Link href="/dashboard"
+                  className="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg px-5 py-3 text-sm font-semibold transition-colors">
+                  Dashboard <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              ) : (
+                <>
+                  <Link href="/login"
+                    className="text-sm text-gray-300 hover:text-white transition-colors py-2 text-center">
+                    Sign In
+                  </Link>
+                  <Link href="/login?mode=signup"
+                    className="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg px-5 py-3 text-sm font-semibold transition-colors">
+                    Start Free
+                  </Link>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </nav>
+  )
+}
+
+/* ─── Pain Point Card ─────────────────────────────────────────── */
+
+const PAIN_POINTS = [
+  {
+    icon: <Search className="h-6 w-6" />,
+    stat: '40% of CAM reconciliations contain billing errors',
+    desc: 'Most tenants never know they\'re overpaying.',
+  },
+  {
+    icon: <Calendar className="h-6 w-6" />,
+    stat: 'Critical dates buried in 100-page documents',
+    desc: 'Miss a renewal deadline and lose your lease.',
+  },
+  {
+    icon: <Scale className="h-6 w-6" />,
+    stat: 'Legal language designed to confuse',
+    desc: 'You signed it, but do you understand it?',
+  },
+]
+
+/* ─── Feature Cards ───────────────────────────────────────────── */
 
 const FEATURES = [
   {
-    icon: <MessageSquare className="h-5 w-5" />,
-    title: 'AI-Powered Lease Q&A',
-    desc: 'Ask anything in plain language. Get answers grounded word-for-word in your actual lease — not generic legal summaries.',
-    anim: 'anim-feat-1',
+    icon: <MessageSquare className="h-6 w-6" />,
+    title: 'Ask Your Lease Anything',
+    desc: 'Get plain-English answers about your rights, obligations, and what you can and can\'t do. With article-level citations you can verify.',
   },
   {
-    icon: <FileStack className="h-5 w-5" />,
-    title: 'Understands Amendments',
-    desc: 'Upload your base lease, amendments, and commencement letters. The AI reads them together, and amendments always override.',
-    anim: 'anim-feat-2',
+    icon: <ShieldCheck className="h-6 w-6" />,
+    title: 'Catch CAM Overcharges',
+    desc: '14-rule forensic audit finds billing errors that cost tenants thousands. What took CPAs $15,000 takes Provelo 30 seconds.',
   },
   {
-    icon: <Scale className="h-5 w-5" />,
-    title: 'Instant Obligation Clarity',
-    desc: 'Instantly see what\'s your responsibility vs. the landlord\'s — HVAC, repairs, CAM, insurance, and more.',
-    anim: 'anim-feat-3',
+    icon: <BarChart3 className="h-6 w-6" />,
+    title: 'Score Your Lease Risk',
+    desc: '20-clause analysis scores your lease from 0-100 with AI-powered negotiation recommendations and suggested lease language.',
   },
   {
-    icon: <Calendar className="h-5 w-5" />,
-    title: 'Critical Date Tracking',
-    desc: 'Never miss a renewal deadline, rent escalation date, notice period, or option exercise window.',
-    anim: 'anim-feat-4',
-  },
-  {
-    icon: <Zap className="h-5 w-5" />,
-    title: 'Plain Language, Not Legal Jargon',
-    desc: 'Complex lease terms explained simply. Know what "triple net," "CAM reconciliation," and "holdover provisions" actually mean for you.',
-    anim: 'anim-feat-5',
-  },
-  {
-    icon: <BookOpen className="h-5 w-5" />,
-    title: 'Exact Citations Every Time',
-    desc: 'Every answer references the specific Article, Section, and page number from your lease. No guessing, no hallucinations.',
-    anim: 'anim-feat-6',
+    icon: <Bell className="h-6 w-6" />,
+    title: 'Never Miss a Deadline',
+    desc: 'Automated alerts for renewals, rent escalations, option windows, and every critical date in your lease.',
   },
 ]
 
-const QUESTIONS = [
-  'Who is responsible for HVAC repairs?',
-  'Can I sublease part of my space?',
-  'What are my options for early termination?',
-  'When is my next rent increase and by how much?',
-  'Am I allowed to put tables outside?',
-  "What happens if I'm late on rent?",
-  'Do I have a right of first refusal on adjacent space?',
-  'What does my personal guarantee cover?',
-  'Can the landlord enter my space without notice?',
-  'What\'s included in my CAM charges?',
-]
+/* ─── How It Works Steps ──────────────────────────────────────── */
 
 const STEPS = [
   {
     icon: <Upload className="h-6 w-6" />,
-    n: '1',
-    title: 'Upload your lease',
-    desc: 'Drop in your PDF — base lease, amendments, exhibits. Any format, any length.',
+    n: 1,
+    title: 'Upload your lease PDF',
+    desc: 'Drag and drop any commercial lease. We process base leases, amendments, exhibits, and more.',
   },
   {
-    icon: <MessageSquare className="h-6 w-6" />,
-    n: '2',
-    title: 'Ask any question',
-    desc: 'Type your question in plain English. No legal training needed.',
+    icon: <Brain className="h-6 w-6" />,
+    n: 2,
+    title: 'AI analyzes every clause',
+    desc: 'Our AI reads your entire lease, extracts key terms, identifies risks, and builds your intelligence dashboard.',
   },
   {
-    icon: <CheckCircle className="h-6 w-6" />,
-    n: '3',
-    title: 'Get cited answers',
-    desc: 'Receive clear answers with exact Article, Section, and page citations from your document.',
+    icon: <Sparkles className="h-6 w-6" />,
+    n: 3,
+    title: 'Get instant intelligence',
+    desc: 'Ask questions, run audits, compare amendments, and get negotiation recommendations — all in plain English.',
   },
 ]
 
-/* ─── Sub-components ─────────────────────────────────────────── */
-
-function GlowButton({ href, children, variant = 'primary' }: { href: string; children: React.ReactNode; variant?: 'primary' | 'ghost' }) {
-  const base = 'inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-200'
-  const styles = variant === 'primary'
-    ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-[0_2px_16px_rgba(16,185,129,0.35)] hover:from-emerald-400 hover:to-teal-400 hover:shadow-[0_4px_24px_rgba(16,185,129,0.55)] active:scale-[0.98]'
-    : 'border border-white/10 bg-white/[0.04] backdrop-blur-sm text-foreground/90 hover:bg-white/[0.08] hover:text-foreground'
-  return <Link href={href} className={`${base} ${styles}`}>{children}</Link>
-}
-
-function FeatureCard({ icon, title, desc, anim }: typeof FEATURES[0]) {
-  return (
-    <div className={`glass-card glass-card-lift rounded-2xl p-6 ${anim}`}>
-      <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl mb-4"
-        style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.20)' }}>
-        <span className="text-emerald-400">{icon}</span>
-      </div>
-      <h3 className="font-semibold text-base mb-2">{title}</h3>
-      <p className="text-sm text-muted-foreground leading-relaxed font-light">{desc}</p>
-    </div>
-  )
-}
-
-function ChatMockup() {
-  return (
-    <div className="relative">
-      {/* Glow behind mockup */}
-      <div className="absolute inset-0 -z-10 translate-y-4 scale-90 blur-3xl rounded-3xl"
-        style={{ background: 'radial-gradient(circle, rgba(16,185,129,0.18) 0%, transparent 70%)' }} />
-
-      <div className="glass-card rounded-2xl overflow-hidden shadow-2xl"
-        style={{ transform: 'perspective(1000px) rotateY(-2deg) rotateX(1.5deg)' }}>
-        {/* Header */}
-        <div className="border-b border-white/[0.07] px-4 py-3 flex items-center gap-3"
-          style={{ background: 'rgba(255,255,255,0.03)' }}>
-          <div className="flex gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-red-500/60" />
-            <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/60" />
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/60" />
-          </div>
-          <div className="flex items-center gap-2 flex-1">
-            <div className="w-5 h-5 rounded-md flex items-center justify-center"
-              style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.20)' }}>
-              <FileSearch className="h-3 w-3 text-emerald-400" />
-            </div>
-            <p className="text-xs font-semibold truncate">Sunrise Bakery — Oakridge Town Center</p>
-          </div>
-        </div>
-
-        {/* Messages */}
-        <div className="p-4 space-y-3 text-sm">
-          {/* User */}
-          <div className="flex justify-end anim-chat-user">
-            <div className="rounded-[14px] rounded-br-[4px] px-4 py-2.5 max-w-[78%] text-white text-xs leading-relaxed"
-              style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.9), rgba(13,148,136,0.9))' }}>
-              Who is responsible for HVAC repairs?
-            </div>
-          </div>
-
-          {/* AI */}
-          <div className="flex justify-start anim-chat-ai">
-            <div className="glass-card rounded-[14px] rounded-bl-[4px] px-4 py-3 max-w-[88%]">
-              <p className="text-xs leading-relaxed text-foreground/90">
-                Based on{' '}
-                <span className="font-semibold text-emerald-400">Section 12.3</span>
-                {' '}of your lease (p. 18), HVAC maintenance is the{' '}
-                <strong>Landlord&apos;s responsibility</strong>
-                {' '}for systems serving the premises, except repairs caused by Tenant&apos;s negligence.
-              </p>
-              {/* Citation badge */}
-              <div className="anim-chat-cite mt-2.5 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs"
-                style={{ background: 'rgba(16,185,129,0.10)', border: '1px solid rgba(16,185,129,0.18)' }}>
-                <BookOpen className="h-3 w-3 text-emerald-400" />
-                <span className="text-emerald-400/80 font-medium">Article 12 · Section 12.3 · p. 18</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-/* ─── Main component ─────────────────────────────────────────── */
+/* ─── Main Component ──────────────────────────────────────────── */
 
 export function LandingPage({ isAuthenticated = false }: { isAuthenticated?: boolean }) {
+  const ctaHref = isAuthenticated ? '/dashboard' : '/login?mode=signup'
+  const ctaText = isAuthenticated ? 'Go to Dashboard' : 'Start Free'
+
   return (
     <div className="min-h-screen flex flex-col">
-      {/* ── Nav ─────────────────────────────────────────────── */}
-      <nav className="sticky top-0 z-50 border-b border-white/[0.06]"
-        style={{ background: 'rgba(26,29,37,0.80)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="flex items-center justify-center w-7 h-7 rounded-lg"
-              style={{ background: 'linear-gradient(135deg,rgba(16,185,129,0.25),rgba(20,184,166,0.15))', border: '1px solid rgba(16,185,129,0.25)' }}>
-              <span className="text-[10px] font-extrabold text-emerald-400">PV</span>
-            </div>
-            <span className="font-bold text-sm tracking-tight">Provelo</span>
-          </div>
-          <div className="flex items-center gap-2">
-            {isAuthenticated ? (
-              <GlowButton href="/dashboard">
-                Go to Dashboard <ArrowRight className="h-3.5 w-3.5" />
-              </GlowButton>
-            ) : (
-              <>
-                <Link href="/login"
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5">
-                  Sign in
-                </Link>
-                <GlowButton href="/login?mode=signup">
-                  Get started <ArrowRight className="h-3.5 w-3.5" />
-                </GlowButton>
-              </>
-            )}
-          </div>
-        </div>
-      </nav>
+      <Navbar isAuthenticated={isAuthenticated} />
 
       {/* ── Hero ─────────────────────────────────────────────── */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 pt-20 pb-24 sm:pt-28 sm:pb-32 grid lg:grid-cols-2 gap-14 lg:gap-20 items-center">
-        <div className="space-y-8">
-          {/* Badge */}
-          <div className="anim-hero-1 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium"
-            style={{ background: 'rgba(16,185,129,0.10)', border: '1px solid rgba(16,185,129,0.20)' }}>
-            <Sparkles className="h-3 w-3 text-emerald-400" />
-            <span className="text-emerald-300/80">AI-powered lease intelligence</span>
-          </div>
+      <section className="relative flex items-center justify-center px-4 sm:px-6"
+        style={{ minHeight: 'calc(100vh - 4rem)' }}>
+        {/* Background gradient */}
+        <div className="absolute inset-0 -z-10"
+          style={{ background: 'radial-gradient(ellipse at 50% 40%, rgba(6,78,59,0.20) 0%, transparent 70%)' }} />
+        {/* Subtle grid */}
+        <div className="absolute inset-0 -z-10 opacity-[0.04]"
+          style={{
+            backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)',
+            backgroundSize: '64px 64px',
+          }} />
 
-          {/* Headline */}
-          <h1 className="anim-hero-2 text-3xl sm:text-5xl lg:text-[3.4rem] font-extrabold leading-[1.10] tracking-tight">
-            Your lease,<br />
-            <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
-              finally explained.
-            </span>
+        <div className="max-w-4xl mx-auto text-center py-20 sm:py-28">
+          <h1 className="anim-hero-1 text-4xl sm:text-5xl md:text-7xl font-bold tracking-tight text-white max-w-4xl mx-auto leading-[1.08]">
+            Know Your Lease.{' '}
+            <span className="block sm:inline">Protect Your Business.</span>
           </h1>
 
-          {/* Subtext */}
-          <p className="anim-hero-3 text-base sm:text-lg text-muted-foreground leading-relaxed font-light max-w-lg">
-            Upload your commercial lease and ask anything — who pays for HVAC, can you sublease, what&apos;s your CAM cap.
-            Get instant, cited answers in plain English.
+          <p className="anim-hero-2 text-lg md:text-xl text-gray-400 max-w-2xl mx-auto text-center mt-6 leading-relaxed">
+            AI-powered lease intelligence for commercial tenants. Understand your rights,
+            catch billing errors, and never miss a critical date.
           </p>
 
-          {/* CTAs */}
-          <div className="anim-hero-4 flex flex-wrap gap-3">
-            {isAuthenticated ? (
-              <GlowButton href="/dashboard">
-                Go to Dashboard <ArrowRight className="h-4 w-4" />
-              </GlowButton>
-            ) : (
-              <>
-                <GlowButton href="/login?mode=signup">
-                  Start for free <ArrowRight className="h-4 w-4" />
-                </GlowButton>
-                <GlowButton href="/login" variant="ghost">
-                  Sign in
-                </GlowButton>
-              </>
+          <div className="anim-hero-3 flex flex-wrap items-center justify-center gap-4 mt-10">
+            <Link href={ctaHref}
+              className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl px-8 py-4 text-lg font-semibold transition-colors shadow-[0_4px_24px_rgba(16,185,129,0.3)]">
+              {ctaText} <ArrowRight className="h-5 w-5" />
+            </Link>
+            {!isAuthenticated && (
+              <a href="#how-it-works"
+                className="inline-flex items-center gap-2 border border-white/10 text-gray-300 hover:text-white hover:border-white/20 rounded-xl px-8 py-4 text-lg font-medium transition-all">
+                See How It Works
+              </a>
             )}
           </div>
 
           {!isAuthenticated && (
-            <p className="anim-hero-4 text-xs text-muted-foreground/75">
-              No credit card required · Answers in seconds
+            <p className="anim-hero-4 text-sm text-gray-500 mt-6">
+              No credit card required. First lease analysis in under 2 minutes.
             </p>
           )}
         </div>
+      </section>
 
-        {/* Chat mockup */}
-        <div className="hidden lg:block">
-          <ChatMockup />
+      {/* ── Problem Section (Pain Points) ────────────────────── */}
+      <section id="for-tenants" className="relative py-24 sm:py-32"
+        style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.15) 0%, transparent 100%)' }}>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
+              Commercial leases are designed to protect landlords.
+            </h2>
+            <p className="text-emerald-400 text-lg mt-3 font-medium">
+              Provelo levels the playing field.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {PAIN_POINTS.map((p) => (
+              <div key={p.stat}
+                className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-8 hover:border-emerald-500/20 transition-all duration-300 group">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl mb-5"
+                  style={{ background: 'rgba(16,185,129,0.10)', border: '1px solid rgba(16,185,129,0.18)' }}>
+                  <span className="text-emerald-400">{p.icon}</span>
+                </div>
+                <h3 className="font-semibold text-white text-lg leading-snug mb-3">{p.stat}</h3>
+                <p className="text-gray-400 text-sm leading-relaxed">{p.desc}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
       {/* ── Features ─────────────────────────────────────────── */}
-      <section id="features" className="border-t border-white/[0.06] py-24 sm:py-32">
+      <section id="features" className="py-24 sm:py-32">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="text-center mb-14">
+          <div className="text-center mb-16">
             <p className="text-xs font-semibold text-emerald-400/70 uppercase tracking-widest mb-3">Features</p>
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Everything you need to understand your lease</h2>
-            <p className="text-muted-foreground mt-3 font-light max-w-xl mx-auto">
-              Built specifically for retail tenants — the people who actually have to live with the terms.
+            <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
+              Everything you need to understand your lease
+            </h2>
+            <p className="text-gray-400 mt-3 max-w-xl mx-auto">
+              Built specifically for commercial tenants — the people who actually have to live with the terms.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {FEATURES.map((f) => <FeatureCard key={f.title} {...f} />)}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {FEATURES.map((f) => (
+              <div key={f.title}
+                className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-8 hover:border-emerald-500/20 transition-all duration-300 group">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl mb-5"
+                  style={{ background: 'rgba(16,185,129,0.10)', border: '1px solid rgba(16,185,129,0.18)' }}>
+                  <span className="text-emerald-400 group-hover:scale-110 transition-transform duration-300">{f.icon}</span>
+                </div>
+                <h3 className="text-xl font-semibold text-white mb-2">{f.title}</h3>
+                <p className="text-gray-400 leading-relaxed">{f.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* ── How It Works ─────────────────────────────────────── */}
-      <section className="border-t border-white/[0.06] py-24 sm:py-32">
+      <section id="how-it-works" className="py-24 sm:py-32"
+        style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.10) 0%, transparent 100%)' }}>
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
-          <div className="text-center mb-14">
+          <div className="text-center mb-16">
             <p className="text-xs font-semibold text-emerald-400/70 uppercase tracking-widest mb-3">How it works</p>
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Up and running in minutes</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
+              Up and running in minutes
+            </h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
-            {/* Connector line (desktop only) */}
-            <div className="hidden md:block absolute top-12 left-[calc(33.33%+1rem)] right-[calc(33.33%+1rem)] h-px"
-              style={{ background: 'linear-gradient(90deg, transparent, rgba(16,185,129,0.3), transparent)' }} />
+            {/* Connector lines (desktop only) */}
+            <div className="hidden md:block absolute top-14 left-[calc(33.33%+0.5rem)] w-[calc(33.33%-1rem)] h-px"
+              style={{ background: 'linear-gradient(90deg, rgba(16,185,129,0.4), rgba(16,185,129,0.15))' }} />
+            <div className="hidden md:block absolute top-14 left-[calc(66.66%+0.5rem)] w-[calc(33.33%-1rem)] h-px"
+              style={{ background: 'linear-gradient(90deg, rgba(16,185,129,0.4), rgba(16,185,129,0.15))' }} />
 
             {STEPS.map((s) => (
-              <div key={s.n} className="glass-card rounded-2xl p-7 text-center relative">
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl mb-5"
-                  style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.20)' }}>
-                  <span className="text-emerald-400">{s.icon}</span>
+              <div key={s.n} className="text-center relative">
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-5 bg-emerald-600 text-white">
+                  <span className="text-lg font-bold">{s.n}</span>
                 </div>
-                <div className="absolute top-4 right-4 text-xs font-bold text-emerald-500/30">0{s.n}</div>
-                <h3 className="font-semibold text-base mb-2">{s.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed font-light">{s.desc}</p>
+                <h3 className="font-semibold text-white text-lg mb-2">{s.title}</h3>
+                <p className="text-gray-400 text-sm leading-relaxed max-w-xs mx-auto">{s.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── Example Questions ────────────────────────────────── */}
-      <section className="border-t border-white/[0.06] py-24 sm:py-32">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6">
-          <div className="text-center mb-14">
-            <p className="text-xs font-semibold text-emerald-400/70 uppercase tracking-widest mb-3">Real questions</p>
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Ask what you actually need to know</h2>
-            <p className="text-muted-foreground mt-3 font-light max-w-lg mx-auto">
-              Tenants ask hundreds of questions. Provelo answers every one, grounded in the language of your specific document.
-            </p>
-          </div>
+      {/* ── Trust / Social Proof ─────────────────────────────── */}
+      <section className="py-24 sm:py-32">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
+          <p className="text-gray-300 text-lg font-medium mb-12">
+            Built for commercial tenants managing 1 to 1,000+ locations
+          </p>
 
-          <div className="flex flex-wrap justify-center gap-2.5">
-            {QUESTIONS.map((q) => (
-              <div key={q}
-                className="px-4 py-2.5 rounded-xl text-sm font-light text-foreground/90 glass-card transition-colors hover:text-foreground cursor-default"
-                style={{ background: 'rgba(255,255,255,0.03)' }}>
-                {q}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
+            {[
+              { icon: <Lock className="h-5 w-5" />, label: 'End-to-end encryption' },
+              { icon: <Shield className="h-5 w-5" />, label: 'Enterprise-grade security' },
+              { icon: <EyeOff className="h-5 w-5" />, label: 'Your data stays yours' },
+            ].map((t) => (
+              <div key={t.label}
+                className="flex flex-col items-center gap-3 p-6 bg-white/[0.03] border border-white/[0.06] rounded-xl">
+                <span className="text-emerald-400">{t.icon}</span>
+                <span className="text-sm text-gray-300 font-medium">{t.label}</span>
               </div>
             ))}
           </div>
+
+          <p className="text-sm text-gray-500 max-w-lg mx-auto">
+            Provelo never shares your lease data. Documents are encrypted at rest and in transit.
+          </p>
         </div>
       </section>
 
-      {/* ── CTA Banner ───────────────────────────────────────── */}
-      <section className="border-t border-white/[0.06] py-24 sm:py-32">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
-          <div className="glass-card rounded-3xl px-5 py-10 sm:px-8 sm:py-14 relative overflow-hidden">
+      {/* ── Final CTA ────────────────────────────────────────── */}
+      <section className="py-24 sm:py-32">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6">
+          <div className="relative rounded-3xl px-6 py-16 sm:px-12 sm:py-20 text-center overflow-hidden"
+            style={{ background: 'linear-gradient(135deg, rgba(6,78,59,0.25) 0%, rgba(16,185,129,0.08) 100%)', border: '1px solid rgba(16,185,129,0.15)' }}>
             {/* BG glow */}
             <div className="absolute inset-0 -z-10"
-              style={{ background: 'radial-gradient(ellipse at 50% 80%, rgba(16,185,129,0.07) 0%, transparent 60%)' }} />
+              style={{ background: 'radial-gradient(ellipse at 50% 100%, rgba(16,185,129,0.12) 0%, transparent 60%)' }} />
 
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-6"
-              style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.20)' }}>
-              <Building2 className="h-7 w-7 text-emerald-400" />
-            </div>
-
-            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-4">
-              Know your lease.<br />
-              <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
-                Protect your business.
-              </span>
+            <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-4">
+              Ready to understand your lease?
             </h2>
 
-            <p className="text-muted-foreground mb-8 font-light text-lg max-w-md mx-auto">
-              Join retail tenants who use Provelo to understand their obligations, rights, and deadlines.
+            <p className="text-gray-400 mb-8 text-lg max-w-md mx-auto">
+              Join tenants who&apos;ve uncovered thousands in billing errors and lease risks.
             </p>
 
-            {isAuthenticated ? (
-              <GlowButton href="/dashboard">
-                Go to Dashboard <ChevronRight className="h-4 w-4" />
-              </GlowButton>
-            ) : (
-              <GlowButton href="/login?mode=signup">
-                Get started — it&apos;s free <ChevronRight className="h-4 w-4" />
-              </GlowButton>
-            )}
+            <Link href={ctaHref}
+              className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl px-8 py-4 text-lg font-semibold transition-colors shadow-[0_4px_24px_rgba(16,185,129,0.3)]">
+              {ctaText} <ArrowRight className="h-5 w-5" />
+            </Link>
           </div>
         </div>
       </section>
 
       {/* ── Footer ───────────────────────────────────────────── */}
-      <footer className="border-t border-white/[0.06] py-10 mt-auto">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-md flex items-center justify-center"
-              style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.20)' }}>
-              <span className="text-[9px] font-extrabold text-emerald-400">PV</span>
+      <footer className="border-t border-white/[0.06] mt-auto">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-16">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
+            {/* Product */}
+            <div>
+              <h4 className="text-sm font-semibold text-white mb-4">Product</h4>
+              <ul className="space-y-3">
+                <li><a href="#features" className="text-sm text-gray-400 hover:text-white transition-colors">Features</a></li>
+                <li><span className="text-sm text-gray-500">Pricing <span className="text-xs text-gray-600">(coming soon)</span></span></li>
+                <li><a href="#for-tenants" className="text-sm text-gray-400 hover:text-white transition-colors">Security</a></li>
+              </ul>
             </div>
-            <span className="text-sm font-bold text-foreground/80">Provelo</span>
+
+            {/* Company */}
+            <div>
+              <h4 className="text-sm font-semibold text-white mb-4">Company</h4>
+              <ul className="space-y-3">
+                <li><span className="text-sm text-gray-400">About</span></li>
+                <li><span className="text-sm text-gray-400">Contact</span></li>
+                <li><span className="text-sm text-gray-400">Careers</span></li>
+              </ul>
+            </div>
+
+            {/* Legal */}
+            <div>
+              <h4 className="text-sm font-semibold text-white mb-4">Legal</h4>
+              <ul className="space-y-3">
+                <li><span className="text-sm text-gray-400">Privacy</span></li>
+                <li><span className="text-sm text-gray-400">Terms</span></li>
+              </ul>
+            </div>
+
+            {/* Connect */}
+            <div>
+              <h4 className="text-sm font-semibold text-white mb-4">Connect</h4>
+              <ul className="space-y-3">
+                <li><span className="text-sm text-gray-400">Twitter / X</span></li>
+                <li><span className="text-sm text-gray-400">LinkedIn</span></li>
+              </ul>
+            </div>
           </div>
-          <p className="text-xs text-muted-foreground/75 text-center max-w-xl leading-relaxed">
-            Provelo provides informational summaries based on uploaded lease documents.
-            It is not a substitute for legal advice. Always consult a licensed attorney for legal matters.
-          </p>
-          <p className="text-xs text-muted-foreground/60">© {new Date().getFullYear()} Provelo</p>
+
+          {/* Bottom bar */}
+          <div className="border-t border-white/[0.06] pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-md flex items-center justify-center"
+                style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.20)' }}>
+                <span className="text-[9px] font-extrabold text-emerald-400">PV</span>
+              </div>
+              <span className="text-sm font-bold text-gray-400">Provelo</span>
+            </div>
+            <p className="text-xs text-gray-500">
+              © {new Date().getFullYear()} Provelo. Commercial Lease Intelligence.
+            </p>
+          </div>
         </div>
       </footer>
     </div>
