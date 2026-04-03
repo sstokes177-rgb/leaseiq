@@ -1,0 +1,22 @@
+All done. Here's what was completed:
+
+**PART 1 — PM Code Removed:**
+- Deleted `src/app/pm-dashboard/` (page.tsx + client.tsx — 286 lines)
+- Removed `'property_manager'` from `UserRole` type in `src/types/index.ts`
+- Removed PM redirect from `src/app/dashboard/page.tsx` and `src/app/portfolio/page.tsx`
+- Simplified onboarding (`src/app/onboarding/client.tsx`) — removed the role selector step entirely since the only role is now "individual"; goes straight to name entry
+
+**PART 2 — Language Audit:**
+- Zero references to `pm-dashboard`, `pm_dashboard`, `property_manager` (as a role), or `Property Manager` remain in `src/`
+- No "landlord portal" or "manager view" references found
+
+**PART 3 — System Prompt Updated:**
+- Replaced "NEUTRALITY RULES" with "TENANT ADVOCACY RULES" — now frames answers from tenant's perspective, highlights landlord obligations, flags clauses that could work against the tenant, and emphasizes tenant rights/deadlines
+- Updated ambiguity recommendations to suggest "commercial real estate attorney" (not just "attorney")
+- All 11 criteria verified and satisfied
+- Kept "property management" reference where it refers to the other party in the lease (correct tenant-facing language)
+
+**PART 4 — Pricing Removed:**
+- Removed the `$15/month per additional team member` pricing note from `TeamManagement.tsx`
+
+**Build:** `npx next build` passes cleanly with zero errors.
