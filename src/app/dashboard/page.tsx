@@ -10,6 +10,7 @@ import { AddStoreButton } from './AddStoreModal'
 import { DashboardGrid } from '@/components/DashboardGrid'
 import { NotificationCenter } from '@/components/NotificationCenter'
 import { DashboardOnboarding } from './DashboardOnboarding'
+import { CrossLocationDates } from '@/components/CrossLocationDates'
 
 export default async function DashboardPage() {
   const supabase = await createServerSupabaseClient()
@@ -167,6 +168,9 @@ export default async function DashboardPage() {
             <DashboardGrid stores={storesWithCounts} />
           </div>
         )}
+
+        {/* Cross-location critical dates */}
+        {storeList.length > 0 && <CrossLocationDates />}
 
         {/* Empty state */}
         {storeList.length === 0 && (

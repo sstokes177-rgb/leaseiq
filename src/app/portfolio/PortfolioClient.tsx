@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { NotificationCenter } from '@/components/NotificationCenter'
 import { CamPortfolioInsights } from '@/components/CamPortfolioInsights'
+import { CrossLocationDates } from '@/components/CrossLocationDates'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Cell, ReferenceLine,
@@ -653,46 +654,8 @@ export function PortfolioClient({ userName }: { userName: string }) {
           </div>
         </div>
 
-        {/* ── Critical Dates ─────────────────────────────────────────────────── */}
-        {data.upcoming_critical_dates.length > 0 && (
-          <div className="glass-card rounded-2xl p-6">
-            <p className="text-xs font-semibold text-muted-foreground/80 uppercase tracking-widest mb-5">
-              Upcoming Critical Dates
-            </p>
-            <div className="space-y-2">
-              {data.upcoming_critical_dates.map((d, i) => {
-                const days = getDaysUntil(d.date_value)
-                const urgency = getUrgencyColor(days)
-                const isPast = days < 0
-                return (
-                  <Link
-                    key={i}
-                    href={`/location/${d.store_id}`}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-white/[0.03] ${isPast ? 'opacity-50' : ''}`}
-                    style={{ border: '1px solid rgba(255,255,255,0.04)' }}
-                  >
-                    <span
-                      className={`shrink-0 text-[10px] font-bold px-2 py-1 rounded-md ${urgency.text}`}
-                      style={{ background: urgency.bg, border: `1px solid ${urgency.border}`, minWidth: '42px', textAlign: 'center' }}
-                    >
-                      {urgency.label}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">
-                        {d.description || d.date_type.replace(/_/g, ' ')}
-                      </p>
-                      <p className="text-[11px] text-muted-foreground/50">
-                        {new Date(d.date_value).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                        {' — '}{d.store_name}
-                      </p>
-                    </div>
-                    <ArrowRight className="h-3.5 w-3.5 text-white/20 shrink-0" />
-                  </Link>
-                )
-              })}
-            </div>
-          </div>
-        )}
+        {/* ── Critical Dates (cross-location with calendar + reminders) ───── */}
+        <CrossLocationDates />
 
         {/* ── CAM Portfolio Insights ───────────────────────────────────────── */}
         <CamPortfolioInsights />
