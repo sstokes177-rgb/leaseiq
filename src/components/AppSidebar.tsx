@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
-  LayoutDashboard, Briefcase, Settings, Plus,
+  Home, LayoutDashboard, Briefcase, Settings, Plus,
   ChevronLeft, ChevronRight, Search,
 } from 'lucide-react'
 
@@ -19,6 +19,7 @@ interface AppSidebarProps {
 }
 
 const NAV_ITEMS = [
+  { href: '/', label: 'Home', icon: Home },
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/portfolio', label: 'Portfolio', icon: Briefcase },
   { href: '/settings', label: 'Settings', icon: Settings },
@@ -71,7 +72,7 @@ export function AppSidebar({ locations = [] }: AppSidebarProps) {
 
       {/* Top: Logo */}
       <div className="flex items-center px-3 py-4">
-        <Link href="/dashboard" className="flex items-center gap-2.5 group min-w-0">
+        <Link href="/" className="flex items-center gap-2.5 group min-w-0">
           <div
             className="flex items-center justify-center w-8 h-8 rounded-xl shrink-0 transition-opacity group-hover:opacity-80"
             style={{
@@ -90,7 +91,7 @@ export function AppSidebar({ locations = [] }: AppSidebarProps) {
       {/* Main nav */}
       <nav className="px-2 space-y-0.5">
         {NAV_ITEMS.map((item) => {
-          const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
+          const isActive = pathname === item.href || (item.href !== '/dashboard' && item.href !== '/' && pathname.startsWith(item.href))
           const Icon = item.icon
           return (
             <Link

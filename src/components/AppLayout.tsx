@@ -69,7 +69,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           >
             <Menu className="h-5 w-5" />
           </button>
-          <Link href="/dashboard" className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2">
             <div
               className="flex items-center justify-center w-7 h-7 rounded-lg"
               style={{
@@ -113,7 +113,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           >
             {/* Drawer header */}
             <div className="flex items-center justify-between px-4 h-14 border-b border-white/[0.06]">
-              <Link href="/dashboard" className="flex items-center gap-2" onClick={() => setMobileMenuOpen(false)}>
+              <Link href="/" className="flex items-center gap-2" onClick={() => setMobileMenuOpen(false)}>
                 <div
                   className="flex items-center justify-center w-8 h-8 rounded-lg"
                   style={{
