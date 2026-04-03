@@ -239,6 +239,29 @@ export interface LeaseRiskScore {
   analyzed_at: string
 }
 
+// CAM Forensic Audit
+export type CamAuditRuleStatus = 'violation_found' | 'within_limits' | 'insufficient_data'
+
+export interface CamAuditFinding {
+  rule_name: string
+  status: CamAuditRuleStatus
+  estimated_overcharge: number
+  explanation: string
+  lease_reference: string | null
+  statement_reference: string | null
+}
+
+export interface CamAuditResult {
+  id: string
+  store_id: string
+  tenant_id: string
+  statement_file_name: string
+  total_potential_overcharge: number
+  findings: CamAuditFinding[]
+  audit_date: string
+  dispute_deadline: string | null
+}
+
 // Team
 export interface TeamInvitation {
   id: string

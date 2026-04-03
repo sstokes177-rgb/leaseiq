@@ -284,3 +284,31 @@ export function exportObligationMatrix(obligations: ObligationExportItem[], stor
   addFooter(doc, pageNum)
   doc.save(`Provelo_Obligations_${storeName.replace(/\s+/g, '_')}.pdf`)
 }
+
+// ── Dispute Letter Export ─────────────────────────────────────────────────
+
+export function exportDisputeLetter(letterText: string, storeName: string) {
+  const doc = createPDF('CAM Dispute Letter')
+  let y = 40
+  let pageNum = 1
+
+  doc.setFontSize(9)
+  doc.setFont('helvetica', 'normal')
+  doc.setTextColor(40, 40, 50)
+
+  const lines = doc.splitTextToSize(letterText, 175)
+
+  for (const line of lines) {
+    if (y > 270) {
+      addFooter(doc, pageNum)
+      doc.addPage()
+      pageNum++
+      y = 20
+    }
+    doc.text(line, 15, y)
+    y += 4.5
+  }
+
+  addFooter(doc, pageNum)
+  doc.save(`Provelo_CAM_Dispute_${storeName.replace(/\s+/g, '_')}.pdf`)
+}
