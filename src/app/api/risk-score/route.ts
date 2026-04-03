@@ -3,7 +3,7 @@ import { createServerSupabaseClient, createAdminSupabaseClient } from '@/lib/sup
 import { generateText } from 'ai'
 import { anthropic } from '@ai-sdk/anthropic'
 import { keywordSearchChunks } from '@/lib/vectorStore'
-import type { ClauseScore } from '@/types'
+import type { ClauseScore, NegotiationPriority } from '@/types'
 
 export const maxDuration = 90
 
@@ -47,7 +47,7 @@ const RISK_KEYWORDS = [
   'permitted use', 'cap', 'pass-through', 'operating expense',
 ]
 
-const SYSTEM_PROMPT = `You are a commercial lease risk analyst. Analyze the provided lease excerpts and score each clause category.
+const SYSTEM_PROMPT = `You are a commercial lease risk analyst and negotiation strategist. Analyze the provided lease excerpts, score each clause category, and provide actionable negotiation recommendations with suggested lease language.
 
 For EXPANSION BLOCKERS and FINANCIAL EXPOSURE categories, score by how RESTRICTIVE or RISKY the clause is to the tenant:
 - "red" = High risk: Very restrictive terms, unfavorable to tenant
@@ -68,10 +68,22 @@ Return ONLY valid JSON with this exact structure:
       "severity": "red" | "yellow" | "green",
       "summary": "1-2 sentence description of what was found or not found",
       "citation": "Article/Section reference if found, or null",
-      "recommendation": "Brief actionable recommendation for the tenant"
+      "recommendation": "Brief actionable recommendation for the tenant",
+      "negotiation_language": "Specific suggested lease language the tenant could propose to improve this clause. Write it as actual contract language (e.g. 'Tenant shall have the right to...'). Use null for green clauses."
+    }
+  ],
+  "top_3_priorities": [
+    {
+      "clause": "Name of the clause",
+      "current_risk": "red or yellow",
+      "why_it_matters": "1-2 sentence explanation of the business impact on the tenant",
+      "what_to_negotiate": "Actionable instruction on what to ask for in negotiations",
+      "suggested_language": "Full suggested lease language the tenant could propose, written as actual contract text"
     }
   ]
 }
+
+The top_3_priorities should be the 3 most impactful red/yellow clauses where negotiation would have the greatest benefit for the tenant. Prioritize red clauses first, then yellow. Each must include concrete suggested lease language.
 
 Analyze ALL of the following clauses. Do not skip any:
 
@@ -191,7 +203,7 @@ export async function POST(request: NextRequest) {
   try {
     const result = await generateText({
       model: anthropic('claude-sonnet-4-6'),
-      maxOutputTokens: 4000,
+      maxOutputTokens: 6000,
       messages: [{
         role: 'user',
         content: `${SYSTEM_PROMPT}\n\nLease excerpts to analyze:\n${contextText}`,
@@ -205,7 +217,7 @@ export async function POST(request: NextRequest) {
       try {
         const fallback = await generateText({
           model: anthropic('claude-haiku-4-5-20251001'),
-          maxOutputTokens: 4000,
+          maxOutputTokens: 6000,
           messages: [{
             role: 'user',
             content: `${SYSTEM_PROMPT}\n\nLease excerpts to analyze:\n${contextText}`,
@@ -229,7 +241,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Parse the JSON response — handle various wrapping formats
-  let parsed: { clauses?: ClauseScore[] }
+  let parsed: { clauses?: ClauseScore[]; top_3_priorities?: NegotiationPriority[] }
   try {
     const cleaned = text.trim()
       .replace(/^```(?:json)?\s*/i, '')
@@ -250,6 +262,15 @@ export async function POST(request: NextRequest) {
     summary: c.summary,
     citation: c.citation || null,
     recommendation: c.recommendation || null,
+    negotiation_language: c.negotiation_language || null,
+  }))
+
+  const topPriorities: NegotiationPriority[] = (parsed.top_3_priorities ?? []).map((p: NegotiationPriority) => ({
+    clause: p.clause,
+    current_risk: p.current_risk,
+    why_it_matters: p.why_it_matters,
+    what_to_negotiate: p.what_to_negotiate,
+    suggested_language: p.suggested_language,
   }))
 
   // Ensure all clauses are present — fill missing ones as yellow
@@ -270,6 +291,7 @@ export async function POST(request: NextRequest) {
         summary: 'Could not be determined from available lease text.',
         citation: null,
         recommendation: 'Review your lease document for this clause.',
+        negotiation_language: null,
       })
     }
   }
@@ -290,6 +312,7 @@ export async function POST(request: NextRequest) {
       await admin.from('lease_risk_scores').update({
         overall_score: overallScore,
         clause_scores: clauseScores,
+        top_3_priorities: topPriorities,
         analyzed_at: new Date().toISOString(),
       }).eq('id', existing.id)
     } else {
@@ -298,6 +321,7 @@ export async function POST(request: NextRequest) {
         tenant_id: user.id,
         overall_score: overallScore,
         clause_scores: clauseScores,
+        top_3_priorities: topPriorities,
         analyzed_at: new Date().toISOString(),
       })
     }
@@ -309,6 +333,7 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({
     overall_score: overallScore,
     clause_scores: clauseScores,
+    top_3_priorities: topPriorities,
     analyzed_at: new Date().toISOString(),
   })
 }

@@ -230,6 +230,15 @@ export interface ClauseScore {
   summary: string
   citation: string | null
   recommendation: string | null
+  negotiation_language: string | null
+}
+
+export interface NegotiationPriority {
+  clause: string
+  current_risk: ClauseSeverity
+  why_it_matters: string
+  what_to_negotiate: string
+  suggested_language: string
 }
 
 export interface LeaseRiskScore {
@@ -238,6 +247,7 @@ export interface LeaseRiskScore {
   tenant_id: string
   overall_score: number
   clause_scores: ClauseScore[]
+  top_3_priorities: NegotiationPriority[]
   analyzed_at: string
 }
 

@@ -18,7 +18,7 @@ import { RentEscalationTimeline } from '@/components/RentEscalationTimeline'
 import { LeaseClauseCard } from '@/components/LeaseClauseCard'
 import { DocumentListItem } from '@/components/DocumentListItem'
 import { CriticalDatesCard } from '@/components/CriticalDatesCard'
-import { RiskScoreCard } from '@/components/RiskScoreCard'
+import { LocationRiskSection } from '@/components/LocationRiskSection'
 import { NotificationCenter } from '@/components/NotificationCenter'
 import { LeaseComparisonCard } from '@/components/LeaseComparisonCard'
 
@@ -168,7 +168,7 @@ export default async function LocationPage({
         {hasDocuments && <LeaseSummaryCard storeId={id} storeName={store.store_name} />}
 
         {/* Risk Score */}
-        {hasDocuments && <RiskScoreCard storeId={id} />}
+        {hasDocuments && <LocationRiskSection storeId={id} />}
 
         {/* Lease Comparison */}
         {hasDocuments && (

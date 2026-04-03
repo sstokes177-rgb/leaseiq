@@ -1,34 +1,38 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import {
   ShieldCheck, ShieldAlert, ShieldX, RefreshCw, Loader2,
-  ChevronDown, Lightbulb, AlertTriangle,
+  ChevronDown, Lightbulb, AlertTriangle, Copy, Check, Eye,
 } from 'lucide-react'
-import type { ClauseScore, ClauseSeverity } from '@/types'
+import type { ClauseScore, ClauseSeverity, NegotiationPriority, Citation } from '@/types'
 
 interface RiskScoreCardProps {
   storeId: string
+  onArticleClick?: (citation: Citation) => void
 }
 
 const SEVERITY_CONFIG: Record<ClauseSeverity, {
   bg: string; border: string; text: string; icon: typeof ShieldCheck; label: string
-  badgeBg: string; badgeBorder: string; badgeText: string
+  badgeBg: string; badgeBorder: string; badgeText: string; borderLeft: string
 }> = {
   red: {
     bg: 'rgba(239,68,68,0.10)', border: 'rgba(239,68,68,0.22)',
     text: 'text-red-400', icon: ShieldX, label: 'High Risk',
     badgeBg: 'rgba(239,68,68,0.15)', badgeBorder: 'rgba(239,68,68,0.30)', badgeText: 'text-red-400',
+    borderLeft: 'rgb(239,68,68)',
   },
   yellow: {
     bg: 'rgba(245,158,11,0.08)', border: 'rgba(245,158,11,0.20)',
     text: 'text-amber-400', icon: ShieldAlert, label: 'Moderate',
     badgeBg: 'rgba(245,158,11,0.12)', badgeBorder: 'rgba(245,158,11,0.25)', badgeText: 'text-amber-400',
+    borderLeft: 'rgb(245,158,11)',
   },
   green: {
     bg: 'rgba(16,185,129,0.08)', border: 'rgba(16,185,129,0.18)',
     text: 'text-emerald-400', icon: ShieldCheck, label: 'Low Risk',
     badgeBg: 'rgba(16,185,129,0.12)', badgeBorder: 'rgba(16,185,129,0.22)', badgeText: 'text-emerald-400',
+    borderLeft: 'rgb(16,185,129)',
   },
 }
 
@@ -99,14 +103,122 @@ function CircularScore({ score }: { score: number }) {
   )
 }
 
-export function RiskScoreCard({ storeId }: RiskScoreCardProps) {
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false)
+
+  const handleCopy = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // Fallback for older browsers
+      const textarea = document.createElement('textarea')
+      textarea.value = text
+      document.body.appendChild(textarea)
+      textarea.select()
+      document.execCommand('copy')
+      document.body.removeChild(textarea)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }
+  }, [text])
+
+  return (
+    <button
+      onClick={handleCopy}
+      className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded-md transition-all hover:bg-white/[0.08]"
+      style={{
+        color: copied ? 'rgb(52,211,153)' : 'rgba(255,255,255,0.45)',
+        background: copied ? 'rgba(16,185,129,0.12)' : 'transparent',
+      }}
+    >
+      {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+      {copied ? 'Copied!' : 'Copy'}
+    </button>
+  )
+}
+
+function ClickableCitation({
+  citation,
+  onArticleClick,
+}: {
+  citation: string
+  onArticleClick?: (citation: Citation) => void
+}) {
+  if (!onArticleClick) {
+    return (
+      <span
+        className="inline-block text-[10px] font-medium px-1.5 py-0.5 rounded"
+        style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.25)', color: 'rgb(52,211,153)' }}
+      >
+        {citation}
+      </span>
+    )
+  }
+
+  // Extract article number from citation text like "Article 5", "Section 12.3", etc.
+  const articleMatch = citation.match(/(?:Article|Section|Paragraph)\s*([\d.]+)/i)
+  const articleNumber = articleMatch ? articleMatch[1] : citation
+
+  const handleClick = () => {
+    onArticleClick({
+      chunk_id: '',
+      document_name: 'Lease Document',
+      excerpt: `Referenced from risk analysis: ${citation}`,
+      articleNumber,
+    })
+  }
+
+  return (
+    <button
+      onClick={handleClick}
+      className="inline-block text-[10px] font-medium px-1.5 py-0.5 rounded text-emerald-400 underline decoration-emerald-500/30 hover:decoration-emerald-500 cursor-pointer transition-all"
+      style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.25)' }}
+    >
+      {citation}
+    </button>
+  )
+}
+
+function SuggestedLanguageBlock({ language }: { language: string }) {
+  const [expanded, setExpanded] = useState(false)
+
+  return (
+    <div className="mt-2">
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="flex items-center gap-1.5 text-[10px] font-semibold text-violet-400/80 hover:text-violet-400 transition-colors"
+      >
+        <Eye className="h-3 w-3" />
+        {expanded ? 'Hide suggested language' : 'View suggested language'}
+        <ChevronDown className={`h-3 w-3 transition-transform ${expanded ? 'rotate-180' : ''}`} />
+      </button>
+      {expanded && (
+        <div
+          className="mt-2 rounded-md p-4 relative"
+          style={{ background: 'rgba(31,41,55,0.50)', border: '1px solid rgba(255,255,255,0.08)' }}
+        >
+          <div className="absolute top-2 right-2">
+            <CopyButton text={language} />
+          </div>
+          <p className="font-mono text-sm text-gray-300 leading-relaxed pr-16">{language}</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
+export function RiskScoreCard({ storeId, onArticleClick }: RiskScoreCardProps) {
   const [overallScore, setOverallScore] = useState<number | null>(null)
   const [clauseScores, setClauseScores] = useState<ClauseScore[]>([])
+  const [topPriorities, setTopPriorities] = useState<NegotiationPriority[]>([])
   const [analyzedAt, setAnalyzedAt] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [expandedClause, setExpandedClause] = useState<string | null>(null)
+  const [showAllRecommendations, setShowAllRecommendations] = useState(false)
 
   const fetchScore = async () => {
     setLoading(true)
@@ -117,6 +229,7 @@ export function RiskScoreCard({ storeId }: RiskScoreCardProps) {
         if (data.risk_score) {
           setOverallScore(data.risk_score.overall_score)
           setClauseScores(data.risk_score.clause_scores ?? [])
+          setTopPriorities(data.risk_score.top_3_priorities ?? [])
           setAnalyzedAt(data.risk_score.analyzed_at)
         }
       }
@@ -142,6 +255,7 @@ export function RiskScoreCard({ storeId }: RiskScoreCardProps) {
       if (res.ok) {
         setOverallScore(data.overall_score)
         setClauseScores(data.clause_scores ?? [])
+        setTopPriorities(data.top_3_priorities ?? [])
         setAnalyzedAt(data.analyzed_at)
       } else {
         setError(data.error ?? 'Analysis failed.')
@@ -217,11 +331,10 @@ export function RiskScoreCard({ storeId }: RiskScoreCardProps) {
     clauses: clauseScores.filter(c => c.severity === severity),
   })).filter(g => g.clauses.length > 0)
 
-  // Top 3 recommendations from red/yellow clauses
-  const recommendations = clauseScores
+  // All non-green clauses with recommendations (for "View all recommendations")
+  const allRecommendations = clauseScores
     .filter(c => c.severity !== 'green' && c.recommendation)
     .sort((a, b) => (a.severity === 'red' ? 0 : 1) - (b.severity === 'red' ? 0 : 1))
-    .slice(0, 3)
 
   const scoreColors = getScoreColor(overallScore)
 
@@ -328,18 +441,16 @@ export function RiskScoreCard({ storeId }: RiskScoreCardProps) {
                     <div className="px-4 pb-4 pt-1 space-y-2 border-t" style={{ borderColor: cfg.border }}>
                       <p className="text-xs text-white/60 leading-relaxed">{clause.summary}</p>
                       {clause.citation && (
-                        <span
-                          className="inline-block text-[10px] font-medium px-1.5 py-0.5 rounded"
-                          style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.25)', color: 'rgb(52,211,153)' }}
-                        >
-                          {clause.citation}
-                        </span>
+                        <ClickableCitation citation={clause.citation} onArticleClick={onArticleClick} />
                       )}
                       {clause.recommendation && (
                         <div className="flex items-start gap-2 mt-1">
                           <Lightbulb className="h-3.5 w-3.5 text-amber-400/60 mt-0.5 shrink-0" />
                           <p className="text-xs text-amber-300/70 leading-relaxed italic">{clause.recommendation}</p>
                         </div>
+                      )}
+                      {clause.negotiation_language && (
+                        <SuggestedLanguageBlock language={clause.negotiation_language} />
                       )}
                     </div>
                   )}
@@ -350,35 +461,121 @@ export function RiskScoreCard({ storeId }: RiskScoreCardProps) {
         ))}
       </div>
 
-      {/* How to Improve — top 3 recommendations */}
-      {recommendations.length > 0 && (
-        <div
-          className="rounded-xl px-4 py-4 space-y-3"
-          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
-        >
+      {/* ── Negotiation Playbook: Top Priorities ── */}
+      {topPriorities.length > 0 && (
+        <div className="space-y-4">
           <div className="flex items-center gap-2">
-            <AlertTriangle className={`h-4 w-4 ${scoreColors.text}`} />
-            <p className="text-xs font-semibold text-white/50 uppercase tracking-widest">How to Improve</p>
+            <Lightbulb className={`h-4 w-4 ${scoreColors.text}`} />
+            <p className="text-xs font-semibold text-white/50 uppercase tracking-widest">
+              Top Negotiation Priorities
+            </p>
           </div>
-          <div className="space-y-2.5">
-            {recommendations.map((rec, i) => {
-              const cfg = SEVERITY_CONFIG[rec.severity]
+
+          <div className="space-y-3">
+            {topPriorities.map((priority, i) => {
+              const cfg = SEVERITY_CONFIG[priority.current_risk] ?? SEVERITY_CONFIG.yellow
+
               return (
-                <div key={i} className="flex items-start gap-2.5">
-                  <span
-                    className={`flex items-center justify-center w-5 h-5 rounded-md text-[10px] font-bold shrink-0 mt-0.5 ${cfg.badgeText}`}
-                    style={{ background: cfg.badgeBg, border: `1px solid ${cfg.badgeBorder}` }}
-                  >
-                    {i + 1}
-                  </span>
-                  <div className="min-w-0">
-                    <p className="text-xs font-semibold text-white/70">{rec.clause}</p>
-                    <p className="text-xs text-white/45 leading-relaxed">{rec.recommendation}</p>
+                <div
+                  key={i}
+                  className="rounded-lg p-5"
+                  style={{
+                    background: 'rgba(255,255,255,0.03)',
+                    borderLeft: `4px solid ${cfg.borderLeft}`,
+                    border: `1px solid rgba(255,255,255,0.06)`,
+                    borderLeftWidth: '4px',
+                    borderLeftColor: cfg.borderLeft,
+                  }}
+                >
+                  {/* Header */}
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-sm font-semibold text-white/90">{priority.clause}</span>
+                    <span
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${cfg.badgeText}`}
+                      style={{ background: cfg.badgeBg, border: `1px solid ${cfg.badgeBorder}` }}
+                    >
+                      {cfg.label}
+                    </span>
+                  </div>
+
+                  {/* Why it matters */}
+                  <div className="mb-3">
+                    <p className="text-[10px] font-semibold text-white/35 uppercase tracking-wider mb-1">Why it matters</p>
+                    <p className="text-xs text-white/60 leading-relaxed">{priority.why_it_matters}</p>
+                  </div>
+
+                  {/* What to negotiate */}
+                  <div className="mb-3">
+                    <p className="text-[10px] font-semibold text-white/35 uppercase tracking-wider mb-1">What to negotiate</p>
+                    <p className="text-xs text-white/70 leading-relaxed font-medium">{priority.what_to_negotiate}</p>
+                  </div>
+
+                  {/* Suggested language */}
+                  <div>
+                    <p className="text-[10px] font-semibold text-white/35 uppercase tracking-wider mb-1.5">Suggested language</p>
+                    <div
+                      className="rounded-md p-4 relative"
+                      style={{ background: 'rgba(31,41,55,0.50)', border: '1px solid rgba(255,255,255,0.08)' }}
+                    >
+                      <div className="absolute top-2 right-2">
+                        <CopyButton text={priority.suggested_language} />
+                      </div>
+                      <p className="font-mono text-sm text-gray-300 leading-relaxed pr-16">
+                        {priority.suggested_language}
+                      </p>
+                    </div>
                   </div>
                 </div>
               )
             })}
           </div>
+        </div>
+      )}
+
+      {/* View all recommendations — expandable */}
+      {allRecommendations.length > 3 && (
+        <div>
+          <button
+            onClick={() => setShowAllRecommendations(!showAllRecommendations)}
+            className="flex items-center gap-2 text-xs font-semibold text-white/40 hover:text-white/60 transition-colors"
+          >
+            <ChevronDown className={`h-3.5 w-3.5 transition-transform ${showAllRecommendations ? 'rotate-180' : ''}`} />
+            {showAllRecommendations ? 'Hide all recommendations' : `View all ${allRecommendations.length} recommendations`}
+          </button>
+
+          {showAllRecommendations && (
+            <div
+              className="mt-3 rounded-xl px-4 py-4 space-y-3"
+              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <AlertTriangle className={`h-4 w-4 ${scoreColors.text}`} />
+                <p className="text-xs font-semibold text-white/50 uppercase tracking-widest">All Recommendations</p>
+              </div>
+              <div className="space-y-2.5">
+                {allRecommendations.map((rec, i) => {
+                  const cfg = SEVERITY_CONFIG[rec.severity]
+                  return (
+                    <div key={i} className="flex items-start gap-2.5">
+                      <span
+                        className={`flex items-center justify-center w-5 h-5 rounded-md text-[10px] font-bold shrink-0 mt-0.5 ${cfg.badgeText}`}
+                        style={{ background: cfg.badgeBg, border: `1px solid ${cfg.badgeBorder}` }}
+                      >
+                        {i + 1}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-semibold text-white/70">{rec.clause}</p>
+                        <p className="text-xs text-white/45 leading-relaxed">{rec.recommendation}</p>
+                        {rec.negotiation_language && (
+                          <SuggestedLanguageBlock language={rec.negotiation_language} />
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
