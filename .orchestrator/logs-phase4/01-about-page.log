@@ -1,0 +1,27 @@
+All done. Here's what was built:
+
+**`src/app/about/page.tsx`** — Full story-driven walkthrough with 8 narrative sections following Sarah's journey:
+1. **The Challenge** — relatable complexity without blaming anyone
+2. **Upload & Understand** — with mock lease summary card
+3. **Ask Anything** — with mock chat Q&A showing citations
+4. **Know Your Risk** — with mock risk score card (42/100, red flags)
+5. **Catch Billing Errors** — factual tone, $4,200 overcharge
+6. **Never Miss a Date** — configurable alerts
+7. **See the Big Picture** — portfolio intelligence
+8. **Compare Changes** — side-by-side lease comparison
+9. **CTA** — "Start Free" with "No credit card required"
+
+**Design features:**
+- Intersection Observer fade-in animations on each section
+- Alternating subtle background tints (`bg-white/[0.015]`)
+- Large decorative chapter numbers (01-08) on the left
+- Lucide icons as section markers
+- `text-4xl` headings, `text-lg text-gray-300` narrative with `leading-[1.8]`
+- Same navbar as landing page (not app sidebar)
+
+**Navigation updates:**
+- Landing page navbar: "About" link added between "How It Works" and "For Tenants"
+- Landing page footer: "About" in Company section now links to `/about`
+- App sidebar: "About Provelo" link added in footer (small, `text-gray-500`)
+
+Build passes clean, pushed to `main`.
