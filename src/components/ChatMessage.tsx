@@ -426,8 +426,7 @@ export function ChatMessage({
             ? [
                 'text-white',
                 'rounded-[18px] rounded-br-[4px]',
-                'bg-gradient-to-br from-emerald-500/90 to-teal-600/90',
-                'shadow-[0_4px_20px_rgba(16,185,129,0.28)]',
+                'bg-emerald-600',
               ]
             : ['text-foreground', 'rounded-[18px] rounded-bl-[4px]', 'glass-card']
         )}

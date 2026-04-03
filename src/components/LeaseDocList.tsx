@@ -123,9 +123,16 @@ export function LeaseDocList({ refreshTrigger, storeId }: LeaseDocListProps) {
 
   if (loading) {
     return (
-      <div className="flex items-center gap-2 text-sm text-muted-foreground py-4">
-        <Loader2 className="h-4 w-4 animate-spin" />
-        Loading documents…
+      <div className="space-y-2 animate-pulse">
+        {[0, 1, 2].map(i => (
+          <div key={i} className="rounded-xl bg-white/[0.03] border border-white/[0.06] px-4 py-3 flex items-center gap-3">
+            <div className="w-8 h-8 rounded bg-white/[0.06]" />
+            <div className="flex-1 space-y-1.5">
+              <div className="h-3.5 w-40 rounded bg-white/[0.06]" />
+              <div className="h-2.5 w-20 rounded bg-white/[0.04]" />
+            </div>
+          </div>
+        ))}
       </div>
     )
   }

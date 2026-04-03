@@ -411,11 +411,7 @@ function ReminderPopover({ date, onUpdate }: { date: ProcessedDate; onUpdate: (i
           <button
             onClick={save}
             disabled={saving || selected.length === 0}
-            className="w-full flex items-center justify-center gap-1.5 text-xs font-semibold py-1.5 rounded-lg transition-all disabled:opacity-40"
-            style={{
-              background: 'linear-gradient(135deg, rgba(16,185,129,0.9), rgba(13,148,136,0.9))',
-              border: '1px solid rgba(16,185,129,0.3)',
-            }}
+            className="w-full flex items-center justify-center gap-1.5 text-xs font-semibold py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white transition-colors disabled:opacity-40"
           >
             <Check className="h-3 w-3" />
             {saving ? 'Saving...' : 'Save'}

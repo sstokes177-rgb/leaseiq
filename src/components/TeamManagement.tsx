@@ -153,11 +153,7 @@ export function TeamManagement() {
           <button
             type="submit"
             disabled={sending || !inviteEmail.trim()}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white shrink-0 disabled:opacity-50 transition-all"
-            style={{
-              background: 'linear-gradient(135deg, rgba(16,185,129,0.9), rgba(13,148,136,0.9))',
-              border: '1px solid rgba(16,185,129,0.3)',
-            }}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-500 shrink-0 disabled:opacity-50 transition-colors"
           >
             {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}
             Invite

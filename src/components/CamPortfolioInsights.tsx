@@ -47,9 +47,11 @@ export function CamPortfolioInsights() {
 
   if (loading) {
     return (
-      <div className="glass-card p-6">
-        <div className="flex items-center justify-center py-8">
-          <Loader2 className="h-5 w-5 animate-spin text-red-400/40" />
+      <div className="glass-card p-6 animate-pulse">
+        <div className="h-3 w-40 rounded bg-white/[0.06] mb-4" />
+        <div className="grid grid-cols-2 gap-3">
+          <div className="h-16 rounded-xl bg-white/[0.04]" />
+          <div className="h-16 rounded-xl bg-white/[0.04]" />
         </div>
       </div>
     )

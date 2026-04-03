@@ -262,14 +262,23 @@ export function PortfolioClient({ userName }: { userName: string }) {
     }
   }
 
-  // ── Loading state ──────────────────────────────────────────────────────────
+  // ── Loading state — skeleton ────────────────────────────────────────────────
   if (loading) {
     return (
       <AppLayout>
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 space-y-6 sm:space-y-8">
-          <div className="flex items-center justify-center py-24">
-            <Loader2 className="h-8 w-8 animate-spin text-emerald-400/60" />
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 animate-pulse">
+          <div className="space-y-2">
+            <div className="h-3 w-32 rounded bg-white/[0.06]" />
+            <div className="h-7 w-56 rounded bg-white/[0.06]" />
+            <div className="h-3 w-40 rounded bg-white/[0.04]" />
           </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {[0, 1, 2, 3].map(i => (
+              <div key={i} className="rounded-xl bg-white/[0.03] border border-white/[0.06] p-4 h-20" />
+            ))}
+          </div>
+          <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] p-6 h-72" />
+          <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] p-6 h-72" />
         </div>
       </AppLayout>
     )
@@ -278,7 +287,7 @@ export function PortfolioClient({ userName }: { userName: string }) {
   if (!data) {
     return (
       <AppLayout>
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 space-y-6 sm:space-y-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
           <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] backdrop-blur-sm p-12 text-center">
             <p className="text-gray-300">Failed to load portfolio data. Please refresh.</p>
           </div>
@@ -291,7 +300,7 @@ export function PortfolioClient({ userName }: { userName: string }) {
   if (data.total_locations < 2) {
     return (
       <AppLayout>
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 space-y-6 sm:space-y-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
           <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] backdrop-blur-sm p-12 text-center">
             <div className="mb-5">
               <BarChart3 className="h-14 w-14 text-emerald-400/25 mx-auto" />
@@ -301,9 +310,7 @@ export function PortfolioClient({ userName }: { userName: string }) {
               Compare risk scores, track expirations, and spot trends across your entire portfolio.
             </p>
             <Link href="/dashboard">
-              <button
-                className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg px-4 py-2.5 font-medium transition-all min-h-[40px]"
-              >
+              <button className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg px-5 py-2.5 text-sm font-medium transition-colors">
                 <Plus className="h-4 w-4" />
                 Add Location
               </button>
@@ -355,7 +362,7 @@ export function PortfolioClient({ userName }: { userName: string }) {
 
   return (
     <AppLayout>
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 space-y-6 sm:space-y-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
         {/* ── Page header ───────────────────────────────────────────────────── */}
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="min-w-0">
@@ -365,19 +372,13 @@ export function PortfolioClient({ userName }: { userName: string }) {
                 Portfolio Analytics
               </span>
             </div>
-            <h1 className="text-3xl font-bold">Portfolio Overview</h1>
-            <p className="text-muted-foreground text-sm mt-1.5 font-light">
+            <h1 className="text-2xl font-semibold text-white tracking-tight">Portfolio Overview</h1>
+            <p className="text-gray-300 text-sm mt-1">
               {data.total_locations} location{data.total_locations !== 1 ? 's' : ''} in your portfolio
             </p>
           </div>
           <Link href="/dashboard">
-            <button
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90"
-              style={{
-                background: 'linear-gradient(135deg, rgba(16,185,129,0.9), rgba(13,148,136,0.9))',
-                border: '1px solid rgba(16,185,129,0.3)',
-              }}
-            >
+            <button className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-500 transition-colors">
               <Plus className="h-4 w-4" />
               Add Location
             </button>
@@ -711,11 +712,7 @@ export function PortfolioClient({ userName }: { userName: string }) {
             <button
               onClick={sendChat}
               disabled={chatLoading || !chatInput.trim()}
-              className="flex items-center justify-center w-11 h-11 rounded-xl transition-all disabled:opacity-30"
-              style={{
-                background: 'linear-gradient(135deg, rgba(16,185,129,0.9), rgba(13,148,136,0.9))',
-                border: '1px solid rgba(16,185,129,0.3)',
-              }}
+              className="flex items-center justify-center w-11 h-11 rounded-xl bg-emerald-600 hover:bg-emerald-500 transition-colors disabled:opacity-30"
             >
               {chatLoading ? <Loader2 className="h-4 w-4 animate-spin text-white" /> : <Send className="h-4 w-4 text-white" />}
             </button>

@@ -452,8 +452,11 @@ function PanelBody({
 
       {/* Loading state */}
       {(pdfLoading || textLoading) && (
-        <div className="flex items-center justify-center py-8">
-          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground/50" />
+        <div className="px-6 py-6 space-y-3 animate-pulse">
+          <div className="h-4 w-3/4 rounded bg-white/[0.06]" />
+          <div className="h-4 w-full rounded bg-white/[0.06]" />
+          <div className="h-4 w-5/6 rounded bg-white/[0.06]" />
+          <div className="h-4 w-2/3 rounded bg-white/[0.04]" />
         </div>
       )}
 

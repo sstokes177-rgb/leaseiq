@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import {
-  MessageSquare, Upload, ArrowRight, ChevronRight, Plus, Loader2,
+  MessageSquare, Upload, ChevronRight, Plus,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { LeaseSummaryCard } from '@/components/LeaseSummaryCard'
@@ -90,22 +90,22 @@ export function LocationTabs({ storeId, storeName, hasDocuments, documents }: Lo
 
   return (
     <>
-      {/* Tab bar — clean underline style, sticky */}
-      <div className="sticky top-0 z-10 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 mt-6 mb-8 border-b border-white/[0.06] backdrop-blur-xl bg-gray-950/80">
-        <div className="flex overflow-x-auto scrollbar-none">
+      {/* Tab bar — underline style, left-aligned, sticky */}
+      <div className="sticky top-0 z-10 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 mt-2 mb-6 border-b border-white/[0.06] backdrop-blur-xl bg-[rgba(15,17,24,0.85)]">
+        <div className="flex overflow-x-auto scrollbar-none -mb-px">
           {TABS.map((tab) => (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`px-4 py-3 text-sm font-medium whitespace-nowrap transition-all relative ${
+              className={`px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors relative ${
                 activeTab === tab.key
                   ? 'text-emerald-400'
-                  : 'text-gray-400 hover:text-gray-200'
+                  : 'text-gray-500 hover:text-gray-300'
               }`}
             >
               {tab.label}
               {activeTab === tab.key && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-500" />
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-500 rounded-full" />
               )}
             </button>
           ))}
@@ -146,14 +146,13 @@ export function LocationTabs({ storeId, storeName, hasDocuments, documents }: Lo
         {activeTab === 'documents' && (
           <>
             <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-muted-foreground/80 uppercase tracking-widest">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
                 Documents
               </p>
               <Link href={`/upload?store=${storeId}`}>
                 <Button
                   variant="outline"
-                  size="sm"
-                  className="gap-1.5 border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-300"
+                  className="gap-1.5 text-sm px-4 py-2"
                 >
                   <Upload className="h-3.5 w-3.5" />
                   Upload
@@ -172,18 +171,11 @@ export function LocationTabs({ storeId, storeName, hasDocuments, documents }: Lo
         )}
 
         {activeTab === 'chat' && (
-          <div>
+          <div className="min-h-[50vh]">
             {/* New Chat button */}
             <div className="mb-6">
               <Link href={`/chat?store=${storeId}`}>
-                <Button
-                  size="lg"
-                  className="gap-2 text-white font-semibold"
-                  style={{
-                    background: 'linear-gradient(135deg, rgba(16,185,129,0.9), rgba(13,148,136,0.9))',
-                    border: '1px solid rgba(16,185,129,0.3)',
-                  }}
-                >
+                <Button className="gap-2 text-white font-medium px-5 py-2.5 text-sm">
                   <Plus className="h-4 w-4" />
                   New Chat
                 </Button>
@@ -191,15 +183,25 @@ export function LocationTabs({ storeId, storeName, hasDocuments, documents }: Lo
             </div>
 
             {loadingConversations ? (
-              <div className="flex items-center justify-center py-16">
-                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground/60" />
+              <div className="space-y-3 animate-pulse">
+                {[0, 1, 2].map(i => (
+                  <div key={i} className="rounded-xl bg-white/[0.03] border border-white/[0.06] px-4 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-4 h-4 rounded bg-white/[0.06]" />
+                      <div className="flex-1 space-y-2">
+                        <div className="h-3.5 w-48 rounded bg-white/[0.06]" />
+                        <div className="h-2.5 w-24 rounded bg-white/[0.04]" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : conversations.length > 0 ? (
               <>
-                <p className="text-xs font-semibold text-muted-foreground/80 uppercase tracking-widest mb-3">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
                   Recent Conversations
                 </p>
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   {conversations.map((conv) => {
                     const title = conv.title ?? 'Untitled conversation'
                     const date = relativeDate(conv.updated_at ?? conv.created_at)
@@ -207,13 +209,12 @@ export function LocationTabs({ storeId, storeName, hasDocuments, documents }: Lo
                       <Link
                         key={conv.id}
                         href={`/chat?store=${storeId}&conversation=${conv.id}`}
-                        className="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors hover:bg-white/[0.04] group"
-                        style={{ border: '1px solid rgba(255,255,255,0.06)' }}
+                        className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.06] transition-colors hover:bg-white/[0.05] hover:border-white/[0.1] group"
                       >
-                        <MessageSquare className="h-4 w-4 text-muted-foreground/40 shrink-0" />
+                        <MessageSquare className="h-4 w-4 text-gray-500 shrink-0" />
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-white truncate">{title}</p>
-                          <p className="text-xs text-gray-400 mt-0.5">
+                          <p className="text-xs text-gray-500 mt-0.5">
                             {date}
                             {conv.message_count != null && conv.message_count > 0 && (
                               <span className="ml-1.5">&middot; {conv.message_count} message{conv.message_count !== 1 ? 's' : ''}</span>
@@ -227,29 +228,27 @@ export function LocationTabs({ storeId, storeName, hasDocuments, documents }: Lo
                 </div>
               </>
             ) : (
-              /* Empty state with suggested questions */
-              <div className="flex flex-col items-center justify-center py-16 space-y-5">
-                <MessageSquare className="h-12 w-12 text-emerald-400/30" />
-                <div className="text-center">
-                  <p className="text-lg font-semibold text-white">Ask Your Lease</p>
-                  <p className="text-sm text-gray-400 mt-2 max-w-sm">
-                    Ask questions about your lease and get AI-powered answers grounded in your actual documents.
-                  </p>
-                </div>
-                <div className="flex flex-wrap gap-2 justify-center max-w-md">
-                  {SUGGESTED_QUESTIONS.map((q) => (
-                    <Link
-                      key={q}
-                      href={`/chat?store=${storeId}`}
-                      className="text-sm px-4 py-2 rounded-full text-gray-300 transition-colors hover:text-emerald-300"
-                      style={{
-                        background: 'rgba(255,255,255,0.04)',
-                        border: '1px solid rgba(255,255,255,0.10)',
-                      }}
-                    >
-                      {q}
-                    </Link>
-                  ))}
+              /* Empty state — fills available space */
+              <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-6">
+                <div className="flex flex-col items-center justify-center py-12 space-y-5">
+                  <MessageSquare className="h-10 w-10 text-emerald-400/30" />
+                  <div className="text-center">
+                    <p className="text-lg font-medium text-white">Ask Your Lease</p>
+                    <p className="text-sm text-gray-400 mt-1.5 max-w-sm">
+                      Get AI-powered answers grounded in your actual lease documents.
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2 justify-center max-w-lg">
+                    {SUGGESTED_QUESTIONS.map((q) => (
+                      <Link
+                        key={q}
+                        href={`/chat?store=${storeId}`}
+                        className="text-sm px-4 py-2 rounded-full text-gray-300 transition-colors hover:text-emerald-300 hover:border-emerald-500/30 bg-white/[0.03] border border-white/[0.06]"
+                      >
+                        {q}
+                      </Link>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}

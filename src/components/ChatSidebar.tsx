@@ -92,8 +92,10 @@ export function ChatSidebar({
       {/* Conversation list */}
       <div className="flex-1 overflow-y-auto py-2">
         {loading ? (
-          <div className="flex items-center justify-center py-6 text-muted-foreground/60">
-            <Loader2 className="h-4 w-4 animate-spin" />
+          <div className="space-y-1 px-2 py-2 animate-pulse">
+            {[0, 1, 2].map(i => (
+              <div key={i} className="h-10 rounded-lg bg-white/[0.06]" />
+            ))}
           </div>
         ) : conversations.length === 0 ? (
           <div className="px-4 py-6 text-center">

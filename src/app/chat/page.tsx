@@ -157,7 +157,7 @@ function ChatInterface({
                 >
                   <FileText className="h-8 w-8 text-emerald-400" />
                 </div>
-                <h2 className="font-bold text-xl">{t('chat.askAnything')}</h2>
+                <h2 className="text-lg font-medium text-white">{t('chat.askAnything')}</h2>
                 <p className="text-sm text-muted-foreground mt-2 max-w-xs mx-auto font-light leading-relaxed">
                   {store
                     ? `${t('chat.groundedIn')} ${store.store_name}.`

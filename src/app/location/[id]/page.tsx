@@ -5,7 +5,7 @@ import { createServerSupabaseClient } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import {
-  MessageSquare, Upload, ArrowRight, ArrowLeft,
+  MessageSquare, Upload, ArrowLeft,
   MapPin, Building2,
 } from 'lucide-react'
 import { AppLayout } from '@/components/AppLayout'
@@ -50,10 +50,10 @@ export default async function LocationPage({
 
   return (
     <AppLayout>
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 space-y-6 sm:space-y-8">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-4">
         {/* Location header */}
         <div>
-          <Link href="/dashboard" className="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-white transition-colors mb-4">
+          <Link href="/dashboard" className="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-300 transition-colors mb-3">
             <ArrowLeft className="h-3 w-3" /> All locations
           </Link>
           <div className="flex items-center gap-3">
@@ -64,9 +64,9 @@ export default async function LocationPage({
               <Building2 className="h-5 w-5 text-emerald-400" />
             </div>
             <div>
-              <h1 className="font-semibold text-2xl text-white tracking-tight" style={{ letterSpacing: '-0.025em' }}>{store.store_name}</h1>
+              <h1 className="text-2xl font-semibold text-white tracking-tight">{store.store_name}</h1>
               {store.shopping_center_name && (
-                <p className="text-sm text-muted-foreground/70 flex items-center gap-1 mt-0.5">
+                <p className="text-sm text-gray-400 flex items-center gap-1 mt-0.5">
                   <MapPin className="h-3.5 w-3.5" />
                   {store.shopping_center_name}
                   {store.suite_number && `, Suite ${store.suite_number}`}
@@ -76,32 +76,23 @@ export default async function LocationPage({
           </div>
         </div>
 
-        {/* Primary action buttons — always visible at top */}
-        <div className="flex flex-col sm:flex-row gap-3">
-          <Link href={`/chat?store=${id}`} className="sm:w-[250px]">
+        {/* Primary action buttons */}
+        <div className="flex flex-wrap gap-3">
+          <Link href={`/chat?store=${id}`}>
             <Button
-              size="lg"
-              className="w-full h-14 text-base font-semibold gap-2.5 text-white"
-              style={{
-                background: hasDocuments
-                  ? 'linear-gradient(135deg, rgba(16,185,129,0.9), rgba(13,148,136,0.9))'
-                  : undefined,
-                border: hasDocuments ? '1px solid rgba(16,185,129,0.3)' : undefined,
-              }}
+              className="gap-2 text-white px-5 py-2.5 text-sm font-medium"
               disabled={!hasDocuments}
             >
-              <MessageSquare className="h-5 w-5" />
+              <MessageSquare className="h-4 w-4" />
               {hasDocuments ? 'Ask Your Lease' : 'Upload a lease first'}
-              {hasDocuments && <ArrowRight className="h-4 w-4 ml-1" />}
             </Button>
           </Link>
-          <Link href={`/upload?store=${id}`} className="sm:w-[250px]">
+          <Link href={`/upload?store=${id}`}>
             <Button
               variant="outline"
-              size="lg"
-              className="w-full h-14 text-base font-semibold gap-2.5 border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-300"
+              className="gap-2 px-5 py-2.5 text-sm font-medium"
             >
-              <Upload className="h-5 w-5" />
+              <Upload className="h-4 w-4" />
               Upload Documents
             </Button>
           </Link>
@@ -115,25 +106,27 @@ export default async function LocationPage({
           documents={documents}
         />
 
-        {/* No documents yet — enhanced empty state */}
+        {/* No documents yet — empty state */}
         {!hasDocuments && (
-          <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] backdrop-blur-sm p-10 text-center">
-            <div className="mb-5">
-              <Upload className="h-14 w-14 text-emerald-400/30 mx-auto" />
+          <div className="flex items-center justify-center min-h-[50vh]">
+            <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-10 text-center max-w-lg w-full">
+              <div className="mb-5">
+                <Upload className="h-12 w-12 text-emerald-400/30 mx-auto" />
+              </div>
+              <p className="font-semibold text-white text-lg tracking-tight mb-2">Upload your lease to unlock AI intelligence</p>
+              <p className="text-sm text-gray-300 mb-6 max-w-sm mx-auto">
+                Supported: PDF files. Upload your base lease, amendments, exhibits, and any other lease documents.
+              </p>
+              <Link href={`/upload?store=${id}`}>
+                <Button className="gap-2 text-white px-5 py-2.5 text-sm font-medium">
+                  <Upload className="h-4 w-4" />
+                  Upload Documents
+                </Button>
+              </Link>
+              <p className="text-xs text-gray-500 mt-5 max-w-xs mx-auto leading-relaxed">
+                Your documents are processed securely and encrypted at rest.
+              </p>
             </div>
-            <p className="font-semibold text-white text-lg tracking-tight mb-2">Upload your lease to unlock AI intelligence</p>
-            <p className="text-sm text-gray-300 mb-6 max-w-sm mx-auto">
-              Supported: PDF files. Upload your base lease, amendments, exhibits, and any other lease documents.
-            </p>
-            <Link href={`/upload?store=${id}`}>
-              <Button size="lg" className="gap-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg px-4 py-2.5 font-medium transition-all min-h-[40px]">
-                <Upload className="h-4 w-4" />
-                Upload Documents
-              </Button>
-            </Link>
-            <p className="text-xs text-gray-500 mt-5 max-w-xs mx-auto leading-relaxed">
-              Your documents are processed securely and encrypted at rest.
-            </p>
           </div>
         )}
       </div>

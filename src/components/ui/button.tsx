@@ -11,9 +11,9 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-[0_2px_16px_rgba(16,185,129,0.30)] hover:from-emerald-400 hover:to-teal-400 hover:shadow-[0_4px_24px_rgba(16,185,129,0.50)] active:scale-[0.98]",
+          "bg-emerald-600 text-white hover:bg-emerald-500 active:scale-[0.98]",
         outline:
-          "border-white/10 bg-white/[0.04] backdrop-blur-sm text-foreground hover:bg-white/[0.08] hover:border-white/20",
+          "border border-white/[0.1] bg-transparent text-gray-300 hover:text-white hover:bg-white/[0.05]",
         secondary:
           "bg-white/[0.06] text-secondary-foreground hover:bg-white/[0.10] border-white/8",
         ghost:

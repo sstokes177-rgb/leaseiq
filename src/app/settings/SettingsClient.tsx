@@ -224,13 +224,9 @@ export function SettingsClient({ email }: SettingsClientProps) {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-2.5 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-50"
-          style={{
-            background: saved
-              ? 'rgba(16,185,129,0.3)'
-              : 'linear-gradient(135deg, rgba(16,185,129,0.9), rgba(13,148,136,0.9))',
-            border: '1px solid rgba(16,185,129,0.3)',
-          }}
+          className={`flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-2.5 rounded-lg text-sm font-medium text-white transition-colors disabled:opacity-50 ${
+            saved ? 'bg-emerald-600/40' : 'bg-emerald-600 hover:bg-emerald-500'
+          }`}
         >
           {saving ? (
             <><Loader2 className="h-4 w-4 animate-spin" /> {t('settings.saving')}</>
