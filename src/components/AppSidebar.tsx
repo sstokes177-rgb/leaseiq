@@ -195,8 +195,18 @@ export function AppSidebar({ locations = [] }: AppSidebarProps) {
         </div>
       )}
 
-      {/* Ctrl+K shortcut hint */}
+      {/* About link + Ctrl+K shortcut hint */}
       <div className="px-2 pb-3 mt-auto">
+        {!collapsed && (
+          <Link
+            href="/about"
+            className="flex items-center px-2.5 py-1.5 rounded-lg text-xs text-gray-500 hover:text-gray-300 hover:bg-white/[0.05] transition-colors mb-1"
+          >
+            About Provelo
+          </Link>
+        )}
+      </div>
+      <div className="px-2 pb-3">
         <button
           onClick={() => {
             document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true }))

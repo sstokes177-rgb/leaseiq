@@ -32,6 +32,7 @@ function Navbar({ isAuthenticated }: { isAuthenticated: boolean }) {
   const navLinks = [
     { label: 'Features', href: '#features' },
     { label: 'How It Works', href: '#how-it-works' },
+    { label: 'About', href: '/about' },
     { label: 'For Tenants', href: '#for-tenants' },
   ]
 
@@ -414,7 +415,7 @@ export function LandingPage({ isAuthenticated = false }: { isAuthenticated?: boo
             <div>
               <h4 className="text-sm font-semibold text-white mb-4">Company</h4>
               <ul className="space-y-3">
-                <li><span className="text-sm text-gray-400">About</span></li>
+                <li><Link href="/about" className="text-sm text-gray-400 hover:text-white transition-colors">About</Link></li>
                 <li><span className="text-sm text-gray-400">Contact</span></li>
                 <li><span className="text-sm text-gray-400">Careers</span></li>
               </ul>
