@@ -287,7 +287,8 @@ export function LandingPage({ isAuthenticated = false }: { isAuthenticated?: boo
       </section>
 
       {/* ── Features ─────────────────────────────────────────── */}
-      <section id="features" className="py-24 sm:py-32">
+      <section id="features" className="py-24 sm:py-32"
+        style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.10) 0%, transparent 100%)' }}>
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="text-center mb-16">
             <p className="text-xs font-semibold text-emerald-400/70 uppercase tracking-widest mb-3">Features</p>

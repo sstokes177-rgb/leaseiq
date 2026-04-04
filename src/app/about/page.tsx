@@ -239,10 +239,7 @@ const SECTIONS = [
   },
 ]
 
-/* ─── Section Colors ──────────────────────────────────────────── */
-
-const DARK = 'rgb(18,18,22)'
-const LIGHT = 'rgb(28,28,32)'
+/* ─── Section Colors — inherit body gradient, no custom backgrounds ── */
 
 /* ─── About Page ────────────────────────────────────────────── */
 
@@ -256,7 +253,7 @@ export default function AboutPage() {
 
       <div className="flex-1 flex flex-col">
       {/* ── Hero ──────────────────────────────────────────────── */}
-      <section className="relative flex items-center justify-center px-4 sm:px-6 py-24 sm:py-32" style={{ background: DARK }}>
+      <section className="relative flex items-center justify-center px-4 sm:px-6 py-24 sm:py-32">
         <div className="max-w-3xl mx-auto text-center">
           <p className="anim-hero-1 text-xs font-semibold text-emerald-400 uppercase tracking-widest mb-4">
             About Provelo
@@ -270,21 +267,14 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Bridge: Hero → First section */}
-      <div style={{ background: `linear-gradient(to bottom, ${DARK}, ${LIGHT})`, height: '120px', width: '100%' }} />
 
       {/* ── Story Sections ────────────────────────────────────── */}
-      {SECTIONS.map((s, i) => {
+      {SECTIONS.map((s) => {
         const Icon = s.icon
-        const bg = s.accent ? DARK : LIGHT
-        const nextBg = i < SECTIONS.length - 1
-          ? (SECTIONS[i + 1].accent ? DARK : LIGHT)
-          : LIGHT
         return (
           <Fragment key={s.num}>
           <section
             className="relative py-24 sm:py-32"
-            style={{ background: bg }}
           >
             <div className="max-w-5xl mx-auto px-4 sm:px-6">
               <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-8 lg:gap-16 items-start">
@@ -320,7 +310,7 @@ export default function AboutPage() {
 
                   {/* Optional: Lease Summary Card (Section 02) */}
                   {s.card && (
-                    <div className="mt-10 bg-white/[0.04] border border-white/[0.08] rounded-2xl p-6 sm:p-8 max-w-lg">
+                    <div className="mt-10 bg-white/[0.03] border border-white/[0.06] rounded-xl p-6 sm:p-8 max-w-lg">
                       <p className="text-xs font-semibold text-emerald-400 uppercase tracking-widest mb-4">
                         {s.card.title}
                       </p>
@@ -346,7 +336,7 @@ export default function AboutPage() {
                       </div>
                       {/* AI response */}
                       <div className="flex justify-start">
-                        <div className="bg-white/[0.04] border border-white/[0.08] rounded-2xl rounded-bl-md px-5 py-3 max-w-sm">
+                        <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl rounded-bl-md px-5 py-3 max-w-sm">
                           <p className="text-sm text-gray-200 leading-relaxed">{s.chat.answer}</p>
                           <p className="text-xs text-emerald-400/60 mt-2 flex items-center gap-1.5">
                             <FileText className="h-3 w-3" />
@@ -359,7 +349,7 @@ export default function AboutPage() {
 
                   {/* Optional: Risk card (Section 04) */}
                   {s.riskCard && (
-                    <div className="mt-10 bg-white/[0.04] border border-white/[0.08] rounded-2xl p-6 sm:p-8 max-w-lg">
+                    <div className="mt-10 bg-white/[0.03] border border-white/[0.06] rounded-xl p-6 sm:p-8 max-w-lg">
                       <div className="flex items-center gap-4 mb-5">
                         <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20">
                           <span className="text-2xl font-bold text-red-400">{s.riskCard.score}</span>
@@ -383,13 +373,12 @@ export default function AboutPage() {
               </div>
             </div>
           </section>
-          <div style={{ background: `linear-gradient(to bottom, ${bg}, ${nextBg})`, height: '120px', width: '100%' }} />
           </Fragment>
         )
       })}
 
       {/* ── Final CTA ─────────────────────────────────────────── */}
-      <section className="py-24 sm:py-32" style={{ background: LIGHT }}>
+      <section className="py-24 sm:py-32">
         <RevealSection>
           <div className="max-w-3xl mx-auto px-4 sm:px-6">
             <div
@@ -418,11 +407,9 @@ export default function AboutPage() {
         </RevealSection>
       </section>
 
-      {/* Bridge: CTA → Footer */}
-      <div style={{ background: `linear-gradient(to bottom, ${LIGHT}, ${DARK})`, height: '120px', width: '100%' }} />
 
       {/* ── Footer ────────────────────────────────────────────── */}
-      <footer className="mt-auto border-t border-white/[0.06]" style={{ background: DARK }}>
+      <footer className="mt-auto border-t border-white/[0.06]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-16">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
             <div>
