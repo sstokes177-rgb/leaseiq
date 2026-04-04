@@ -1,0 +1,21 @@
+Done. Here's what was implemented:
+
+**New files:**
+- `src/lib/classifyDocument.ts` — Claude Haiku classification into `lease` / `property_related` / `unrelated` categories
+- `src/app/api/documents/classify/route.ts` — Standalone classification endpoint
+
+**Upload route (`src/app/api/upload/route.ts`):**
+- Classification step after text extraction: blocks `unrelated` docs, returns `needs_confirmation` for `property_related` docs
+- `skip_classification` + `classification_type` form fields for confirmed re-uploads
+- Low-text warning for documents with < 200 chars extracted
+- Falls back to allowing upload if classification API fails
+
+**FileUpload component:**
+- Confirmation dialog for property-related docs ("Upload Anyway" / "Cancel")
+- Path traversal filename validation before upload
+
+**BatchFileUpload component:**
+- `needs_confirmation` status with per-file "Upload" / dismiss buttons
+- "Confirm & Upload All" / "Skip All" banner for bulk confirmation
+- Individual re-upload with `skip_classification` when confirmed
+- Updated done summary with "awaiting confirmation" count
