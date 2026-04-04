@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { AppLayout } from '@/components/AppLayout'
 import { LocationTabs } from '@/components/LocationTabs'
+import { LeasePreviewButton } from '@/components/LeasePreviewButton'
 
 export default async function LocationPage({
   params,
@@ -96,6 +97,7 @@ export default async function LocationPage({
               Upload Documents
             </Button>
           </Link>
+          <LeasePreviewButton storeId={id} documents={documents} />
         </div>
 
         {/* Tabbed content */}
