@@ -49,7 +49,7 @@ function StatusIcon({ status }: { status: FileStatus }) {
 
 function statusLabel(status: FileStatus): string {
   switch (status) {
-    case 'uploading': return 'Processing…'
+    case 'uploading': return 'Processing\u2026'
     case 'done': return 'Uploaded'
     case 'failed': return 'Failed'
     case 'duplicate': return 'Already uploaded'
@@ -97,6 +97,7 @@ export function BatchFileUpload({ storeId, onUploadComplete, onChangeStore }: Ba
 
   const handleDrop = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault()
+    e.stopPropagation()
     setIsDragging(false)
     if (phase !== 'selecting') return
     if (e.dataTransfer.files.length > 0) addFiles(e.dataTransfer.files)
@@ -177,16 +178,16 @@ export function BatchFileUpload({ storeId, onUploadComplete, onChangeStore }: Ba
       {/* Drop zone — always shown so user can add more files */}
       {!isDone && (
         <div
-          onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
-          onDragLeave={() => setIsDragging(false)}
+          onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true) }}
+          onDragLeave={(e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false) }}
           onDrop={handleDrop}
           onClick={() => !isUploading && inputRef.current?.click()}
           className={cn(
             'border-2 border-dashed rounded-2xl p-6 text-center transition-colors select-none',
             isUploading ? 'opacity-40 pointer-events-none' : 'cursor-pointer',
             isDragging
-              ? 'border-primary bg-primary/8'
-              : 'border-border/60 hover:border-primary/50 hover:bg-accent/30'
+              ? 'border-emerald-500 bg-emerald-500/10'
+              : 'border-border/60 hover:border-emerald-500/50 hover:bg-accent/30'
           )}
         >
           <input
@@ -197,13 +198,24 @@ export function BatchFileUpload({ storeId, onUploadComplete, onChangeStore }: Ba
             className="hidden"
             onChange={(e) => { if (e.target.files) addFiles(e.target.files) }}
           />
-          <div className="inline-flex items-center justify-center w-10 h-10 rounded-2xl bg-muted mb-2">
-            <Upload className="h-5 w-5 text-muted-foreground" />
-          </div>
-          <p className="text-sm font-medium">
-            {files.length > 0 ? 'Drop more files here' : 'Drop files here or click to browse'}
-          </p>
-          <p className="text-xs text-muted-foreground mt-1">PDF or Word (.doc, .docx) · up to 20 MB each · multiple files OK</p>
+          {isDragging ? (
+            <>
+              <div className="inline-flex items-center justify-center w-10 h-10 rounded-2xl bg-emerald-500/15 mb-2">
+                <Upload className="h-5 w-5 text-emerald-400" />
+              </div>
+              <p className="text-sm font-medium text-emerald-400">Drop your files here</p>
+            </>
+          ) : (
+            <>
+              <div className="inline-flex items-center justify-center w-10 h-10 rounded-2xl bg-muted mb-2">
+                <Upload className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <p className="text-sm font-medium">
+                {files.length > 0 ? 'Drop more files here' : 'Drop files here or click to browse'}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">PDF or Word (.doc, .docx) &middot; up to 20 MB each &middot; multiple files OK</p>
+            </>
+          )}
         </div>
       )}
 
@@ -281,8 +293,8 @@ export function BatchFileUpload({ storeId, onUploadComplete, onChangeStore }: Ba
             <>
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               Uploading {files.filter((f) => f.status === 'uploading').length > 0
-                ? `${files.findIndex((f) => f.status === 'uploading') + 1} of ${files.length}…`
-                : '…'}
+                ? `${files.findIndex((f) => f.status === 'uploading') + 1} of ${files.length}\u2026`
+                : '\u2026'}
             </>
           ) : (
             <>
@@ -310,7 +322,7 @@ export function BatchFileUpload({ storeId, onUploadComplete, onChangeStore }: Ba
               failed > 0 && `${failed} failed`,
             ]
               .filter(Boolean)
-              .join(' · ')}
+              .join(' \u00b7 ')}
           </p>
           <button
             onClick={reset}

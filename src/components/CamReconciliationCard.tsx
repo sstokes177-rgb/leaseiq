@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { Loader2, Upload, Receipt, AlertTriangle, CheckCircle2 } from 'lucide-react'
+import { Loader2, Upload, Receipt, AlertTriangle, CheckCircle2, FileText, X } from 'lucide-react'
 import type { CamReconciliationData } from '@/types'
 
 interface CamReconciliationCardProps {
@@ -20,6 +20,8 @@ export function CamReconciliationCard({ storeId }: CamReconciliationCardProps) {
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [dragOver, setDragOver] = useState(false)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -30,15 +32,20 @@ export function CamReconciliationCard({ storeId }: CamReconciliationCardProps) {
       .finally(() => setLoading(false))
   }, [storeId])
 
+  const handleFile = (file: File) => {
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) return
+    setSelectedFile(file)
+    setError(null)
+  }
+
   const handleUpload = async () => {
-    const file = fileRef.current?.files?.[0]
-    if (!file) return
+    if (!selectedFile) return
 
     setUploading(true)
     setError(null)
     try {
       const formData = new FormData()
-      formData.append('file', file)
+      formData.append('file', selectedFile)
       formData.append('store_id', storeId)
 
       const res = await fetch('/api/cam-reconciliation', {
@@ -54,6 +61,7 @@ export function CamReconciliationCard({ storeId }: CamReconciliationCardProps) {
           reconciliation_data: data.reconciliation,
           created_at: new Date().toISOString(),
         }, ...prev])
+        setSelectedFile(null)
         if (fileRef.current) fileRef.current.value = ''
       } else {
         setError(data.error ?? 'Analysis failed')
@@ -83,47 +91,64 @@ export function CamReconciliationCard({ storeId }: CamReconciliationCardProps) {
         </div>
       </div>
 
-      {/* Upload area */}
+      {/* Upload area with drag-and-drop */}
       <div
-        className="rounded-xl px-4 py-3"
-        style={{ background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.12)' }}
+        onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); setDragOver(true) }}
+        onDragLeave={(e) => { e.preventDefault(); e.stopPropagation(); setDragOver(false) }}
+        onDrop={(e) => { e.preventDefault(); e.stopPropagation(); setDragOver(false); const file = e.dataTransfer.files[0]; if (file) handleFile(file) }}
+        onClick={() => !uploading && fileRef.current?.click()}
+        className={`rounded-xl px-4 py-4 text-center cursor-pointer transition-all ${uploading ? 'opacity-50 pointer-events-none' : ''}`}
+        style={
+          dragOver
+            ? { background: 'rgba(16,185,129,0.10)', border: '2px dashed rgb(16,185,129)' }
+            : { background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.12)' }
+        }
       >
-        <div className="flex items-center gap-3">
-          <label
-            className={`flex-1 flex items-center gap-2 cursor-pointer ${uploading ? 'opacity-50 pointer-events-none' : ''}`}
-          >
-            <Upload className="h-4 w-4 text-muted-foreground/60 shrink-0" />
-            <span className="text-sm text-muted-foreground/70 truncate">
-              {fileRef.current?.files?.[0]?.name ?? 'Choose CAM reconciliation statement (PDF)'}
-            </span>
-            <input
-              ref={fileRef}
-              type="file"
-              accept=".pdf"
-              onChange={() => {
-                // Force re-render to show file name
-                setError(null)
-              }}
-              className="hidden"
+        <input
+          ref={fileRef}
+          type="file"
+          accept=".pdf"
+          onChange={(e) => { const file = e.target.files?.[0]; if (file) handleFile(file) }}
+          className="hidden"
+          disabled={uploading}
+        />
+        {dragOver ? (
+          <div className="flex flex-col items-center gap-2 py-2">
+            <Upload className="h-6 w-6 text-emerald-400" />
+            <p className="text-sm font-medium text-emerald-400">Drop your file here</p>
+          </div>
+        ) : selectedFile ? (
+          <div className="flex items-center gap-3">
+            <FileText className="h-4 w-4 text-amber-400/60 shrink-0" />
+            <span className="text-sm text-white/70 truncate flex-1 text-left">{selectedFile.name}</span>
+            <button
+              onClick={(e) => { e.stopPropagation(); setSelectedFile(null); if (fileRef.current) fileRef.current.value = '' }}
+              className="text-muted-foreground/60 hover:text-white/60 transition-colors shrink-0"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); handleUpload() }}
               disabled={uploading}
-            />
-          </label>
-          <button
-            onClick={handleUpload}
-            disabled={uploading}
-            className="shrink-0 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
-            style={{ background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.25)', color: 'rgb(251,191,36)' }}
-          >
-            {uploading ? (
-              <span className="flex items-center gap-1.5">
-                <Loader2 className="h-3 w-3 animate-spin" />
-                Analyzing…
-              </span>
-            ) : (
-              'Analyze'
-            )}
-          </button>
-        </div>
+              className="shrink-0 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+              style={{ background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.25)', color: 'rgb(251,191,36)' }}
+            >
+              {uploading ? (
+                <span className="flex items-center gap-1.5">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  Analyzing&hellip;
+                </span>
+              ) : (
+                'Analyze'
+              )}
+            </button>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center gap-2 py-2">
+            <Upload className="h-5 w-5 text-muted-foreground/60" />
+            <p className="text-sm text-muted-foreground/70">Choose or drop CAM reconciliation statement (PDF)</p>
+          </div>
+        )}
       </div>
 
       {error && (
@@ -144,7 +169,7 @@ export function CamReconciliationCard({ storeId }: CamReconciliationCardProps) {
           {/* File name and date */}
           {records[0]?.file_name && (
             <p className="text-[10px] text-white/30">
-              {records[0].file_name} — {new Date(records[0].created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+              {records[0].file_name} &mdash; {new Date(records[0].created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
             </p>
           )}
 
@@ -253,7 +278,7 @@ export function CamReconciliationCard({ storeId }: CamReconciliationCardProps) {
       )}
 
       <p className="text-[10px] text-white/25 italic">
-        AI-powered analysis — consult a professional before taking action on identified overcharges.
+        AI-powered analysis &mdash; consult a professional before taking action on identified overcharges.
       </p>
     </div>
   )

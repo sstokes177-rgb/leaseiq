@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Calendar, ArrowUpRight } from 'lucide-react'
+import { ArrowUpRight } from 'lucide-react'
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import type { LeaseSummaryData } from '@/types'
 
 interface RentEscalationTimelineProps {
@@ -15,6 +16,10 @@ interface EscalationYear {
   escalationPct: number | null
   effectiveDate: string
   isCurrent: boolean
+}
+
+function formatCurrency(amount: number): string {
+  return '$' + amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
 function parseSummaryForEscalation(summary: LeaseSummaryData): EscalationYear[] {
@@ -202,7 +207,12 @@ export function RentEscalationTimeline({ storeId }: RentEscalationTimelineProps)
 
   if (years.length === 0) return null
 
-  const maxRent = Math.max(...years.map((y) => y.monthlyRent))
+  const baseAnnualRent = years[0].annualRent
+
+  const chartData = years.map((y) => ({
+    year: y.year.toString(),
+    annualRent: y.annualRent,
+  }))
 
   return (
     <div className="glass-card p-6 space-y-5">
@@ -228,81 +238,121 @@ export function RentEscalationTimeline({ storeId }: RentEscalationTimelineProps)
           {description}
           {article && (
             <span className="ml-1.5 text-[10px] text-gray-400">
-              — {article}
+              &mdash; {article}
             </span>
           )}
         </div>
       )}
 
-      <div className="space-y-1.5">
-        {years.map((y, i) => {
-          const isPast = y.year < new Date().getFullYear()
+      {/* Rent escalation table */}
+      <div className="overflow-x-auto rounded-xl" style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
+        <table className="w-full" style={{ fontSize: '14px' }}>
+          <thead>
+            <tr style={{ background: 'rgba(255,255,255,0.06)' }}>
+              <th className="text-left px-4 py-3 font-semibold text-white/70 text-sm">Year</th>
+              <th className="text-right px-4 py-3 font-semibold text-white/70 text-sm">Annual Rent</th>
+              <th className="text-right px-4 py-3 font-semibold text-white/70 text-sm">Monthly Rent</th>
+              <th className="text-right px-4 py-3 font-semibold text-white/70 text-sm">Increase %</th>
+              <th className="text-right px-4 py-3 font-semibold text-white/70 text-sm">Cumulative</th>
+            </tr>
+          </thead>
+          <tbody>
+            {years.map((y, i) => {
+              const cumulative = i === 0 ? 0 : ((y.annualRent - baseAnnualRent) / baseAnnualRent * 100)
+              return (
+                <tr
+                  key={y.year}
+                  style={{
+                    background: y.isCurrent
+                      ? 'rgba(16,185,129,0.08)'
+                      : i % 2 === 1
+                        ? 'rgba(255,255,255,0.03)'
+                        : 'transparent',
+                  }}
+                >
+                  <td className="px-4 py-2.5">
+                    <div className="flex items-center gap-2">
+                      <span className={`font-semibold ${y.isCurrent ? 'text-emerald-400' : 'text-white/80'}`}>
+                        {y.year}
+                      </span>
+                      {y.isCurrent && (
+                        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/25">
+                          Current
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="text-right px-4 py-2.5 font-medium text-white/80 tabular-nums">
+                    {formatCurrency(y.annualRent)}
+                  </td>
+                  <td className="text-right px-4 py-2.5 text-white/60 tabular-nums">
+                    {formatCurrency(y.monthlyRent)}
+                  </td>
+                  <td className="text-right px-4 py-2.5">
+                    {y.escalationPct != null && y.escalationPct > 0
+                      ? <span className="text-amber-400 font-medium">+{y.escalationPct.toFixed(1)}%</span>
+                      : <span className="text-white/30">&mdash;</span>}
+                  </td>
+                  <td className="text-right px-4 py-2.5">
+                    {i === 0
+                      ? <span className="text-white/30">&mdash;</span>
+                      : <span className="text-blue-400 font-medium">+{cumulative.toFixed(1)}%</span>}
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
 
-          return (
-            <div
-              key={y.year}
-              className={`rounded-lg px-4 py-3 flex items-center gap-4 transition-all ${isPast ? 'opacity-65' : ''}`}
-              style={{
-                background: y.isCurrent ? 'rgba(16,185,129,0.10)' : 'rgba(255,255,255,0.03)',
-                border: y.isCurrent ? '1px solid rgba(16,185,129,0.22)' : '1px solid rgba(255,255,255,0.06)',
+      {/* Rent over time chart */}
+      <div className="h-64">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={chartData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
+            <defs>
+              <linearGradient id="rentGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="rgb(16,185,129)" stopOpacity={0.25} />
+                <stop offset="95%" stopColor="rgb(16,185,129)" stopOpacity={0.02} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+            <XAxis
+              dataKey="year"
+              tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 12 }}
+              axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
+              tickLine={false}
+            />
+            <YAxis
+              tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}k`}
+              tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 12 }}
+              axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
+              tickLine={false}
+            />
+            <Tooltip
+              contentStyle={{
+                background: 'rgba(15,17,25,0.95)',
+                border: '1px solid rgba(255,255,255,0.12)',
+                borderRadius: '8px',
+                fontSize: '13px',
               }}
-            >
-              {/* Year label */}
-              <div className="w-12 shrink-0 text-center">
-                <span className={`text-xs font-bold ${y.isCurrent ? 'text-emerald-400' : isPast ? 'text-gray-500' : 'text-white'}`}>
-                  {y.year}
-                </span>
-              </div>
-
-              {/* Visual bar */}
-              <div className="flex-1 min-w-0">
-                <div className="h-2 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.04)' }}>
-                  <div
-                    className="h-full rounded-full"
-                    style={{
-                      width: `${maxRent > 0 ? (y.monthlyRent / maxRent) * 100 : 100}%`,
-                      background: y.isCurrent
-                        ? 'linear-gradient(90deg, rgba(16,185,129,0.6), rgba(16,185,129,0.9))'
-                        : 'linear-gradient(90deg, rgba(255,255,255,0.12), rgba(255,255,255,0.22))',
-                    }}
-                  />
-                </div>
-              </div>
-
-              {/* Amounts */}
-              <div className="text-right shrink-0 w-32">
-                <span className={`text-xs font-semibold ${isPast ? 'text-gray-500' : y.isCurrent ? 'text-white' : 'text-gray-100'}`}>
-                  ${y.monthlyRent.toLocaleString(undefined, { minimumFractionDigits: 2 })}/mo
-                </span>
-                <span className={`text-[10px] ml-2 ${isPast ? 'text-gray-500' : 'text-gray-300'}`}>
-                  ${y.annualRent.toLocaleString(undefined, { maximumFractionDigits: 0 })}/yr
-                </span>
-              </div>
-
-              {/* Change indicator */}
-              <div className="w-14 text-right shrink-0">
-                {y.escalationPct != null && y.escalationPct > 0 ? (
-                  <span className={`text-[10px] font-medium ${isPast ? 'text-gray-500' : 'text-amber-400'}`}>+{y.escalationPct}%</span>
-                ) : y.escalationPct === null && i > 0 ? (
-                  <span className="text-[10px] text-gray-500">&mdash;</span>
-                ) : (
-                  <span className={`text-[10px] ${isPast ? 'text-gray-500' : 'text-gray-300'}`}>Base</span>
-                )}
-              </div>
-
-              {/* Current badge */}
-              {y.isCurrent && (
-                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 shrink-0">
-                  Current
-                </span>
-              )}
-            </div>
-          )
-        })}
+              formatter={(value) => [formatCurrency(Number(value)), 'Annual Rent']}
+              labelStyle={{ color: 'rgba(255,255,255,0.7)' }}
+            />
+            <Area
+              type="monotone"
+              dataKey="annualRent"
+              stroke="rgb(16,185,129)"
+              fill="url(#rentGradient)"
+              strokeWidth={2}
+              dot={{ r: 3, fill: 'rgb(16,185,129)', strokeWidth: 0 }}
+              activeDot={{ r: 5, fill: 'rgb(16,185,129)', stroke: 'rgba(16,185,129,0.3)', strokeWidth: 4 }}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
       </div>
 
       <p className="text-[10px] text-white/50 italic">
-        Projected based on lease summary — actual amounts may vary.
+        Projected based on lease summary &mdash; actual amounts may vary.
       </p>
     </div>
   )

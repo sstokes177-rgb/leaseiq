@@ -70,6 +70,7 @@ export function FileUpload({ storeId, onUploadComplete, onChangeStore }: FileUpl
 
   const handleDrop = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault()
+    e.stopPropagation()
     setIsDragging(false)
     const file = e.dataTransfer.files[0]
     if (file) handleFile(file)
@@ -205,15 +206,15 @@ export function FileUpload({ storeId, onUploadComplete, onChangeStore }: FileUpl
       </p>
 
       <div
-        onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
-        onDragLeave={() => setIsDragging(false)}
+        onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true) }}
+        onDragLeave={(e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false) }}
         onDrop={handleDrop}
         onClick={() => inputRef.current?.click()}
         className={cn(
           'border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-colors',
           isDragging
-            ? 'border-primary bg-primary/8'
-            : 'border-border/60 hover:border-primary/50 hover:bg-accent/30',
+            ? 'border-emerald-500 bg-emerald-500/10'
+            : 'border-border/60 hover:border-emerald-500/50 hover:bg-accent/30',
           'select-none'
         )}
       >
@@ -227,7 +228,14 @@ export function FileUpload({ storeId, onUploadComplete, onChangeStore }: FileUpl
             if (file) handleFile(file)
           }}
         />
-        {selectedFile ? (
+        {isDragging ? (
+          <div>
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-emerald-500/15 mb-3">
+              <Upload className="h-6 w-6 text-emerald-400" />
+            </div>
+            <p className="text-sm font-medium text-emerald-400">Drop your file here</p>
+          </div>
+        ) : selectedFile ? (
           <div className="flex items-center justify-center gap-3">
             <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/15">
               <FileText className="h-5 w-5 text-primary" />
@@ -251,7 +259,7 @@ export function FileUpload({ storeId, onUploadComplete, onChangeStore }: FileUpl
               <Upload className="h-6 w-6 text-muted-foreground" />
             </div>
             <p className="text-sm font-medium">Drop your document here</p>
-            <p className="text-xs text-muted-foreground mt-1">PDF or Word (.doc, .docx) · max 20 MB</p>
+            <p className="text-xs text-muted-foreground mt-1">PDF or Word (.doc, .docx) &middot; max 20 MB</p>
           </div>
         )}
       </div>
@@ -301,7 +309,7 @@ export function FileUpload({ storeId, onUploadComplete, onChangeStore }: FileUpl
         {isUploading ? (
           <>
             <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            Processing…
+            Processing&hellip;
           </>
         ) : (
           <>

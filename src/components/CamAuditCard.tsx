@@ -56,6 +56,8 @@ export function CamAuditCard({ storeId, storeName }: CamAuditCardProps) {
   const [editableLetter, setEditableLetter] = useState('')
   const [isEditing, setIsEditing] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [dragOver, setDragOver] = useState(false)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -66,16 +68,21 @@ export function CamAuditCard({ storeId, storeName }: CamAuditCardProps) {
       .finally(() => setLoading(false))
   }, [storeId])
 
+  const handleFile = (file: File) => {
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) return
+    setSelectedFile(file)
+    setError(null)
+  }
+
   const handleAudit = async () => {
-    const file = fileRef.current?.files?.[0]
-    if (!file) return
+    if (!selectedFile) return
 
     setUploading(true)
     setError(null)
     setDisputeLetter(null)
     try {
       const formData = new FormData()
-      formData.append('file', file)
+      formData.append('file', selectedFile)
       formData.append('store_id', storeId)
 
       const res = await fetch('/api/cam-audit', {
@@ -94,6 +101,7 @@ export function CamAuditCard({ storeId, storeName }: CamAuditCardProps) {
           dispute_deadline: data.audit.dispute_deadline,
         }
         setAudits(prev => [newAudit, ...prev])
+        setSelectedFile(null)
         if (fileRef.current) fileRef.current.value = ''
       } else {
         setError(data.error ?? 'Audit failed')
@@ -148,6 +156,71 @@ export function CamAuditCard({ storeId, storeName }: CamAuditCardProps) {
   const withinLimits = latestAudit?.findings.filter(f => f.status === 'within_limits') ?? []
   const insufficientData = latestAudit?.findings.filter(f => f.status === 'insufficient_data') ?? []
 
+  /* ── Shared upload zone renderer ────────────────────────────────────────────── */
+  const renderUploadZone = () => (
+    <div
+      onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); setDragOver(true) }}
+      onDragLeave={(e) => { e.preventDefault(); e.stopPropagation(); setDragOver(false) }}
+      onDrop={(e) => { e.preventDefault(); e.stopPropagation(); setDragOver(false); const file = e.dataTransfer.files[0]; if (file) handleFile(file) }}
+      onClick={() => !uploading && fileRef.current?.click()}
+      className={`rounded-xl px-4 py-4 text-center cursor-pointer transition-all ${uploading ? 'opacity-50 pointer-events-none' : ''}`}
+      style={
+        dragOver
+          ? { background: 'rgba(16,185,129,0.10)', border: '2px dashed rgb(16,185,129)' }
+          : { background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.12)' }
+      }
+    >
+      <input
+        ref={fileRef}
+        type="file"
+        accept=".pdf"
+        onChange={(e) => { const file = e.target.files?.[0]; if (file) handleFile(file) }}
+        className="hidden"
+        disabled={uploading}
+      />
+      {dragOver ? (
+        <div className="flex flex-col items-center gap-2 py-2">
+          <Upload className="h-6 w-6 text-emerald-400" />
+          <p className="text-sm font-medium text-emerald-400">Drop your file here</p>
+        </div>
+      ) : selectedFile ? (
+        <div className="flex items-center gap-3">
+          <FileText className="h-4 w-4 text-red-400/60 shrink-0" />
+          <span className="text-sm text-white/70 truncate flex-1 text-left">{selectedFile.name}</span>
+          <button
+            onClick={(e) => { e.stopPropagation(); setSelectedFile(null); if (fileRef.current) fileRef.current.value = '' }}
+            className="text-muted-foreground/60 hover:text-white/60 transition-colors shrink-0"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); handleAudit() }}
+            disabled={uploading}
+            className="shrink-0 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+            style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.25)', color: 'rgb(248,113,113)' }}
+          >
+            {uploading ? (
+              <span className="flex items-center gap-1.5">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                Auditing&hellip;
+              </span>
+            ) : (
+              <span className="flex items-center gap-1.5">
+                <Search className="h-3 w-3" />
+                Run Forensic Audit
+              </span>
+            )}
+          </button>
+        </div>
+      ) : (
+        <div className="flex flex-col items-center gap-2 py-2">
+          <Upload className="h-5 w-5 text-muted-foreground/60" />
+          <p className="text-sm text-muted-foreground/70">Choose or drop CAM reconciliation statement (PDF)</p>
+        </div>
+      )}
+    </div>
+  )
+
   // No audit yet — show educational content
   if (!loading && !latestAudit) {
     return (
@@ -188,53 +261,13 @@ export function CamAuditCard({ storeId, storeName }: CamAuditCardProps) {
               A CAM (Common Area Maintenance) reconciliation is an annual statement from your landlord comparing estimated CAM charges you paid throughout the year to the actual expenses incurred. It determines whether you owe additional money or are due a refund.
             </p>
             <p className="text-xs text-white/55 leading-relaxed">
-              Industry studies show that approximately <span className="text-red-400 font-semibold">40% of CAM statements contain errors</span> — often in the landlord&apos;s favor. Our forensic audit cross-references every charge against your lease provisions.
+              Industry studies show that approximately <span className="text-red-400 font-semibold">40% of CAM statements contain errors</span> &mdash; often in the landlord&apos;s favor. Our forensic audit cross-references every charge against your lease provisions.
             </p>
           </div>
         </details>
 
-        {/* Upload area */}
-        <div
-          className="rounded-xl px-4 py-3"
-          style={{ background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.12)' }}
-        >
-          <div className="flex items-center gap-3">
-            <label
-              className={`flex-1 flex items-center gap-2 cursor-pointer ${uploading ? 'opacity-50 pointer-events-none' : ''}`}
-            >
-              <Upload className="h-4 w-4 text-muted-foreground/60 shrink-0" />
-              <span className="text-sm text-muted-foreground/70 truncate">
-                Choose CAM reconciliation statement (PDF)
-              </span>
-              <input
-                ref={fileRef}
-                type="file"
-                accept=".pdf"
-                onChange={() => setError(null)}
-                className="hidden"
-                disabled={uploading}
-              />
-            </label>
-            <button
-              onClick={handleAudit}
-              disabled={uploading}
-              className="shrink-0 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
-              style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.25)', color: 'rgb(248,113,113)' }}
-            >
-              {uploading ? (
-                <span className="flex items-center gap-1.5">
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                  Auditing…
-                </span>
-              ) : (
-                <span className="flex items-center gap-1.5">
-                  <Search className="h-3 w-3" />
-                  Run Forensic Audit
-                </span>
-              )}
-            </button>
-          </div>
-        </div>
+        {/* Upload area with drag-and-drop */}
+        {renderUploadZone()}
 
         {error && <p className="text-xs text-red-400/80">{error}</p>}
       </div>
@@ -273,48 +306,8 @@ export function CamAuditCard({ storeId, storeName }: CamAuditCardProps) {
           </div>
         </div>
 
-        {/* Upload area for new audit */}
-        <div
-          className="rounded-xl px-4 py-3"
-          style={{ background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.12)' }}
-        >
-          <div className="flex items-center gap-3">
-            <label
-              className={`flex-1 flex items-center gap-2 cursor-pointer ${uploading ? 'opacity-50 pointer-events-none' : ''}`}
-            >
-              <Upload className="h-4 w-4 text-muted-foreground/60 shrink-0" />
-              <span className="text-sm text-muted-foreground/70 truncate">
-                Upload new CAM statement (PDF)
-              </span>
-              <input
-                ref={fileRef}
-                type="file"
-                accept=".pdf"
-                onChange={() => setError(null)}
-                className="hidden"
-                disabled={uploading}
-              />
-            </label>
-            <button
-              onClick={handleAudit}
-              disabled={uploading}
-              className="shrink-0 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
-              style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.25)', color: 'rgb(248,113,113)' }}
-            >
-              {uploading ? (
-                <span className="flex items-center gap-1.5">
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                  Auditing…
-                </span>
-              ) : (
-                <span className="flex items-center gap-1.5">
-                  <Search className="h-3 w-3" />
-                  Run Forensic Audit
-                </span>
-              )}
-            </button>
-          </div>
-        </div>
+        {/* Upload area for new audit with drag-and-drop */}
+        {renderUploadZone()}
 
         {error && <p className="text-xs text-red-400/80">{error}</p>}
 
@@ -323,7 +316,7 @@ export function CamAuditCard({ storeId, storeName }: CamAuditCardProps) {
           <div className="space-y-4">
             {/* File name and date */}
             <p className="text-[10px] text-white/30">
-              {latestAudit.statement_file_name} — {new Date(latestAudit.audit_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+              {latestAudit.statement_file_name} &mdash; {new Date(latestAudit.audit_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
             </p>
 
             {/* Total overcharge banner */}
@@ -457,7 +450,7 @@ export function CamAuditCard({ storeId, storeName }: CamAuditCardProps) {
                   {generatingLetter ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      Generating Dispute Letter…
+                      Generating Dispute Letter&hellip;
                     </>
                   ) : (
                     <>
@@ -506,7 +499,7 @@ export function CamAuditCard({ storeId, storeName }: CamAuditCardProps) {
         )}
 
         <p className="text-[10px] text-white/25 italic">
-          AI-powered forensic analysis — consult a professional before taking legal action on identified overcharges.
+          AI-powered forensic analysis &mdash; consult a professional before taking legal action on identified overcharges.
         </p>
       </div>
 
