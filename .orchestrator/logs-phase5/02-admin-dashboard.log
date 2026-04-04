@@ -1,0 +1,24 @@
+All done. Here's what was built:
+
+**Files created:**
+- `src/app/api/admin/stats/route.ts` — API route that queries across all tenants using the admin Supabase client, returning user metrics, engagement metrics, document metrics, feature usage, retention, top users, and activity feed
+- `src/app/admin/page.tsx` — Server component with `super_admin` role check (redirects to `/dashboard` otherwise)
+- `src/app/admin/AdminDashboardClient.tsx` — Client component with all the dashboard UI
+
+**Files modified:**
+- `src/components/AppSidebar.tsx` — Added Shield icon admin link at sidebar bottom, only visible for `super_admin`
+- `src/components/AppLayout.tsx` — Fetches user role via `/api/settings`, passes to sidebar, adds admin link in mobile drawer
+
+**Dashboard features:**
+- 6 stat cards (Total Users, Active Users 7d, Messages, Documents, Risk Scores, CAM Audits) with sparkline trends
+- User Signups area chart (30 days)
+- Daily Conversations bar chart (30 days)
+- Feature Usage pie chart (Messages, Risk Scores, CAM Audits, Lease Summaries, Documents)
+- User Retention bars (Day 1, Week 1, Month 1)
+- Sortable Top Users table (Email, Messages, Locations, Last Active, Joined)
+- Recent Activity feed (last 50 actions across messages, documents, risk scores, CAM audits)
+
+**To activate:** Run in Supabase SQL editor:
+```sql
+UPDATE tenant_profiles SET role = 'super_admin' WHERE id = 'YOUR_USER_ID';
+```
