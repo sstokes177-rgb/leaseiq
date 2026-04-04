@@ -258,8 +258,7 @@ export function LandingPage({ isAuthenticated = false }: { isAuthenticated?: boo
       </section>
 
       {/* ── Problem Section (Pain Points) ────────────────────── */}
-      <section id="for-tenants" className="relative py-24 sm:py-32"
-        style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.15) 0%, transparent 100%)' }}>
+      <section id="for-tenants" className="relative py-24 sm:py-32">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
@@ -287,8 +286,7 @@ export function LandingPage({ isAuthenticated = false }: { isAuthenticated?: boo
       </section>
 
       {/* ── Features ─────────────────────────────────────────── */}
-      <section id="features" className="py-24 sm:py-32"
-        style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.10) 0%, transparent 100%)' }}>
+      <section id="features" className="py-24 sm:py-32">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="text-center mb-16">
             <p className="text-xs font-semibold text-emerald-400/70 uppercase tracking-widest mb-3">Features</p>
@@ -317,8 +315,7 @@ export function LandingPage({ isAuthenticated = false }: { isAuthenticated?: boo
       </section>
 
       {/* ── How It Works ─────────────────────────────────────── */}
-      <section id="how-it-works" className="py-24 sm:py-32"
-        style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.10) 0%, transparent 100%)' }}>
+      <section id="how-it-works" className="py-24 sm:py-32">
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
           <div className="text-center mb-16">
             <p className="text-xs font-semibold text-emerald-400/70 uppercase tracking-widest mb-3">How it works</p>
@@ -377,11 +374,10 @@ export function LandingPage({ isAuthenticated = false }: { isAuthenticated?: boo
       {/* ── Final CTA ────────────────────────────────────────── */}
       <section className="py-24 sm:py-32">
         <div className="max-w-3xl mx-auto px-4 sm:px-6">
-          <div className="relative rounded-3xl px-6 py-16 sm:px-12 sm:py-20 text-center overflow-hidden"
-            style={{ background: 'linear-gradient(135deg, rgba(6,78,59,0.25) 0%, rgba(16,185,129,0.08) 100%)', border: '1px solid rgba(16,185,129,0.15)' }}>
-            {/* BG glow */}
+          <div className="relative rounded-3xl px-6 py-16 sm:px-12 sm:py-20 text-center overflow-hidden bg-white/[0.03] border border-white/[0.06]">
+            {/* Subtle emerald glow */}
             <div className="absolute inset-0 -z-10"
-              style={{ background: 'radial-gradient(ellipse at 50% 100%, rgba(16,185,129,0.12) 0%, transparent 60%)' }} />
+              style={{ background: 'radial-gradient(ellipse at 50% 100%, rgba(16,185,129,0.02) 0%, transparent 60%)' }} />
 
             <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-4">
               Ready to understand your lease?

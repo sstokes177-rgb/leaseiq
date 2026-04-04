@@ -274,9 +274,9 @@ export default function AboutPage() {
         return (
           <Fragment key={s.num}>
           <section
-            className="relative py-24 sm:py-32"
+            className="relative py-20"
           >
-            <div className="max-w-5xl mx-auto px-4 sm:px-6">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6">
               <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-8 lg:gap-16 items-start">
                 {/* Left: chapter marker */}
                 <RevealSection className="flex lg:flex-col items-center lg:items-start gap-4 lg:gap-3 lg:pt-2">
