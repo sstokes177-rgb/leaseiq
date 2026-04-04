@@ -245,7 +245,7 @@ export default function AboutPage() {
   return (
     <div
       className="min-h-screen flex flex-col"
-      style={{ scrollBehavior: 'smooth' }}
+      style={{ scrollBehavior: 'smooth', background: '#1a1d25' }}
     >
       <Navbar />
 
@@ -379,7 +379,7 @@ export default function AboutPage() {
             <div
               className="relative rounded-3xl px-6 py-16 sm:px-12 sm:py-20 text-center overflow-hidden"
               style={{
-                background: 'radial-gradient(ellipse at 50% 50%, rgba(16,185,129,0.04) 0%, transparent 70%)',
+                background: '#1a1d25',
               }}
             >
 
