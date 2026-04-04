@@ -212,23 +212,75 @@ export function LandingPage({ isAuthenticated = false }: { isAuthenticated?: boo
       <Navbar isAuthenticated={isAuthenticated} />
 
       {/* ── Hero ─────────────────────────────────────────────── */}
-      <section className="relative flex items-center justify-center px-4 sm:px-6"
+      <section className="relative flex items-center justify-center px-4 sm:px-6 overflow-hidden"
         style={{ minHeight: 'calc(100vh - 4rem)' }}>
-        {/* Background emerald glow */}
-        <div className="absolute inset-0 -z-10"
-          style={{ background: 'radial-gradient(ellipse 800px 600px at 50% 30%, rgba(16,185,129,0.25) 0%, rgba(16,185,129,0.08) 50%, transparent 80%)' }} />
-        {/* Bright emerald spotlight */}
-        <div className="absolute inset-0 -z-10"
-          style={{ background: 'radial-gradient(circle at 50% 50%, rgba(16,185,129,0.35) 0%, transparent 40%)' }} />
-        {/* Subtle emerald dot grid */}
-        <div className="absolute inset-0 -z-10"
-          style={{
-            backgroundImage: 'radial-gradient(rgba(16,185,129,0.3) 1px, transparent 1px)',
-            backgroundSize: '32px 32px',
-            opacity: 0.03,
-          }} />
+        {/* Aurora effect */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none z-0" aria-hidden="true">
+          {/* Blob 1 - large, slow */}
+          <div
+            className="absolute rounded-full mix-blend-screen animate-aurora-1"
+            style={{
+              width: '800px',
+              height: '800px',
+              top: '-20%',
+              left: '10%',
+              background: 'radial-gradient(circle, rgba(16,185,129,0.3) 0%, rgba(5,150,105,0.15) 40%, transparent 70%)',
+              filter: 'blur(80px)',
+              willChange: 'transform',
+            }}
+          />
+          {/* Blob 2 - medium, different speed */}
+          <div
+            className="absolute rounded-full mix-blend-screen animate-aurora-2"
+            style={{
+              width: '600px',
+              height: '600px',
+              top: '10%',
+              right: '5%',
+              background: 'radial-gradient(circle, rgba(52,211,153,0.25) 0%, rgba(16,185,129,0.1) 50%, transparent 70%)',
+              filter: 'blur(60px)',
+              willChange: 'transform',
+            }}
+          />
+          {/* Blob 3 - small accent */}
+          <div
+            className="absolute rounded-full mix-blend-screen animate-aurora-3"
+            style={{
+              width: '500px',
+              height: '500px',
+              bottom: '0%',
+              left: '30%',
+              background: 'radial-gradient(circle, rgba(16,185,129,0.2) 0%, rgba(6,78,59,0.15) 50%, transparent 70%)',
+              filter: 'blur(70px)',
+              willChange: 'transform',
+            }}
+          />
+          {/* Blob 4 - subtle teal accent */}
+          <div
+            className="absolute rounded-full mix-blend-screen animate-aurora-4"
+            style={{
+              width: '400px',
+              height: '400px',
+              top: '30%',
+              left: '50%',
+              background: 'radial-gradient(circle, rgba(20,184,166,0.2) 0%, transparent 60%)',
+              filter: 'blur(50px)',
+              willChange: 'transform',
+            }}
+          />
+        </div>
 
-        <div className="max-w-4xl mx-auto text-center py-20 sm:py-28">
+        {/* Subtle dot grid */}
+        <div
+          className="absolute inset-0 pointer-events-none z-[1]"
+          aria-hidden="true"
+          style={{
+            backgroundImage: 'radial-gradient(rgba(16,185,129,0.07) 1px, transparent 1px)',
+            backgroundSize: '32px 32px',
+          }}
+        />
+
+        <div className="relative z-10 max-w-4xl mx-auto text-center py-20 sm:py-28">
           <h1 className="anim-hero-1 text-4xl sm:text-5xl md:text-7xl font-bold tracking-tight text-white max-w-4xl mx-auto leading-[1.08]">
             Know Your Lease.{' '}
             <span className="block sm:inline">Protect Your Business.</span>
@@ -242,17 +294,14 @@ export function LandingPage({ isAuthenticated = false }: { isAuthenticated?: boo
               background: 'linear-gradient(90deg, transparent, rgba(16,185,129,0.7), transparent)',
             }} />
 
-          <p className="anim-hero-2 text-lg md:text-xl text-gray-300 max-w-2xl mx-auto text-center leading-relaxed">
+          <p className="anim-hero-3 text-lg md:text-xl text-gray-300 max-w-2xl mx-auto text-center leading-relaxed">
             AI-powered lease intelligence for commercial tenants. Understand your rights,
             catch billing errors, and never miss a critical date.
           </p>
 
-          <div className="anim-hero-3 flex flex-wrap items-center justify-center gap-4 mt-10">
+          <div className="anim-hero-4 flex flex-wrap items-center justify-center gap-4 mt-10">
             <Link href={ctaHref}
-              className="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-white rounded-xl px-8 py-4 text-lg font-semibold transition-all"
-              style={{ boxShadow: '0 0 40px rgba(16,185,129,0.4), 0 0 80px rgba(16,185,129,0.2)' }}
-              onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0 50px rgba(16,185,129,0.5), 0 0 100px rgba(16,185,129,0.25)'}
-              onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 0 40px rgba(16,185,129,0.4), 0 0 80px rgba(16,185,129,0.2)'}>
+              className="animate-cta-glow inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-white rounded-xl px-8 py-4 text-lg font-semibold transition-all">
               {ctaText} <ArrowRight className="h-5 w-5" />
             </Link>
             {!isAuthenticated && (
