@@ -249,7 +249,7 @@ export default function AboutPage() {
     >
       <Navbar />
 
-      <div className="flex-1 flex flex-col" style={{ background: '#1a1d25' }}>
+      <div className="flex-1 flex flex-col" style={{ background: 'linear-gradient(to bottom, rgb(12,12,12) 0%, rgb(22,22,22) 10%, rgb(12,12,12) 22%, rgb(22,22,22) 34%, rgb(12,12,12) 46%, rgb(22,22,22) 58%, rgb(12,12,12) 70%, rgb(22,22,22) 82%, rgb(12,12,12) 92%, rgb(22,22,22) 100%)' }}>
       {/* ── Hero ──────────────────────────────────────────────── */}
       <section className="relative flex items-center justify-center px-4 sm:px-6 py-24 sm:py-32">
         <div className="max-w-3xl mx-auto text-center">
@@ -380,7 +380,7 @@ export default function AboutPage() {
             <div
               className="relative rounded-3xl px-6 py-16 sm:px-12 sm:py-20 text-center overflow-hidden"
               style={{
-                background: '#1a1d25',
+                background: 'rgba(255,255,255,0.03)',
               }}
             >
 
