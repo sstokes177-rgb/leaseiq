@@ -244,7 +244,7 @@ const SECTIONS = [
 export default function AboutPage() {
   return (
     <div
-      className="min-h-screen flex flex-col bg-background"
+      className="min-h-screen flex flex-col"
       style={{ scrollBehavior: 'smooth' }}
     >
       <Navbar />
@@ -252,13 +252,13 @@ export default function AboutPage() {
       {/* ── Hero ──────────────────────────────────────────────── */}
       <section className="relative flex items-center justify-center px-4 sm:px-6 py-24 sm:py-32">
         <div className="max-w-3xl mx-auto text-center">
-          <p className="anim-hero-1 text-xs font-semibold text-emerald-400/70 uppercase tracking-widest mb-4">
+          <p className="anim-hero-1 text-xs font-semibold text-emerald-400 uppercase tracking-widest mb-4">
             About Provelo
           </p>
           <h1 className="anim-hero-2 text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-white leading-[1.1]">
             How one tenant went from overwhelmed to in control
           </h1>
-          <p className="anim-hero-3 text-lg sm:text-xl text-gray-400 mt-6 leading-relaxed max-w-2xl mx-auto">
+          <p className="anim-hero-3 text-lg sm:text-xl text-gray-300 mt-6 leading-relaxed max-w-2xl mx-auto">
             This is the story of Sarah — and every tenant who manages more than they can track with spreadsheets and filing cabinets.
           </p>
         </div>
@@ -270,13 +270,13 @@ export default function AboutPage() {
         return (
           <section
             key={s.num}
-            className="relative py-20 sm:py-28 bg-transparent"
+            className="relative py-24 sm:py-32"
           >
             <div className="max-w-5xl mx-auto px-4 sm:px-6">
               <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-8 lg:gap-16 items-start">
                 {/* Left: chapter marker */}
                 <RevealSection className="flex lg:flex-col items-center lg:items-start gap-4 lg:gap-3 lg:pt-2">
-                  <span className="text-5xl sm:text-6xl font-extrabold text-white/[0.06] leading-none select-none">
+                  <span className="text-5xl sm:text-6xl font-extrabold text-white/[0.08] leading-none select-none">
                     {s.num}
                   </span>
                   <div className="flex items-center gap-2.5">
@@ -289,7 +289,7 @@ export default function AboutPage() {
                     >
                       <Icon className="h-5 w-5 text-emerald-400" />
                     </div>
-                    <span className="text-xs font-semibold text-emerald-400/70 uppercase tracking-widest">
+                    <span className="text-xs font-semibold text-emerald-400 uppercase tracking-widest">
                       {s.label}
                     </span>
                   </div>
@@ -306,8 +306,8 @@ export default function AboutPage() {
 
                   {/* Optional: Lease Summary Card (Section 02) */}
                   {s.card && (
-                    <div className="mt-10 bg-white/[0.03] border border-white/[0.06] rounded-2xl p-6 sm:p-8 max-w-lg">
-                      <p className="text-xs font-semibold text-emerald-400/70 uppercase tracking-widest mb-4">
+                    <div className="mt-10 bg-white/[0.04] border border-white/[0.08] rounded-2xl p-6 sm:p-8 max-w-lg">
+                      <p className="text-xs font-semibold text-emerald-400 uppercase tracking-widest mb-4">
                         {s.card.title}
                       </p>
                       <div className="space-y-3">
@@ -345,7 +345,7 @@ export default function AboutPage() {
 
                   {/* Optional: Risk card (Section 04) */}
                   {s.riskCard && (
-                    <div className="mt-10 bg-white/[0.03] border border-white/[0.06] rounded-2xl p-6 sm:p-8 max-w-lg">
+                    <div className="mt-10 bg-white/[0.04] border border-white/[0.08] rounded-2xl p-6 sm:p-8 max-w-lg">
                       <div className="flex items-center gap-4 mb-5">
                         <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20">
                           <span className="text-2xl font-bold text-red-400">{s.riskCard.score}</span>
@@ -379,7 +379,7 @@ export default function AboutPage() {
             <div
               className="relative rounded-3xl px-6 py-16 sm:px-12 sm:py-20 text-center overflow-hidden"
               style={{
-                background: 'radial-gradient(ellipse at 50% 50%, rgba(16,185,129,0.015) 0%, transparent 70%)',
+                background: 'radial-gradient(ellipse at 50% 50%, rgba(16,185,129,0.04) 0%, transparent 70%)',
               }}
             >
 
@@ -387,7 +387,7 @@ export default function AboutPage() {
                 Whether you manage 1 location or 1,000, Provelo gives you the lease intelligence you need to protect your business.
               </h2>
 
-              <p className="text-gray-400 mb-8 text-lg max-w-md mx-auto">
+              <p className="text-gray-300 mb-8 text-lg max-w-md mx-auto">
                 No credit card required. Your first lease analysis takes under 2 minutes.
               </p>
 
@@ -403,7 +403,7 @@ export default function AboutPage() {
       </section>
 
       {/* ── Footer ────────────────────────────────────────────── */}
-      <footer className="mt-auto">
+      <footer className="mt-auto border-t border-white/[0.06]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-16">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
             <div>
