@@ -187,7 +187,7 @@ async function handleForensicAudit(request: NextRequest, userId: string) {
   // Run forensic audit via Claude
   try {
     const { text } = await generateText({
-      model: anthropic('claude-sonnet-4-6-20250514'),
+      model: anthropic('claude-sonnet-4-6'),
       maxOutputTokens: 6000,
       messages: [{
         role: 'user',
@@ -312,7 +312,7 @@ async function handleDisputeLetter(request: NextRequest, userId: string) {
 
   try {
     const { text: letter } = await generateText({
-      model: anthropic('claude-sonnet-4-6-20250514'),
+      model: anthropic('claude-sonnet-4-6'),
       maxOutputTokens: 3000,
       messages: [{
         role: 'user',
