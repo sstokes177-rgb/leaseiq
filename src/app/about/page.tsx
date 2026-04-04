@@ -32,6 +32,7 @@ function Navbar() {
     { label: 'How It Works', href: '/#how-it-works' },
     { label: 'About', href: '/about' },
     { label: 'For Tenants', href: '/#for-tenants' },
+    { label: 'Pricing', href: '/pricing' },
   ]
 
   return (
@@ -410,7 +411,7 @@ export default function AboutPage() {
               <h4 className="text-sm font-semibold text-white mb-4">Product</h4>
               <ul className="space-y-3">
                 <li><Link href="/#features" className="text-sm text-gray-400 hover:text-white transition-colors">Features</Link></li>
-                <li><span className="text-sm text-gray-500">Pricing <span className="text-xs text-gray-600">(coming soon)</span></span></li>
+                <li><Link href="/pricing" className="text-sm text-gray-400 hover:text-white transition-colors">Pricing</Link></li>
                 <li><Link href="/#for-tenants" className="text-sm text-gray-400 hover:text-white transition-colors">Security</Link></li>
               </ul>
             </div>
