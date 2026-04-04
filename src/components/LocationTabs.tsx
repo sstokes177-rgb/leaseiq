@@ -10,6 +10,7 @@ import { LeaseSummaryCard } from '@/components/LeaseSummaryCard'
 import { ObligationMatrixCard } from '@/components/ObligationMatrixCard'
 import { CamAnalysisCard } from '@/components/CamAnalysisCard'
 import { CamReconciliationCard } from '@/components/CamReconciliationCard'
+import { CamAuditCard } from '@/components/CamAuditCard'
 import { PercentageRentCard } from '@/components/PercentageRentCard'
 import { OccupancyCostCard } from '@/components/OccupancyCostCard'
 import { RentEscalationTimeline } from '@/components/RentEscalationTimeline'
@@ -137,6 +138,7 @@ export function LocationTabs({ storeId, storeName, hasDocuments, documents }: Lo
           <>
             <CamAnalysisCard storeId={storeId} />
             <CamReconciliationCard storeId={storeId} />
+            <CamAuditCard storeId={storeId} storeName={storeName} />
             <OccupancyCostCard storeId={storeId} />
             <RentEscalationTimeline storeId={storeId} />
             <PercentageRentCard storeId={storeId} />
