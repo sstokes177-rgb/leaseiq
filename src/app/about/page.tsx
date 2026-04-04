@@ -245,10 +245,7 @@ export default function AboutPage() {
   return (
     <div
       className="min-h-screen flex flex-col"
-      style={{
-        scrollBehavior: 'smooth',
-        background: 'linear-gradient(to bottom, transparent 0%, rgba(255,255,255,0.008) 25%, transparent 50%, rgba(255,255,255,0.008) 75%, transparent 100%)',
-      }}
+      style={{ scrollBehavior: 'smooth' }}
     >
       <Navbar />
 
@@ -382,7 +379,7 @@ export default function AboutPage() {
             <div
               className="relative rounded-3xl px-6 py-16 sm:px-12 sm:py-20 text-center overflow-hidden"
               style={{
-                background: 'radial-gradient(ellipse at 50% 50%, rgba(16,185,129,0.025) 0%, transparent 70%)',
+                background: 'radial-gradient(ellipse at 50% 50%, rgba(16,185,129,0.015) 0%, transparent 70%)',
               }}
             >
 
