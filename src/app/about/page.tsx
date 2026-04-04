@@ -243,13 +243,17 @@ const SECTIONS = [
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen flex flex-col" style={{ scrollBehavior: 'smooth' }}>
+    <div
+      className="min-h-screen flex flex-col"
+      style={{
+        scrollBehavior: 'smooth',
+        background: 'linear-gradient(to bottom, transparent 0%, rgba(255,255,255,0.008) 25%, transparent 50%, rgba(255,255,255,0.008) 75%, transparent 100%)',
+      }}
+    >
       <Navbar />
 
       {/* ── Hero ──────────────────────────────────────────────── */}
       <section className="relative flex items-center justify-center px-4 sm:px-6 py-24 sm:py-32">
-        <div className="absolute inset-0 -z-10"
-          style={{ background: 'radial-gradient(ellipse at 50% 40%, rgba(6,78,59,0.18) 0%, transparent 70%)' }} />
         <div className="max-w-3xl mx-auto text-center">
           <p className="anim-hero-1 text-xs font-semibold text-emerald-400/70 uppercase tracking-widest mb-4">
             About Provelo
@@ -376,9 +380,9 @@ export default function AboutPage() {
         <RevealSection>
           <div className="max-w-3xl mx-auto px-4 sm:px-6">
             <div
-              className="relative rounded-3xl px-6 py-16 sm:px-12 sm:py-20 text-center overflow-hidden bg-white/[0.02]"
+              className="relative rounded-3xl px-6 py-16 sm:px-12 sm:py-20 text-center overflow-hidden"
               style={{
-                border: '1px solid rgba(16,185,129,0.15)',
+                background: 'radial-gradient(ellipse at 50% 50%, rgba(16,185,129,0.025) 0%, transparent 70%)',
               }}
             >
 
@@ -402,7 +406,7 @@ export default function AboutPage() {
       </section>
 
       {/* ── Footer ────────────────────────────────────────────── */}
-      <footer className="border-t border-white/[0.06] mt-auto">
+      <footer className="mt-auto">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-16">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
             <div>
@@ -436,7 +440,7 @@ export default function AboutPage() {
               </ul>
             </div>
           </div>
-          <div className="border-t border-white/[0.06] pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded-md flex items-center justify-center"
                 style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.20)' }}>
