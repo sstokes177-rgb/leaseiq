@@ -37,7 +37,7 @@ function Navbar({ isAuthenticated }: { isAuthenticated: boolean }) {
   ]
 
   return (
-    <nav className={`sticky top-0 z-50 transition-all duration-300 ${
+    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
       scrolled
         ? 'bg-gray-950/80 backdrop-blur-xl border-b border-emerald-500/15'
         : 'bg-transparent border-b border-transparent'
@@ -210,6 +210,8 @@ export function LandingPage({ isAuthenticated = false }: { isAuthenticated?: boo
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar isAuthenticated={isAuthenticated} />
+      {/* Spacer for fixed navbar */}
+      <div className="h-16" />
 
       {/* ── Hero ─────────────────────────────────────────────── */}
       <section className="relative flex items-center justify-center px-4 sm:px-6 overflow-hidden"
