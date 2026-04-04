@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, Fragment } from 'react'
 import Link from 'next/link'
 import {
   ArrowRight, Menu, X,
@@ -239,6 +239,11 @@ const SECTIONS = [
   },
 ]
 
+/* ─── Section Colors ──────────────────────────────────────────── */
+
+const DARK = 'rgb(18,18,22)'
+const LIGHT = 'rgb(28,28,32)'
+
 /* ─── About Page ────────────────────────────────────────────── */
 
 export default function AboutPage() {
@@ -249,9 +254,9 @@ export default function AboutPage() {
     >
       <Navbar />
 
-      <div className="flex-1 flex flex-col" style={{ background: 'linear-gradient(to bottom, rgb(12,12,12) 0%, rgb(22,22,22) 10%, rgb(12,12,12) 22%, rgb(22,22,22) 34%, rgb(12,12,12) 46%, rgb(22,22,22) 58%, rgb(12,12,12) 70%, rgb(22,22,22) 82%, rgb(12,12,12) 92%, rgb(22,22,22) 100%)' }}>
+      <div className="flex-1 flex flex-col">
       {/* ── Hero ──────────────────────────────────────────────── */}
-      <section className="relative flex items-center justify-center px-4 sm:px-6 py-24 sm:py-32">
+      <section className="relative flex items-center justify-center px-4 sm:px-6 py-24 sm:py-32" style={{ background: DARK }}>
         <div className="max-w-3xl mx-auto text-center">
           <p className="anim-hero-1 text-xs font-semibold text-emerald-400 uppercase tracking-widest mb-4">
             About Provelo
@@ -265,13 +270,21 @@ export default function AboutPage() {
         </div>
       </section>
 
+      {/* Bridge: Hero → First section */}
+      <div style={{ background: `linear-gradient(to bottom, ${DARK}, ${LIGHT})`, height: '120px', width: '100%' }} />
+
       {/* ── Story Sections ────────────────────────────────────── */}
-      {SECTIONS.map((s) => {
+      {SECTIONS.map((s, i) => {
         const Icon = s.icon
+        const bg = s.accent ? DARK : LIGHT
+        const nextBg = i < SECTIONS.length - 1
+          ? (SECTIONS[i + 1].accent ? DARK : LIGHT)
+          : LIGHT
         return (
+          <Fragment key={s.num}>
           <section
-            key={s.num}
             className="relative py-24 sm:py-32"
+            style={{ background: bg }}
           >
             <div className="max-w-5xl mx-auto px-4 sm:px-6">
               <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-8 lg:gap-16 items-start">
@@ -370,11 +383,13 @@ export default function AboutPage() {
               </div>
             </div>
           </section>
+          <div style={{ background: `linear-gradient(to bottom, ${bg}, ${nextBg})`, height: '120px', width: '100%' }} />
+          </Fragment>
         )
       })}
 
       {/* ── Final CTA ─────────────────────────────────────────── */}
-      <section className="py-24 sm:py-32">
+      <section className="py-24 sm:py-32" style={{ background: LIGHT }}>
         <RevealSection>
           <div className="max-w-3xl mx-auto px-4 sm:px-6">
             <div
@@ -403,8 +418,11 @@ export default function AboutPage() {
         </RevealSection>
       </section>
 
+      {/* Bridge: CTA → Footer */}
+      <div style={{ background: `linear-gradient(to bottom, ${LIGHT}, ${DARK})`, height: '120px', width: '100%' }} />
+
       {/* ── Footer ────────────────────────────────────────────── */}
-      <footer className="mt-auto border-t border-white/[0.06]">
+      <footer className="mt-auto border-t border-white/[0.06]" style={{ background: DARK }}>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-16">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
             <div>
