@@ -13,21 +13,39 @@ export async function POST(request: NextRequest) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await request.json()
-  const { audit_id } = body
+  const { audit_id, store_id } = body
 
-  if (!audit_id) {
-    return NextResponse.json({ error: 'audit_id required' }, { status: 400 })
+  if (!audit_id && !store_id) {
+    return NextResponse.json({ error: 'audit_id or store_id required' }, { status: 400 })
   }
 
   const admin = createAdminSupabaseClient()
 
-  // Fetch the audit record
-  const { data: audit } = await admin
-    .from('cam_audits')
-    .select('*')
-    .eq('id', audit_id)
-    .eq('tenant_id', user.id)
-    .maybeSingle()
+  // Fetch the audit record — try by audit_id first, fall back to most recent for store
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let audit: any = null
+
+  if (audit_id) {
+    const { data } = await admin
+      .from('cam_audits')
+      .select('*')
+      .eq('id', audit_id)
+      .eq('tenant_id', user.id)
+      .maybeSingle()
+    audit = data
+  }
+
+  if (!audit && store_id) {
+    const { data } = await admin
+      .from('cam_audits')
+      .select('*')
+      .eq('store_id', store_id)
+      .eq('tenant_id', user.id)
+      .order('audit_date', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    audit = data
+  }
 
   if (!audit) {
     return NextResponse.json({ error: 'Audit not found' }, { status: 404 })

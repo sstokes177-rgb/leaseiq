@@ -31,7 +31,7 @@ export async function generateLeaseSummary(
 
   // Also fetch date-specific chunks: search for chunks containing date keywords
   // These may be buried deeper in the lease or in amendments/commencement letters
-  const dateKeywords = ['term', 'expir', 'commence', 'year', 'month', 'period', 'terminat', 'renewal']
+  const dateKeywords = ['term', 'expir', 'commence', 'year', 'month', 'period', 'terminat', 'renewal', 'extend', 'extension', 'amended term', 'lease year']
   const dateQuery = dateKeywords.map(k => `content.ilike.%${k}%`).join(',')
 
   const { data: dateChunks } = await admin
@@ -40,7 +40,7 @@ export async function generateLeaseSummary(
     .eq('tenant_id', tenantId)
     .eq('store_id', storeId)
     .or(dateQuery)
-    .limit(20)
+    .limit(30)
 
   // Merge and deduplicate chunks
   const seenContent = new Set(openingChunks.map(c => c.content.slice(0, 100)))
@@ -64,11 +64,15 @@ export async function generateLeaseSummary(
           role: 'user',
           content: `${INJECTION_DEFENSE}You are a lease abstraction specialist. From the following lease document excerpts, extract these fields in JSON format. If a field cannot be determined, use null.
 
-IMPORTANT for lease dates:
-- Look very carefully for the lease expiration date. It may be stated as a specific date, OR as a number of years from the commencement date (e.g., "The term shall be twenty (20) years from the Commencement Date").
+CRITICAL — LEASE DATE EXTRACTION:
+- You MUST check ALL documents — base lease, amendments, commencement letters, exhibits, and side letters. Amendments frequently modify the lease term, expiration date, and renewal options.
+- The MOST RECENT document's dates take precedence over earlier documents. If an amendment extends the lease term, use the AMENDED expiration date, not the original.
+- If a commencement letter confirms different dates than the base lease, use the commencement letter dates.
+- Search specifically for these terms across all documents: expiration, termination, term, renewal, extend, extension, amended term, lease year, commencement.
+- If the base lease says one date but an amendment says a different date, ALWAYS use the amendment date and note it came from the amendment.
 - If the lease states a term length in years/months, CALCULATE the end date from the start date and return the calculated date.
-- Check amendments, commencement letters, and exhibits which often confirm or modify the actual dates.
-- If the start date is found but end date is only stated as a term length, compute it. For example: start "March 2, 2004" + "twenty (20) years" = end "March 1, 2024".
+- For example: if the base lease started March 2, 2004 with a 20-year term (ending March 1, 2024) BUT an amendment extends the term by an additional 21 years through September 30, 2045, the correct end date is September 30, 2045 — NOT March 1, 2024.
+- Look very carefully for phrases like "extended term", "option period", "renewal term", "amended expiration date", "the Lease Term is hereby extended".
 
 IMPORTANT for asset class:
 - Determine the property type from context clues: tenant type, permitted use, property description, shopping center vs office building, etc.

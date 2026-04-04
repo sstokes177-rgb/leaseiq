@@ -2,11 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import {
-  User, Mail, Globe, Bell, Loader2, Check, KeyRound, Eye, EyeOff,
+  User, Mail, Globe, Bell, Loader2, Check, KeyRound,
 } from 'lucide-react'
 import { useLanguage } from '@/components/LanguageProvider'
 import { createBrowserSupabaseClient } from '@/lib/supabase'
-import { PasswordStrengthMeter } from '@/components/PasswordStrengthMeter'
 
 interface SettingsClientProps {
   email: string
@@ -242,38 +241,30 @@ export function SettingsClient({ email }: SettingsClientProps) {
 }
 
 function ChangePasswordSection() {
-  const [currentPassword, setCurrentPassword] = useState('')
-  const [newPassword, setNewPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [showNew, setShowNew] = useState(false)
-  const [saving, setSaving] = useState(false)
+  const [sending, setSending] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const supabase = createBrowserSupabaseClient()
 
-  const handleChangePassword = async () => {
+  const handleResetViaEmail = async () => {
+    setSending(true)
     setMessage(null)
 
-    if (newPassword.length < 8) {
-      setMessage({ type: 'error', text: 'Password must be at least 8 characters.' })
-      return
-    }
-    if (newPassword !== confirmPassword) {
-      setMessage({ type: 'error', text: 'Passwords do not match.' })
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user?.email) {
+      setMessage({ type: 'error', text: 'Unable to determine your email address.' })
+      setSending(false)
       return
     }
 
-    setSaving(true)
-    const { error } = await supabase.auth.updateUser({ password: newPassword })
-    setSaving(false)
+    const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    })
+    setSending(false)
 
     if (error) {
-      setMessage({ type: 'error', text: 'Unable to update password. Please try again.' })
+      setMessage({ type: 'error', text: 'Unable to send reset email. Please try again.' })
     } else {
-      setMessage({ type: 'success', text: 'Password updated successfully.' })
-      setCurrentPassword('')
-      setNewPassword('')
-      setConfirmPassword('')
-      setTimeout(() => setMessage(null), 3000)
+      setMessage({ type: 'success', text: 'A password reset link has been sent to your email address. Check your inbox to set a new password.' })
     }
   }
 
@@ -285,64 +276,14 @@ function ChangePasswordSection() {
           <KeyRound className="h-4 w-4 text-purple-400" />
         </div>
         <div>
-          <p className="font-semibold text-sm">Change Password</p>
-          <p className="text-xs text-muted-foreground/60">Update your account password</p>
+          <p className="font-semibold text-sm">Password</p>
+          <p className="text-xs text-muted-foreground/60">Reset your password via email for security</p>
         </div>
       </div>
 
-      <div className="space-y-3">
-        <div>
-          <label className="text-[10px] font-semibold text-white/35 uppercase tracking-widest mb-1.5 block">
-            Current Password
-          </label>
-          <input
-            type="password"
-            value={currentPassword}
-            onChange={e => setCurrentPassword(e.target.value)}
-            placeholder="Enter current password"
-            className="glass-input w-full px-4 py-2.5 text-sm text-white/90 placeholder:text-white/25"
-          />
-        </div>
-
-        <div>
-          <label className="text-[10px] font-semibold text-white/35 uppercase tracking-widest mb-1.5 block">
-            New Password
-          </label>
-          <div className="relative">
-            <input
-              type={showNew ? 'text' : 'password'}
-              value={newPassword}
-              onChange={e => setNewPassword(e.target.value)}
-              placeholder="Min 8 characters"
-              className="glass-input w-full px-4 py-2.5 pr-10 text-sm text-white/90 placeholder:text-white/25"
-            />
-            <button
-              type="button"
-              onClick={() => setShowNew(!showNew)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-foreground transition-colors"
-            >
-              {showNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
-          </div>
-          <div className="mt-1.5">
-            <PasswordStrengthMeter password={newPassword} />
-          </div>
-        </div>
-
-        <div>
-          <label className="text-[10px] font-semibold text-white/35 uppercase tracking-widest mb-1.5 block">
-            Confirm New Password
-          </label>
-          <input
-            type="password"
-            value={confirmPassword}
-            onChange={e => setConfirmPassword(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleChangePassword()}
-            placeholder="Re-enter new password"
-            className="glass-input w-full px-4 py-2.5 text-sm text-white/90 placeholder:text-white/25"
-          />
-        </div>
-      </div>
+      <p className="text-xs text-white/40 leading-relaxed">
+        For security, password changes are only allowed through a verified email link. Click below and we&apos;ll send a reset link to your email address.
+      </p>
 
       {message && (
         <p className={`text-xs ${message.type === 'error' ? 'text-red-400' : 'text-emerald-400'}`}>
@@ -351,12 +292,16 @@ function ChangePasswordSection() {
       )}
 
       <button
-        onClick={handleChangePassword}
-        disabled={saving || !currentPassword || !newPassword || !confirmPassword}
-        className="flex items-center justify-center gap-2 w-full sm:w-auto px-5 py-2 rounded-xl text-sm font-medium text-white transition-all disabled:opacity-50"
-        style={{ background: 'rgba(168,85,247,0.25)', border: '1px solid rgba(168,85,247,0.30)' }}
+        onClick={handleResetViaEmail}
+        disabled={sending}
+        className="flex items-center justify-center gap-2 w-full sm:w-auto px-5 py-2 rounded-xl text-sm font-medium text-white/80 transition-all disabled:opacity-50"
+        style={{ background: 'rgba(168,85,247,0.15)', border: '1px solid rgba(168,85,247,0.25)' }}
       >
-        {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Update password'}
+        {sending ? (
+          <><Loader2 className="h-4 w-4 animate-spin" /> Sending&hellip;</>
+        ) : (
+          <><KeyRound className="h-4 w-4" /> Reset Password via Email</>
+        )}
       </button>
     </div>
   )

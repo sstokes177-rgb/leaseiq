@@ -23,6 +23,7 @@ export default async function DashboardPage() {
   }[] | null = null
   let storeCountRows: { store_id: string | null }[] | null = null
   let leaseSummaries: { store_id: string; summary_data: { lease_end_date?: string | null } }[] = []
+  let riskScores: { store_id: string; overall_score: number }[] = []
 
   try {
     const [profileRes, storesRes, countsRes] = await Promise.all([
@@ -39,6 +40,16 @@ export default async function DashboardPage() {
       const summaryRes = await supabase.from('lease_summaries').select('store_id, summary_data').eq('tenant_id', user.id)
       if (summaryRes.data) {
         leaseSummaries = summaryRes.data as typeof leaseSummaries
+      }
+    } catch {
+      // Table doesn't exist yet
+    }
+
+    // Risk scores — gracefully degrade
+    try {
+      const riskRes = await supabase.from('lease_risk_scores').select('store_id, overall_score').eq('tenant_id', user.id)
+      if (riskRes.data) {
+        riskScores = riskRes.data as typeof riskScores
       }
     } catch {
       // Table doesn't exist yet
@@ -68,11 +79,19 @@ export default async function DashboardPage() {
     }
   }
 
+  const riskByStore: Record<string, number | null> = {}
+  if (riskScores.length > 0) {
+    for (const rs of riskScores) {
+      riskByStore[rs.store_id] = rs.overall_score
+    }
+  }
+
   const storesWithCounts = storeList.map(store => ({
     ...store,
     asset_class: store.asset_class ?? null,
     doc_count: docCountsByStore[store.id] ?? 0,
     lease_expiry: expiryByStore[store.id] ?? null,
+    risk_score: riskByStore[store.id] ?? null,
   }))
 
   return (

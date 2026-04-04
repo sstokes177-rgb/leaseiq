@@ -224,8 +224,9 @@ ${sanitizeChunkContent(statementText.slice(0, 25000))}`,
     }
 
     // Store results
+    let auditId: string | null = null
     try {
-      await admin.from('cam_audits').insert({
+      const { data: inserted } = await admin.from('cam_audits').insert({
         store_id: storeId,
         tenant_id: userId,
         statement_file_name: file.name,
@@ -233,7 +234,8 @@ ${sanitizeChunkContent(statementText.slice(0, 25000))}`,
         findings,
         audit_date: new Date().toISOString(),
         dispute_deadline: disputeDeadline,
-      })
+      }).select('id').single()
+      auditId = inserted?.id ?? null
     } catch (dbErr) {
       console.error('[CAM Audit] DB write failed:', dbErr)
     }
@@ -241,6 +243,7 @@ ${sanitizeChunkContent(statementText.slice(0, 25000))}`,
     return NextResponse.json({
       success: true,
       audit: {
+        id: auditId,
         statement_file_name: file.name,
         total_potential_overcharge: totalOvercharge,
         findings,

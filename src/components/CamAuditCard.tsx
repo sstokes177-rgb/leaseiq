@@ -93,7 +93,7 @@ export function CamAuditCard({ storeId, storeName }: CamAuditCardProps) {
 
       if (res.ok && data.audit) {
         const newAudit: AuditRecord = {
-          id: crypto.randomUUID(),
+          id: data.audit.id ?? crypto.randomUUID(),
           statement_file_name: data.audit.statement_file_name,
           total_potential_overcharge: data.audit.total_potential_overcharge,
           findings: data.audit.findings,
@@ -121,7 +121,7 @@ export function CamAuditCard({ storeId, storeName }: CamAuditCardProps) {
       const res = await fetch('/api/cam-audit/dispute-letter', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ audit_id: latestAudit.id }),
+        body: JSON.stringify({ audit_id: latestAudit.id, store_id: storeId }),
       })
       const data = await res.json()
       if (res.ok && data.letter) {

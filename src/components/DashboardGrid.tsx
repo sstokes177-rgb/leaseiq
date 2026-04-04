@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
-import { Building2, MapPin, Search, X, Sparkles, Loader2 } from 'lucide-react'
+import { Building2, MapPin, Search, X, Sparkles, Loader2, LayoutGrid, List, ChevronRight, FileText } from 'lucide-react'
 import { useLanguage } from './LanguageProvider'
 
 interface StoreWithCount {
@@ -15,7 +15,10 @@ interface StoreWithCount {
   created_at: string
   doc_count: number
   lease_expiry: string | null
+  risk_score: number | null
 }
+
+type ViewMode = 'grid' | 'list'
 
 interface DashboardGridProps {
   stores: StoreWithCount[]
@@ -72,6 +75,34 @@ function AssetClassBadge({ storeId, assetClass, docCount }: { storeId: string; a
   )
 }
 
+function getLeaseStatus(expiry: string | null): 'active' | 'expiring' | 'expired' | 'unknown' {
+  if (!expiry) return 'unknown'
+  const d = new Date(expiry)
+  if (isNaN(d.getTime())) return 'unknown'
+  const now = new Date()
+  if (d <= now) return 'expired'
+  const sixMonths = new Date()
+  sixMonths.setMonth(sixMonths.getMonth() + 6)
+  if (d <= sixMonths) return 'expiring'
+  return 'active'
+}
+
+function formatLeaseRemaining(expiry: string | null): string {
+  if (!expiry) return ''
+  const d = new Date(expiry)
+  if (isNaN(d.getTime())) return ''
+  const now = new Date()
+  if (d <= now) return 'Expired'
+  const diffMs = d.getTime() - now.getTime()
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+  if (diffDays < 30) return `${diffDays}d remaining`
+  const diffMonths = Math.floor(diffDays / 30.44)
+  if (diffMonths < 12) return `${diffMonths}mo remaining`
+  const years = Math.floor(diffMonths / 12)
+  const months = diffMonths % 12
+  return months > 0 ? `${years}y ${months}mo remaining` : `${years}y remaining`
+}
+
 export function DashboardGrid({ stores }: DashboardGridProps) {
   const { t } = useLanguage()
   const [search, setSearch] = useState('')
@@ -79,6 +110,17 @@ export function DashboardGrid({ stores }: DashboardGridProps) {
   const [assetFilter, setAssetFilter] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [sortKey, setSortKey] = useState<SortKey>('recent')
+  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    if (typeof window !== 'undefined') {
+      return (localStorage.getItem('provelo_location_view') as ViewMode) || 'grid'
+    }
+    return 'grid'
+  })
+
+  const toggleView = (mode: ViewMode) => {
+    setViewMode(mode)
+    localStorage.setItem('provelo_location_view', mode)
+  }
 
   // Extract unique states from addresses
   const availableStates = useMemo(() => {
@@ -243,55 +285,155 @@ export function DashboardGrid({ stores }: DashboardGridProps) {
         )}
       </div>
 
-      {/* Results count */}
-      {hasFilters && (
-        <p className="text-xs text-muted-foreground/60">
-          {filtered.length} of {stores.length} location{stores.length !== 1 ? 's' : ''}
-        </p>
-      )}
-
-      {/* Grid */}
-      {filtered.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {filtered.map((store) => (
-            <Link
-              key={store.id}
-              href={`/location/${store.id}`}
-              className="glass-card glass-card-lift p-5 block transition-all"
-            >
-              <div className="flex items-start gap-3 mb-3">
-                <div
-                  className="flex items-center justify-center w-9 h-9 rounded-xl shrink-0"
-                  style={{
-                    background: 'rgba(255,255,255,0.06)',
-                    border: '1px solid rgba(255,255,255,0.09)',
-                  }}
-                >
-                  <Building2 className="h-4 w-4 text-muted-foreground" />
-                </div>
-                <div className="min-w-0">
-                  <p className="font-semibold text-sm truncate">{store.store_name}</p>
-                  {store.shopping_center_name && (
-                    <p className="text-xs text-muted-foreground/70 truncate mt-0.5 flex items-center gap-1">
-                      <MapPin className="h-3 w-3 shrink-0" />
-                      {store.shopping_center_name}
-                      {store.suite_number && `, Suite ${store.suite_number}`}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 flex-wrap">
-                <p className="text-xs text-muted-foreground/70">
-                  {store.doc_count === 0
-                    ? t('dashboard.noDocuments')
-                    : `${store.doc_count} ${t('dashboard.documents')}`}
-                </p>
-                <AssetClassBadge storeId={store.id} assetClass={store.asset_class} docCount={store.doc_count} />
-              </div>
-            </Link>
-          ))}
+      {/* Results count + view toggle */}
+      <div className="flex items-center justify-between">
+        {hasFilters ? (
+          <p className="text-xs text-muted-foreground/60">
+            {filtered.length} of {stores.length} location{stores.length !== 1 ? 's' : ''}
+          </p>
+        ) : (
+          <div />
+        )}
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => toggleView('grid')}
+            className={`p-1.5 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-white/[0.1] text-emerald-400' : 'text-gray-500 hover:text-gray-300'}`}
+            aria-label="Grid view"
+          >
+            <LayoutGrid className="h-4 w-4" />
+          </button>
+          <button
+            onClick={() => toggleView('list')}
+            className={`p-1.5 rounded-md transition-colors ${viewMode === 'list' ? 'bg-white/[0.1] text-emerald-400' : 'text-gray-500 hover:text-gray-300'}`}
+            aria-label="List view"
+          >
+            <List className="h-4 w-4" />
+          </button>
         </div>
+      </div>
+
+      {/* Grid / List */}
+      {filtered.length > 0 ? (
+        viewMode === 'grid' ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {filtered.map((store) => (
+              <Link
+                key={store.id}
+                href={`/location/${store.id}`}
+                className="glass-card glass-card-lift p-5 block transition-all"
+              >
+                <div className="flex items-start gap-3 mb-3">
+                  <div
+                    className="flex items-center justify-center w-9 h-9 rounded-xl shrink-0"
+                    style={{
+                      background: 'rgba(255,255,255,0.06)',
+                      border: '1px solid rgba(255,255,255,0.09)',
+                    }}
+                  >
+                    <Building2 className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-semibold text-sm truncate">{store.store_name}</p>
+                    {store.shopping_center_name && (
+                      <p className="text-xs text-muted-foreground/70 truncate mt-0.5 flex items-center gap-1">
+                        <MapPin className="h-3 w-3 shrink-0" />
+                        {store.shopping_center_name}
+                        {store.suite_number && `, Suite ${store.suite_number}`}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="text-xs text-muted-foreground/70">
+                    {store.doc_count === 0
+                      ? t('dashboard.noDocuments')
+                      : `${store.doc_count} ${t('dashboard.documents')}`}
+                  </p>
+                  <AssetClassBadge storeId={store.id} assetClass={store.asset_class} docCount={store.doc_count} />
+                </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          /* ── List View ─────────────────────────────────────── */
+          <div
+            className="rounded-xl overflow-hidden"
+            style={{ border: '1px solid rgba(255,255,255,0.06)' }}
+          >
+            {filtered.map((store, idx) => {
+              const status = getLeaseStatus(store.lease_expiry)
+              const statusDotColor =
+                status === 'expired' ? 'bg-red-400' :
+                status === 'expiring' ? 'bg-amber-400' :
+                status === 'active' ? 'bg-emerald-400' :
+                'bg-gray-500'
+              const remaining = formatLeaseRemaining(store.lease_expiry)
+              const riskColor =
+                store.risk_score != null
+                  ? store.risk_score >= 70 ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/25'
+                    : store.risk_score >= 40 ? 'bg-amber-500/15 text-amber-300 border-amber-500/25'
+                    : 'bg-red-500/15 text-red-300 border-red-500/25'
+                  : ''
+
+              return (
+                <Link
+                  key={store.id}
+                  href={`/location/${store.id}`}
+                  className={`flex items-center gap-3 sm:gap-4 px-4 py-3 transition-colors hover:bg-white/[0.03] ${
+                    idx < filtered.length - 1 ? 'border-b border-white/[0.06]' : ''
+                  }`}
+                >
+                  {/* Status dot */}
+                  <span className={`w-2 h-2 rounded-full shrink-0 ${statusDotColor}`} />
+
+                  {/* Name + address */}
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-sm text-white truncate">{store.store_name}</p>
+                    <p className="text-xs text-gray-400 truncate">
+                      {store.shopping_center_name ?? store.address ?? ''}
+                      {store.suite_number ? `, Suite ${store.suite_number}` : ''}
+                    </p>
+                  </div>
+
+                  {/* Risk score — hidden on mobile */}
+                  {store.risk_score != null && (
+                    <span className={`hidden sm:inline-flex text-[10px] font-bold px-2 py-0.5 rounded border shrink-0 ${riskColor}`}>
+                      {store.risk_score}
+                    </span>
+                  )}
+
+                  {/* Lease expiry */}
+                  <div className="hidden sm:block text-right shrink-0 min-w-[100px]">
+                    {store.lease_expiry ? (
+                      <>
+                        <p className="text-xs text-white/60">
+                          {new Date(store.lease_expiry).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                        </p>
+                        {remaining && (
+                          <p className={`text-[10px] ${status === 'expired' ? 'text-red-400' : status === 'expiring' ? 'text-amber-400' : 'text-white/35'}`}>
+                            {remaining}
+                          </p>
+                        )}
+                      </>
+                    ) : (
+                      <p className="text-[10px] text-white/25">No expiry</p>
+                    )}
+                  </div>
+
+                  {/* Doc count — hidden on mobile */}
+                  <div className="hidden sm:flex items-center gap-1 text-xs text-white/40 shrink-0 min-w-[40px] justify-end">
+                    <FileText className="h-3 w-3" />
+                    {store.doc_count}
+                  </div>
+
+                  {/* Arrow */}
+                  <ChevronRight className="h-4 w-4 text-white/20 shrink-0" />
+                </Link>
+              )
+            })}
+          </div>
+        )
       ) : (
         <div className="text-center py-8">
           <p className="text-sm text-muted-foreground/60">No locations match your search.</p>

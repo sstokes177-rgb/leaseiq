@@ -269,9 +269,7 @@ export default function AboutPage() {
         return (
           <section
             key={s.num}
-            className={`relative py-20 sm:py-28 ${
-              s.accent ? 'bg-white/[0.01]' : 'bg-transparent'
-            }`}
+            className="relative py-20 sm:py-28 bg-transparent"
           >
             <div className="max-w-5xl mx-auto px-4 sm:px-6">
               <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-8 lg:gap-16 items-start">
