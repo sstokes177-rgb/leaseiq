@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   Home, LayoutDashboard, Briefcase, Settings, Plus,
-  ChevronLeft, ChevronRight, Search,
+  ChevronLeft, ChevronRight, Search, Shield,
 } from 'lucide-react'
 
 interface SidebarLocation {
@@ -16,6 +16,7 @@ interface SidebarLocation {
 
 interface AppSidebarProps {
   locations?: SidebarLocation[]
+  userRole?: string | null
 }
 
 const NAV_ITEMS = [
@@ -38,7 +39,7 @@ function getStatusDotColor(leaseExpiry: string | null): string {
   return 'bg-emerald-500' // >2 years
 }
 
-export function AppSidebar({ locations = [] }: AppSidebarProps) {
+export function AppSidebar({ locations = [], userRole }: AppSidebarProps) {
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(false)
   const [isMac, setIsMac] = useState(false)
@@ -197,8 +198,21 @@ export function AppSidebar({ locations = [] }: AppSidebarProps) {
         </div>
       )}
 
-      {/* About link + Ctrl+K shortcut hint */}
+      {/* Admin link (super_admin only) + About link + Ctrl+K shortcut hint */}
       <div className="px-2 pb-3 mt-auto">
+        {userRole === 'super_admin' && (
+          <Link
+            href="/admin"
+            className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs transition-colors mb-1 ${
+              pathname === '/admin'
+                ? 'bg-white/[0.05] text-emerald-400 font-medium'
+                : 'text-gray-500 hover:text-gray-300 hover:bg-white/[0.05]'
+            } ${collapsed ? 'justify-center' : ''}`}
+          >
+            <Shield className={`h-3.5 w-3.5 shrink-0 ${pathname === '/admin' ? 'text-emerald-400' : ''}`} />
+            {!collapsed && <span>Admin</span>}
+          </Link>
+        )}
         {!collapsed && (
           <Link
             href="/about"

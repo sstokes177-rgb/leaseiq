@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Menu, X, Search } from 'lucide-react'
+import { Menu, X, Search, Shield } from 'lucide-react'
 import { AppSidebar } from './AppSidebar'
 import { NotificationCenter } from './NotificationCenter'
 
@@ -20,9 +20,20 @@ export function AppLayout({ children }: AppLayoutProps) {
   const [locations, setLocations] = useState<SidebarLocation[]>([])
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isMac, setIsMac] = useState(false)
+  const [userRole, setUserRole] = useState<string | null>(null)
 
   useEffect(() => {
     setIsMac(/Mac|iPhone|iPad/.test(navigator.userAgent))
+  }, [])
+
+  // Fetch user role for admin link visibility
+  useEffect(() => {
+    fetch('/api/settings')
+      .then(r => r.json())
+      .then(data => {
+        if (data.profile?.role) setUserRole(data.profile.role)
+      })
+      .catch(() => {})
   }, [])
 
   useEffect(() => {
@@ -61,7 +72,7 @@ export function AppLayout({ children }: AppLayoutProps) {
     <div className="flex h-screen overflow-hidden">
       {/* Desktop sidebar - hidden below lg */}
       <div className="hidden lg:block overflow-visible">
-        <AppSidebar locations={locations} />
+        <AppSidebar locations={locations} userRole={userRole} />
       </div>
 
       {/* Mobile top bar */}
@@ -167,6 +178,18 @@ export function AppLayout({ children }: AppLayoutProps) {
                   </Link>
                 ))}
               </div>
+              {userRole === 'super_admin' && (
+                <div className="border-t border-white/[0.06] pt-3 mt-3">
+                  <Link
+                    href="/admin"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-2 h-11 px-3 text-sm rounded-lg text-gray-500 hover:text-gray-300 hover:bg-white/[0.06] transition-colors"
+                  >
+                    <Shield className="h-3.5 w-3.5" />
+                    Admin
+                  </Link>
+                </div>
+              )}
             </nav>
 
             {/* Sign out */}
