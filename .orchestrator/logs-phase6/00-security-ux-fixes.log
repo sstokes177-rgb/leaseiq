@@ -1,0 +1,11 @@
+All 5 fixes complete. Build passed, committed and pushed. Here's a summary:
+
+**FIX 1 — Password email-only:** Removed the entire in-app password change form (current/new/confirm fields). Replaced with a single "Reset Password via Email" button that calls `supabase.auth.resetPasswordForEmail()`. Shows success message directing user to check inbox. Forgot-password and reset-password pages already work correctly.
+
+**FIX 2 — Dashboard list view:** Added grid/list toggle icons (LayoutGrid + List) to the top-right of the locations section. Grid view unchanged. New list view shows each location as a row with: status dot (green/yellow/red), name, address, risk score badge, lease expiry with remaining time, doc count, and navigation arrow. Preference saved to `localStorage` as `provelo_location_view`. Mobile-responsive (hides risk score, doc count, expiry on small screens). Dashboard page now also fetches risk scores from `lease_risk_scores`.
+
+**FIX 3 — About page gradient bar:** Removed the alternating `bg-white/[0.01]` background on accent sections. All sections now use `bg-transparent` for seamless flow between sections.
+
+**FIX 4 — Dispute letter button:** The button and modal already existed, but the bug was that freshly-created audits used `crypto.randomUUID()` as the ID instead of the actual database ID. The dispute letter API couldn't find audits by these fake IDs. Fixed: API now returns the real ID via `.select('id').single()`, client uses it, and the dispute-letter route has a `store_id` fallback for robustness.
+
+**FIX 5 — Date extraction:** Enhanced the lease summary prompt with a `CRITICAL` block emphasizing amendment precedence for dates. Added more date-related keywords (`extend`, `extension`, `amended term`, `lease year`) and increased the date chunk limit from 20 to 30. The prompt now explicitly instructs the AI to always use amended dates over original dates with a concrete example.
