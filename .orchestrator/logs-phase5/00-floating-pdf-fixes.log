@@ -1,0 +1,14 @@
+Done. Here's what changed:
+
+**FIX 1 — Resize from all edges and corners** (`FloatingLeaseViewer.tsx`):
+- Replaced the single bottom-right resize handle with 8 invisible hit zones (4 edges + 4 corners, 8px wide)
+- Each zone has the correct cursor (`ns-resize`, `ew-resize`, `nwse-resize`, `nesw-resize`)
+- Top/left edge resizing moves the position while keeping the opposite edge fixed
+- Size clamped to min 300×300, max 90vw×90vh, prevented from going off-screen
+- Added an iframe overlay during drag/resize to prevent the iframe from stealing mouse events
+- Removed `overflow-hidden` from the main container (moved to content area) so edge resize handles aren't clipped by border-radius
+
+**FIX 2 — Viewer persists on chat tab** (`LocationTabs.tsx` + `FloatingLeaseViewer.tsx`):
+- `LocationTabs` dispatches a `location-tab-change` custom event when switching tabs
+- `FloatingLeaseViewer` listens for this event and smoothly animates to `x: 16` (left side) when switching to the chat tab via a 300ms CSS transition
+- Transition flag is removed after 300ms so subsequent dragging feels immediate
