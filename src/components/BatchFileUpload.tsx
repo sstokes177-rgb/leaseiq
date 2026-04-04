@@ -13,13 +13,14 @@ const ACCEPTED_MIME = [
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
 ]
 
-type FileStatus = 'pending' | 'uploading' | 'done' | 'failed' | 'duplicate' | 'mismatch'
+type FileStatus = 'pending' | 'uploading' | 'done' | 'failed' | 'duplicate' | 'mismatch' | 'needs_confirmation'
 
 interface FileEntry {
   localId: string
   file: File
   status: FileStatus
   error?: string
+  classification?: { description: string; document_type: string }
 }
 
 interface BatchFileUploadProps {
@@ -44,6 +45,7 @@ function StatusIcon({ status }: { status: FileStatus }) {
   if (status === 'failed') return <AlertTriangle className="h-4 w-4 text-red-400" />
   if (status === 'duplicate') return <SkipForward className="h-4 w-4 text-amber-400" />
   if (status === 'mismatch') return <AlertCircle className="h-4 w-4 text-amber-400" />
+  if (status === 'needs_confirmation') return <AlertCircle className="h-4 w-4 text-amber-400" />
   return null
 }
 
@@ -54,6 +56,7 @@ function statusLabel(status: FileStatus): string {
     case 'failed': return 'Failed'
     case 'duplicate': return 'Already uploaded'
     case 'mismatch': return 'Location mismatch'
+    case 'needs_confirmation': return 'Needs confirmation'
     default: return ''
   }
 }
@@ -64,6 +67,7 @@ function statusColor(status: FileStatus): string {
     case 'failed': return 'text-red-400'
     case 'duplicate': return 'text-amber-400/80'
     case 'mismatch': return 'text-amber-400'
+    case 'needs_confirmation': return 'text-amber-400'
     case 'uploading': return 'text-emerald-400'
     default: return 'text-muted-foreground'
   }
@@ -82,6 +86,7 @@ export function BatchFileUpload({ storeId, onUploadComplete, onChangeStore }: Ba
     for (const file of arr) {
       if (!isAcceptedFile(file)) continue
       if (file.size > 20 * 1024 * 1024) continue
+      if (file.name.includes('..') || file.name.includes('/') || file.name.includes('\\')) continue
       // Deduplicate by name within current selection
       const alreadyAdded = files.some((f) => f.file.name === file.name)
       if (alreadyAdded) continue
@@ -137,6 +142,12 @@ export function BatchFileUpload({ storeId, onUploadComplete, onChangeStore }: Ba
         if (result.status === 'success') {
           updateFileStatus(entry.localId, { status: 'done' })
           anySucceeded = true
+        } else if (result.status === 'needs_confirmation') {
+          updateFileStatus(entry.localId, {
+            status: 'needs_confirmation',
+            error: result.classification?.description,
+            classification: result.classification,
+          })
         } else if (result.status === 'duplicate') {
           updateFileStatus(entry.localId, { status: 'duplicate' })
         } else if (result.status === 'mismatch') {
@@ -153,6 +164,62 @@ export function BatchFileUpload({ storeId, onUploadComplete, onChangeStore }: Ba
     if (anySucceeded) onUploadComplete()
   }
 
+  const confirmAndUpload = async (entry: FileEntry) => {
+    updateFileStatus(entry.localId, { status: 'uploading', classification: undefined })
+
+    try {
+      const formData = new FormData()
+      formData.append('file', entry.file)
+      if (storeId) formData.append('store_id', storeId)
+      formData.append('skip_classification', 'true')
+      if (entry.classification?.document_type) {
+        formData.append('classification_type', entry.classification.document_type)
+      }
+
+      const res = await fetch('/api/upload', { method: 'POST', body: formData })
+      const data = await res.json()
+
+      if (!res.ok) {
+        updateFileStatus(entry.localId, { status: 'failed', error: data.error ?? 'Upload failed' })
+        return
+      }
+
+      const result = data.results?.[0]
+      if (!result) {
+        updateFileStatus(entry.localId, { status: 'failed', error: 'Unexpected response' })
+        return
+      }
+
+      if (result.status === 'success') {
+        updateFileStatus(entry.localId, { status: 'done' })
+        onUploadComplete()
+      } else if (result.status === 'duplicate') {
+        updateFileStatus(entry.localId, { status: 'duplicate' })
+      } else if (result.status === 'mismatch') {
+        updateFileStatus(entry.localId, { status: 'mismatch', error: result.error })
+      } else {
+        updateFileStatus(entry.localId, { status: 'failed', error: result.error ?? 'Upload failed' })
+      }
+    } catch {
+      updateFileStatus(entry.localId, { status: 'failed', error: 'Network error' })
+    }
+  }
+
+  const confirmAllPending = async () => {
+    const toConfirm = files.filter((f) => f.status === 'needs_confirmation')
+    for (const entry of toConfirm) {
+      await confirmAndUpload(entry)
+    }
+  }
+
+  const dismissAllConfirmations = () => {
+    setFiles((prev) => prev.map((f) =>
+      f.status === 'needs_confirmation'
+        ? { ...f, status: 'failed' as const, error: 'Skipped — not a lease document' }
+        : f
+    ))
+  }
+
   const reset = () => {
     setFiles([])
     setPhase('selecting')
@@ -164,6 +231,7 @@ export function BatchFileUpload({ storeId, onUploadComplete, onChangeStore }: Ba
   const failed = files.filter((f) => f.status === 'failed').length
   const dupes = files.filter((f) => f.status === 'duplicate').length
   const mismatches = files.filter((f) => f.status === 'mismatch').length
+  const needsConfirmation = files.filter((f) => f.status === 'needs_confirmation').length
 
   const isUploading = phase === 'uploading'
   const isDone = phase === 'done'
@@ -238,12 +306,31 @@ export function BatchFileUpload({ storeId, onUploadComplete, onChangeStore }: Ba
               </div>
 
               {/* Status */}
-              {entry.status !== 'pending' && (
+              {entry.status !== 'pending' && entry.status !== 'needs_confirmation' && (
                 <div className="flex items-center gap-1.5 shrink-0">
                   <StatusIcon status={entry.status} />
                   <span className={`text-xs font-medium ${statusColor(entry.status)}`}>
                     {statusLabel(entry.status)}
                   </span>
+                </div>
+              )}
+
+              {/* Needs confirmation actions */}
+              {entry.status === 'needs_confirmation' && (
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="text-xs text-amber-200/85">Not a lease doc</span>
+                  <button
+                    onClick={() => confirmAndUpload(entry)}
+                    className="text-xs font-medium text-amber-300/80 hover:text-amber-200 transition-colors px-2 py-1 rounded-lg border border-amber-500/25 hover:border-amber-500/40"
+                  >
+                    Upload
+                  </button>
+                  <button
+                    onClick={() => updateFileStatus(entry.localId, { status: 'failed', error: 'Skipped — not a lease document' })}
+                    className="text-muted-foreground/60 hover:text-destructive transition-colors"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
                 </div>
               )}
 
@@ -279,6 +366,49 @@ export function BatchFileUpload({ storeId, onUploadComplete, onChangeStore }: Ba
                 )}
               </div>
             ))}
+
+          {/* Needs confirmation description rows */}
+          {files
+            .filter((f) => f.status === 'needs_confirmation' && f.classification)
+            .map((entry) => (
+              <div
+                key={`${entry.localId}-confirm`}
+                className="ml-11 px-3 py-1.5 rounded-lg text-xs leading-relaxed"
+                style={{ background: 'rgba(245,158,11,0.07)', border: '1px solid rgba(245,158,11,0.28)' }}
+              >
+                <span className="text-amber-200/85">Appears to be: {entry.classification!.description}</span>
+              </div>
+            ))}
+        </div>
+      )}
+
+      {/* Confirm all property docs banner */}
+      {needsConfirmation > 0 && (
+        <div
+          className="rounded-xl px-4 py-3 space-y-2.5"
+          style={{ background: 'rgba(245,158,11,0.07)', border: '1px solid rgba(245,158,11,0.28)' }}
+        >
+          <div className="flex items-start gap-2.5">
+            <AlertCircle className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+            <p className="text-xs text-amber-200/85 leading-relaxed">
+              {needsConfirmation} document{needsConfirmation !== 1 ? 's appear' : ' appears'} to be
+              property-related but not a lease document. You can confirm to upload them for reference.
+            </p>
+          </div>
+          <div className="flex gap-2 ml-6">
+            <button
+              onClick={confirmAllPending}
+              className="text-xs font-medium text-amber-300/80 hover:text-amber-200 transition-colors px-2.5 py-1 rounded-lg border border-amber-500/25 hover:border-amber-500/40"
+            >
+              Confirm &amp; Upload All
+            </button>
+            <button
+              onClick={dismissAllConfirmations}
+              className="text-xs font-medium text-muted-foreground/80 hover:text-foreground transition-colors px-2.5 py-1"
+            >
+              Skip All
+            </button>
+          </div>
         </div>
       )}
 
@@ -319,6 +449,7 @@ export function BatchFileUpload({ storeId, onUploadComplete, onChangeStore }: Ba
               succeeded > 0 && `${succeeded} uploaded successfully`,
               dupes > 0 && `${dupes} duplicate${dupes !== 1 ? 's' : ''} skipped`,
               mismatches > 0 && `${mismatches} location mismatch${mismatches !== 1 ? 'es' : ''}`,
+              needsConfirmation > 0 && `${needsConfirmation} awaiting confirmation`,
               failed > 0 && `${failed} failed`,
             ]
               .filter(Boolean)

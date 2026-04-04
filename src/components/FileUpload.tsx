@@ -37,6 +37,7 @@ export function FileUpload({ storeId, onUploadComplete, onChangeStore }: FileUpl
   const [mismatch, setMismatch] = useState<MismatchInfo | null>(null)
   const [confirmingForce, setConfirmingForce] = useState(false)
   const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null)
+  const [classificationPrompt, setClassificationPrompt] = useState<{ description: string; document_type: string } | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const handleFile = (file: File) => {
@@ -48,11 +49,16 @@ export function FileUpload({ storeId, onUploadComplete, onChangeStore }: FileUpl
       setError('File too large (max 20 MB).')
       return
     }
+    if (file.name.includes('..') || file.name.includes('/') || file.name.includes('\\')) {
+      setError('Invalid file name.')
+      return
+    }
     setSelectedFile(file)
     setError(null)
     setMismatch(null)
     setConfirmingForce(false)
     setDuplicateWarning(null)
+    setClassificationPrompt(null)
 
     // Non-blocking duplicate check
     if (storeId) {
@@ -76,16 +82,19 @@ export function FileUpload({ storeId, onUploadComplete, onChangeStore }: FileUpl
     if (file) handleFile(file)
   }
 
-  const doUpload = async (force = false) => {
+  const doUpload = async (force = false, skipClassification = false, classificationType: string | null = null) => {
     if (!selectedFile) return
     setIsUploading(true)
     setError(null)
+    setClassificationPrompt(null)
 
     try {
       const formData = new FormData()
       formData.append('file', selectedFile)
       if (storeId) formData.append('store_id', storeId)
       if (force) formData.append('force_upload', 'true')
+      if (skipClassification) formData.append('skip_classification', 'true')
+      if (classificationType) formData.append('classification_type', classificationType)
 
       const res = await fetch('/api/upload', { method: 'POST', body: formData })
       const data = await res.json()
@@ -103,7 +112,10 @@ export function FileUpload({ storeId, onUploadComplete, onChangeStore }: FileUpl
         setMismatch(null)
         setConfirmingForce(false)
         setDuplicateWarning(null)
+        setClassificationPrompt(null)
         onUploadComplete()
+      } else if (result.status === 'needs_confirmation') {
+        setClassificationPrompt(result.classification)
       } else if (result.status === 'mismatch') {
         setMismatch({ detected: result.detected, reference: result.reference })
       } else if (result.status === 'duplicate') {
@@ -116,6 +128,42 @@ export function FileUpload({ storeId, onUploadComplete, onChangeStore }: FileUpl
     } finally {
       setIsUploading(false)
     }
+  }
+
+  // ── Classification confirmation dialog ─────────────────────────────────────
+  if (classificationPrompt) {
+    return (
+      <div className="rounded-2xl border border-amber-500/40 bg-amber-500/5 p-5 space-y-4">
+        <div className="flex gap-3">
+          <AlertTriangle className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
+          <div>
+            <p className="font-semibold text-sm">Document type confirmation</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              This document appears to be a{' '}
+              <span className="text-foreground font-medium">{classificationPrompt.description}</span>.
+              It will be stored for reference alongside your lease documents. Continue uploading?
+            </p>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <Button
+            onClick={() => doUpload(false, true, classificationPrompt.document_type)}
+            disabled={isUploading}
+            size="sm"
+          >
+            {isUploading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
+            Upload Anyway
+          </Button>
+          <Button
+            onClick={() => { setClassificationPrompt(null); setSelectedFile(null) }}
+            variant="outline"
+            size="sm"
+          >
+            Cancel
+          </Button>
+        </div>
+      </div>
+    )
   }
 
   // ── Mismatch dialog ──────────────────────────────────────────────────────────

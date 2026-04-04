@@ -7,19 +7,23 @@ import { extractLeaseIdentifiers, checkMismatch } from '@/lib/validateDocument'
 import { extractCriticalDates } from '@/lib/extractCriticalDates'
 import { validateUploadedFile, verifyPDFHeader, sanitizeFileName as secureSanitize } from '@/lib/security'
 import { isRateLimited } from '@/lib/rateLimit'
+import { classifyDocument } from '@/lib/classifyDocument'
 
 export const maxDuration = 120
 
-export type FileResultStatus = 'success' | 'failed' | 'duplicate' | 'mismatch'
+export type FileResultStatus = 'success' | 'failed' | 'duplicate' | 'mismatch' | 'needs_confirmation'
 
 export interface FileResult {
   file_name: string
   status: FileResultStatus
   error?: string
+  warning?: string
   document?: { id: string; file_name: string; document_type: string; store_id: string | null }
   // mismatch fields
   detected?: { tenant_name: string | null; property_name: string | null }
   reference?: { tenant_name: string | null; property_name: string | null; display_name: string | null }
+  // classification fields
+  classification?: { description: string; document_type: string }
 }
 
 /** Sanitize filename: remove path separators and control characters, keep extension */
@@ -37,6 +41,8 @@ async function processSingleFile(
   userId: string,
   storeId: string | null,
   forceUpload: boolean,
+  skipClassification: boolean,
+  classificationTypeOverride: string | null,
   admin: ReturnType<typeof createAdminSupabaseClient>
 ): Promise<FileResult> {
   const fileName = sanitizeFilename(file.name)
@@ -98,9 +104,39 @@ async function processSingleFile(
 
   const extractionText = chunks.slice(0, 4).map((c) => c.content).join('\n\n')
 
+  // ── Step 1.5: Check for low extractable text ──
+  const totalTextLength = chunks.reduce((sum, c) => sum + c.content.length, 0)
+  const lowTextWarning = totalTextLength < 200
+    ? 'Limited text could be extracted from this document. Some AI features may not work fully.'
+    : undefined
+
+  // ── Step 1.6: Document classification ──
+  if (!skipClassification) {
+    const classification = await classifyDocument(extractionText)
+
+    if (classification.category === 'unrelated') {
+      return {
+        file_name: fileName,
+        status: 'failed',
+        error: 'This document does not appear to be related to commercial real estate. Only lease documents, amendments, exhibits, property guidelines, and other real estate documents can be uploaded.',
+      }
+    }
+
+    if (classification.category === 'property_related') {
+      return {
+        file_name: fileName,
+        status: 'needs_confirmation',
+        classification: {
+          description: classification.description,
+          document_type: classification.document_type,
+        },
+      }
+    }
+  }
+
   // ── Step 2: Validate lease identity ──
   const identifiers = await extractLeaseIdentifiers(extractionText)
-  if (!identifiers.is_lease_related) {
+  if (!skipClassification && !identifiers.is_lease_related) {
     return { file_name: fileName, status: 'failed', error: 'This document does not appear to be a lease or lease-related document.' }
   }
 
@@ -164,7 +200,7 @@ async function processSingleFile(
       store_id: storeId,
       file_name: fileName,
       file_path: filePath,
-      document_type: identifiers.document_type,
+      document_type: classificationTypeOverride || identifiers.document_type,
       lease_identifiers: identifiers,
     })
     .select()
@@ -215,7 +251,8 @@ async function processSingleFile(
   return {
     file_name: fileName,
     status: 'success',
-    document: { id: document.id, file_name: fileName, document_type: identifiers.document_type, store_id: storeId },
+    warning: lowTextWarning,
+    document: { id: document.id, file_name: fileName, document_type: classificationTypeOverride || identifiers.document_type, store_id: storeId },
   }
 }
 
@@ -232,6 +269,8 @@ export async function POST(request: NextRequest) {
   const files = formData.getAll('file') as File[]
   const storeId = (formData.get('store_id') as string) || null
   const forceUpload = formData.get('force_upload') === 'true'
+  const skipClassification = formData.get('skip_classification') === 'true'
+  const classificationTypeOverride = (formData.get('classification_type') as string) || null
 
   if (!files || files.length === 0) {
     return NextResponse.json({ error: 'No files provided' }, { status: 400 })
@@ -241,7 +280,7 @@ export async function POST(request: NextRequest) {
   const results: FileResult[] = []
 
   for (const file of files) {
-    const result = await processSingleFile(file, user.id, storeId, forceUpload, admin)
+    const result = await processSingleFile(file, user.id, storeId, forceUpload, skipClassification, classificationTypeOverride, admin)
     results.push(result)
   }
 
