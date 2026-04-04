@@ -1,0 +1,18 @@
+Done. Here's what was built:
+
+**Created:** `src/app/pricing/page.tsx` — Full premium pricing page with:
+- Header with "Simple, transparent pricing" + trial messaging
+- Monthly/Annual billing toggle (pill-shaped, emerald active, default annual) with "Save 20%" badge
+- **Starter** ($79/mo annual) — 1-3 locations, 8 features, secondary CTA
+- **Growth** ($149/mo annual) — 4-15 locations, "Most Popular" badge, emerald border/glow, elevated card, primary CTA, 9 additional features
+- **Scale** (Custom) — 16+ locations, "Contact Sales" CTA, 7 enterprise features
+- Annual pricing shows strikethrough of monthly price
+- 6-item FAQ accordion with smooth expand/collapse animation
+- Final CTA section with emerald gradient card
+- Full footer with Pricing link active
+
+**Updated:** 
+- `src/components/LandingPage.tsx` — Added "Pricing" nav link, updated footer to link `/pricing`, updated hero text from "No credit card required" to "14-day free trial"
+- `src/app/about/page.tsx` — Added "Pricing" nav link, updated footer to link `/pricing`
+
+Prices are placeholder with `// TODO: Update pricing before launch` comment.
