@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const { text: letter } = await generateText({
-      model: anthropic('claude-sonnet-4-6-20250514'),
+      model: anthropic('claude-sonnet-4-6'),
       maxOutputTokens: 3000,
       messages: [{
         role: 'user',
