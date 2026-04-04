@@ -38,7 +38,7 @@ function Navbar() {
   return (
     <nav className={`sticky top-0 z-50 transition-all duration-300 ${
       scrolled
-        ? 'bg-gray-950/80 backdrop-blur-xl border-b border-emerald-500/10'
+        ? 'bg-gray-950/80 backdrop-blur-xl border-b border-emerald-500/15'
         : 'bg-transparent border-b border-transparent'
     }`}>
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
@@ -254,7 +254,7 @@ export default function AboutPage() {
       <section className="relative flex items-center justify-center px-4 sm:px-6 py-24 sm:py-32">
         {/* Emerald glow behind hero */}
         <div className="absolute inset-0 -z-10"
-          style={{ background: 'radial-gradient(ellipse at 50% 40%, rgba(16,185,129,0.12) 0%, rgba(16,185,129,0.04) 40%, transparent 70%)' }} />
+          style={{ background: 'radial-gradient(ellipse at 50% 40%, rgba(16,185,129,0.20) 0%, rgba(16,185,129,0.08) 40%, transparent 60%)' }} />
 
         <div className="max-w-3xl mx-auto text-center">
           <p className="anim-hero-1 text-xs font-semibold text-emerald-400 uppercase tracking-widest mb-4">
@@ -267,9 +267,9 @@ export default function AboutPage() {
           {/* Emerald gradient divider */}
           <div className="anim-hero-3 mx-auto my-6"
             style={{
-              width: '200px',
+              width: '300px',
               height: '2px',
-              background: 'linear-gradient(90deg, transparent, rgba(16,185,129,0.5), transparent)',
+              background: 'linear-gradient(90deg, transparent, rgba(16,185,129,0.7), transparent)',
             }} />
 
           <p className="anim-hero-3 text-lg sm:text-xl text-gray-300 leading-relaxed max-w-2xl mx-auto">
@@ -286,8 +286,8 @@ export default function AboutPage() {
           <Fragment key={s.num}>
           {/* Thin emerald gradient divider between sections */}
           {idx > 0 && (
-            <div className="h-px max-w-xs mx-auto"
-              style={{ background: 'linear-gradient(90deg, transparent, rgba(16,185,129,0.2), transparent)' }} />
+            <div className="h-px max-w-md mx-auto"
+              style={{ background: 'linear-gradient(90deg, transparent 20%, rgba(16,185,129,0.3) 50%, transparent 80%)' }} />
           )}
           <section
             className="relative bg-transparent py-24"
@@ -296,12 +296,12 @@ export default function AboutPage() {
               <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-8 lg:gap-16 items-start">
                 {/* Left: chapter marker */}
                 <RevealSection className="flex lg:flex-col items-center lg:items-start gap-4 lg:gap-3 lg:pt-2">
-                  <span className="text-5xl sm:text-6xl font-extrabold text-emerald-500/20 leading-none select-none">
+                  <span className="text-5xl sm:text-6xl font-extrabold text-emerald-500/15 leading-none select-none">
                     {s.num}
                   </span>
                   <div className="flex items-center gap-2.5">
                     <div
-                      className="flex items-center justify-center w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/25"
+                      className="flex items-center justify-center w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/30"
                     >
                       <Icon className="h-5 w-5 text-emerald-400" />
                     </div>
@@ -322,7 +322,7 @@ export default function AboutPage() {
 
                   {/* Optional: Lease Summary Card (Section 02) */}
                   {s.card && (
-                    <div className="mt-10 bg-white/[0.03] border border-white/[0.06] rounded-xl p-6 sm:p-8 max-w-lg">
+                    <div className="mt-10 bg-white/[0.03] border border-white/[0.06] border-t-2 border-t-emerald-500 rounded-xl p-6 sm:p-8 max-w-lg">
                       <p className="text-xs font-semibold text-emerald-400 uppercase tracking-widest mb-4">
                         {s.card.title}
                       </p>
@@ -348,7 +348,7 @@ export default function AboutPage() {
                       </div>
                       {/* AI response */}
                       <div className="flex justify-start">
-                        <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl rounded-bl-md px-5 py-3 max-w-sm">
+                        <div className="bg-white/[0.03] border border-white/[0.06] border-l-2 border-l-emerald-500 rounded-xl rounded-bl-md px-5 py-3 max-w-sm">
                           <p className="text-sm text-gray-200 leading-relaxed">{s.chat.answer}</p>
                           <p className="text-xs text-emerald-400/60 mt-2 flex items-center gap-1.5">
                             <FileText className="h-3 w-3" />
@@ -361,7 +361,7 @@ export default function AboutPage() {
 
                   {/* Optional: Risk card (Section 04) */}
                   {s.riskCard && (
-                    <div className="mt-10 bg-white/[0.03] border border-white/[0.06] rounded-xl p-6 sm:p-8 max-w-lg">
+                    <div className="mt-10 bg-white/[0.03] border border-white/[0.06] border-l-2 border-l-emerald-500 rounded-xl p-6 sm:p-8 max-w-lg">
                       <div className="flex items-center gap-4 mb-5">
                         <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20">
                           <span className="text-2xl font-bold text-red-400">{s.riskCard.score}</span>
@@ -393,12 +393,12 @@ export default function AboutPage() {
       <section className="relative py-24 sm:py-32">
         {/* Emerald radial glow */}
         <div className="absolute inset-0 -z-10"
-          style={{ background: 'radial-gradient(ellipse at 50% 50%, rgba(16,185,129,0.12) 0%, transparent 60%)' }} />
+          style={{ background: 'radial-gradient(ellipse at 50% 50%, rgba(16,185,129,0.20) 0%, transparent 60%)' }} />
 
         <RevealSection>
           <div className="max-w-3xl mx-auto px-4 sm:px-6">
             <div
-              className="relative rounded-3xl px-6 py-16 sm:px-12 sm:py-20 text-center overflow-hidden bg-white/[0.03] border border-emerald-500/20"
+              className="relative rounded-3xl px-6 py-16 sm:px-12 sm:py-20 text-center overflow-hidden bg-white/[0.03] border border-emerald-500/30"
             >
 
               <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-4">
@@ -411,7 +411,10 @@ export default function AboutPage() {
 
               <Link
                 href="/login?mode=signup"
-                className="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-white rounded-xl px-8 py-4 text-lg font-semibold transition-colors shadow-[0_0_30px_rgba(16,185,129,0.3)]"
+                className="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-white rounded-xl px-8 py-4 text-lg font-semibold transition-all"
+                style={{ boxShadow: '0 0 40px rgba(16,185,129,0.4), 0 0 80px rgba(16,185,129,0.2)' }}
+                onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0 50px rgba(16,185,129,0.5), 0 0 100px rgba(16,185,129,0.25)'}
+                onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 0 40px rgba(16,185,129,0.4), 0 0 80px rgba(16,185,129,0.2)'}
               >
                 Start 14-Day Trial <ArrowRight className="h-5 w-5" />
               </Link>

@@ -39,7 +39,7 @@ function Navbar({ isAuthenticated }: { isAuthenticated: boolean }) {
   return (
     <nav className={`sticky top-0 z-50 transition-all duration-300 ${
       scrolled
-        ? 'bg-gray-950/80 backdrop-blur-xl border-b border-emerald-500/10'
+        ? 'bg-gray-950/80 backdrop-blur-xl border-b border-emerald-500/15'
         : 'bg-transparent border-b border-transparent'
     }`}>
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
@@ -216,7 +216,10 @@ export function LandingPage({ isAuthenticated = false }: { isAuthenticated?: boo
         style={{ minHeight: 'calc(100vh - 4rem)' }}>
         {/* Background emerald glow */}
         <div className="absolute inset-0 -z-10"
-          style={{ background: 'radial-gradient(ellipse at 50% 30%, rgba(16,185,129,0.15) 0%, rgba(16,185,129,0.05) 40%, transparent 70%)' }} />
+          style={{ background: 'radial-gradient(ellipse 800px 600px at 50% 30%, rgba(16,185,129,0.25) 0%, rgba(16,185,129,0.08) 50%, transparent 80%)' }} />
+        {/* Bright emerald spotlight */}
+        <div className="absolute inset-0 -z-10"
+          style={{ background: 'radial-gradient(circle at 50% 50%, rgba(16,185,129,0.35) 0%, transparent 40%)' }} />
         {/* Subtle emerald dot grid */}
         <div className="absolute inset-0 -z-10"
           style={{
@@ -234,9 +237,9 @@ export function LandingPage({ isAuthenticated = false }: { isAuthenticated?: boo
           {/* Emerald gradient divider */}
           <div className="anim-hero-2 mx-auto my-6"
             style={{
-              width: '200px',
+              width: '300px',
               height: '2px',
-              background: 'linear-gradient(90deg, transparent, rgba(16,185,129,0.5), transparent)',
+              background: 'linear-gradient(90deg, transparent, rgba(16,185,129,0.7), transparent)',
             }} />
 
           <p className="anim-hero-2 text-lg md:text-xl text-gray-300 max-w-2xl mx-auto text-center leading-relaxed">
@@ -246,7 +249,10 @@ export function LandingPage({ isAuthenticated = false }: { isAuthenticated?: boo
 
           <div className="anim-hero-3 flex flex-wrap items-center justify-center gap-4 mt-10">
             <Link href={ctaHref}
-              className="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-white rounded-xl px-8 py-4 text-lg font-semibold transition-colors shadow-[0_0_30px_rgba(16,185,129,0.3)]">
+              className="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-white rounded-xl px-8 py-4 text-lg font-semibold transition-all"
+              style={{ boxShadow: '0 0 40px rgba(16,185,129,0.4), 0 0 80px rgba(16,185,129,0.2)' }}
+              onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0 50px rgba(16,185,129,0.5), 0 0 100px rgba(16,185,129,0.25)'}
+              onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 0 40px rgba(16,185,129,0.4), 0 0 80px rgba(16,185,129,0.2)'}>
               {ctaText} <ArrowRight className="h-5 w-5" />
             </Link>
             {!isAuthenticated && (
@@ -280,8 +286,8 @@ export function LandingPage({ isAuthenticated = false }: { isAuthenticated?: boo
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {PAIN_POINTS.map((p) => (
               <div key={p.stat}
-                className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-8 hover:border-emerald-500/30 hover:shadow-[0_0_20px_rgba(16,185,129,0.1)] transition-all duration-300 group">
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl mb-5 bg-emerald-500/15 border border-emerald-500/25">
+                className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-8 hover:border-emerald-500/40 hover:shadow-[0_0_25px_rgba(16,185,129,0.15)] transition-all duration-300 group">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl mb-5 bg-emerald-500/20 border border-emerald-500/30">
                   <span className="text-emerald-400">{p.icon}</span>
                 </div>
                 <h3 className="font-bold text-emerald-400 text-lg leading-snug mb-3">{p.stat}</h3>
@@ -295,12 +301,12 @@ export function LandingPage({ isAuthenticated = false }: { isAuthenticated?: boo
       {/* ── Features ─────────────────────────────────────────── */}
       <section id="features" className="relative py-24 sm:py-32">
         {/* Decorative emerald blob behind grid */}
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 -z-10"
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 -z-10 pointer-events-none"
           style={{
-            width: '600px',
-            height: '600px',
-            background: 'radial-gradient(circle, rgba(16,185,129,0.08) 0%, transparent 70%)',
-            filter: 'blur(60px)',
+            width: '700px',
+            height: '700px',
+            background: 'radial-gradient(circle, rgba(16,185,129,0.12) 0%, transparent 60%)',
+            filter: 'blur(80px)',
           }} />
 
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
@@ -317,8 +323,8 @@ export function LandingPage({ isAuthenticated = false }: { isAuthenticated?: boo
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {FEATURES.map((f) => (
               <div key={f.title}
-                className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-8 hover:border-emerald-500/30 hover:shadow-[0_0_20px_rgba(16,185,129,0.1)] transition-all duration-300 group">
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl mb-5 bg-emerald-500/15 border border-emerald-500/25">
+                className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-8 hover:border-emerald-500/40 hover:shadow-[0_0_25px_rgba(16,185,129,0.15)] transition-all duration-300 group">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl mb-5 bg-emerald-500/20 border border-emerald-500/30">
                   <span className="text-emerald-400 group-hover:scale-110 transition-transform duration-300">{f.icon}</span>
                 </div>
                 <h3 className="text-xl font-semibold text-white mb-2">{f.title}</h3>
@@ -341,8 +347,8 @@ export function LandingPage({ isAuthenticated = false }: { isAuthenticated?: boo
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
             {/* Connector lines (desktop only) — dashed emerald */}
-            <div className="hidden md:block absolute top-7 left-[calc(33.33%+0.75rem)] w-[calc(33.33%-1.5rem)] border-t border-dashed border-emerald-500/20" />
-            <div className="hidden md:block absolute top-7 left-[calc(66.66%+0.75rem)] w-[calc(33.33%-1.5rem)] border-t border-dashed border-emerald-500/20" />
+            <div className="hidden md:block absolute top-7 left-[calc(33.33%+0.75rem)] w-[calc(33.33%-1.5rem)] border-t border-dashed border-emerald-500/30" />
+            <div className="hidden md:block absolute top-7 left-[calc(66.66%+0.75rem)] w-[calc(33.33%-1.5rem)] border-t border-dashed border-emerald-500/30" />
 
             {STEPS.map((s) => (
               <div key={s.n} className="text-center relative">
@@ -371,7 +377,7 @@ export function LandingPage({ isAuthenticated = false }: { isAuthenticated?: boo
               { icon: <EyeOff className="h-5 w-5" />, label: 'Your data stays yours' },
             ].map((t) => (
               <div key={t.label}
-                className="flex flex-col items-center gap-3 p-6 bg-emerald-500/5 border border-emerald-500/15 rounded-xl">
+                className="flex flex-col items-center gap-3 p-6 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
                 <span className="text-emerald-400">{t.icon}</span>
                 <span className="text-sm text-gray-300 font-medium">{t.label}</span>
               </div>
@@ -388,10 +394,10 @@ export function LandingPage({ isAuthenticated = false }: { isAuthenticated?: boo
       <section className="relative py-24 sm:py-32">
         {/* Emerald radial glow behind CTA */}
         <div className="absolute inset-0 -z-10"
-          style={{ background: 'radial-gradient(ellipse at 50% 50%, rgba(16,185,129,0.12) 0%, transparent 60%)' }} />
+          style={{ background: 'radial-gradient(ellipse at 50% 50%, rgba(16,185,129,0.20) 0%, transparent 60%)' }} />
 
         <div className="max-w-3xl mx-auto px-4 sm:px-6">
-          <div className="relative rounded-3xl px-6 py-16 sm:px-12 sm:py-20 text-center overflow-hidden bg-white/[0.03] border border-emerald-500/20">
+          <div className="relative rounded-3xl px-6 py-16 sm:px-12 sm:py-20 text-center overflow-hidden bg-white/[0.03] border border-emerald-500/30">
             <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-4">
               Ready to understand your lease?
             </h2>
@@ -401,7 +407,10 @@ export function LandingPage({ isAuthenticated = false }: { isAuthenticated?: boo
             </p>
 
             <Link href={ctaHref}
-              className="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-white rounded-xl px-8 py-4 text-lg font-semibold transition-colors shadow-[0_0_30px_rgba(16,185,129,0.3)]">
+              className="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-white rounded-xl px-8 py-4 text-lg font-semibold transition-all"
+              style={{ boxShadow: '0 0 40px rgba(16,185,129,0.4), 0 0 80px rgba(16,185,129,0.2)' }}
+              onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0 50px rgba(16,185,129,0.5), 0 0 100px rgba(16,185,129,0.25)'}
+              onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 0 40px rgba(16,185,129,0.4), 0 0 80px rgba(16,185,129,0.2)'}>
               {ctaText} <ArrowRight className="h-5 w-5" />
             </Link>
           </div>
