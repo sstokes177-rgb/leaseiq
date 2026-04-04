@@ -96,7 +96,10 @@ export function LocationTabs({ storeId, storeName, hasDocuments, documents }: Lo
           {TABS.map((tab) => (
             <button
               key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
+              onClick={() => {
+                setActiveTab(tab.key)
+                window.dispatchEvent(new CustomEvent('location-tab-change', { detail: { tab: tab.key } }))
+              }}
               className={`px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors relative ${
                 activeTab === tab.key
                   ? 'text-emerald-400 border-b-2 border-emerald-500'
