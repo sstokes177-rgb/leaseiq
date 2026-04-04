@@ -1,0 +1,22 @@
+Done. Here's what changed:
+
+**LandingPage.tsx — complete redesign:**
+
+- **Navbar**: Cleaner — 3 nav links (Features, About, Pricing), transparent-to-blurred scroll transition with `border-white/[0.04]`
+- **Hero**: Typography-first with tight tracking. Pill badge ("Commercial Lease Intelligence"), two-line headline with white/gray contrast hierarchy, refined subheadline, dual CTAs with gentle-bouncing chevron
+- **Social proof bar**: Minimal trust indicators (enterprise security, SOC 2, 256-bit encryption) — understated, not flashy
+- **Bento grid features**: 6 cards with varying sizes and built-in mock UIs:
+  - AI Chat (2-col span) — live chat bubble exchange with article citation
+  - Risk Scoring — score gauge with clause progress bars
+  - CAM Audit — finding cards with red/amber severity indicators
+  - Critical Dates — timeline with colored dots
+  - Lease Comparison — monospace diff with red/green changes
+  - Portfolio Analytics — mini bar chart
+- **How It Works**: 3 steps with watermark numbers ("01", "02", "03"), dashed connector lines, emerald icon circles
+- **Final CTA**: Clean with subtle radial emerald glow
+- **Footer**: Muted `text-gray-500` links, `border-white/[0.04]` separator
+
+**globals.css additions:**
+- `.scroll-animate` / `.animate-in` classes for Intersection Observer scroll reveals
+- `.animate-gentle-bounce` for the "See how it works" chevron
+- Updated hero animation timing (slightly longer, better stagger)
