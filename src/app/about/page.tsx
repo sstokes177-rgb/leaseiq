@@ -38,8 +38,8 @@ function Navbar() {
   return (
     <nav className={`sticky top-0 z-50 transition-all duration-300 ${
       scrolled
-        ? 'bg-gray-950/80 backdrop-blur-xl border-b border-white/5'
-        : 'bg-gray-950 border-b border-white/5'
+        ? 'bg-gray-950/80 backdrop-blur-xl border-b border-emerald-500/10'
+        : 'bg-transparent border-b border-transparent'
     }`}>
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -56,7 +56,7 @@ function Navbar() {
         <div className="hidden md:flex items-center gap-8">
           {navLinks.map((l) => (
             <Link key={l.href} href={l.href}
-              className="text-sm text-gray-400 hover:text-white transition-colors">
+              className="text-sm text-gray-400 hover:text-emerald-400 transition-colors">
               {l.label}
             </Link>
           ))}
@@ -64,18 +64,18 @@ function Navbar() {
 
         <div className="hidden md:flex items-center gap-3">
           <Link href="/login"
-            className="text-sm text-gray-300 hover:text-white transition-colors px-3 py-2">
+            className="text-sm text-gray-300 hover:text-emerald-400 transition-colors px-3 py-2">
             Sign In
           </Link>
           <Link href="/login?mode=signup"
-            className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg px-5 py-2.5 text-sm font-semibold transition-colors">
+            className="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-white rounded-lg px-5 py-2.5 text-sm font-semibold transition-colors shadow-[0_0_20px_rgba(16,185,129,0.25)]">
             Start 14-Day Trial
           </Link>
         </div>
 
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
-          className="md:hidden p-2 text-gray-400 hover:text-white transition-colors"
+          className="md:hidden p-2 text-gray-400 hover:text-emerald-400 transition-colors"
           aria-label="Toggle menu"
         >
           {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -83,22 +83,22 @@ function Navbar() {
       </div>
 
       {mobileOpen && (
-        <div className="md:hidden bg-gray-950/95 backdrop-blur-xl border-b border-white/5 px-4 pb-6 pt-2">
+        <div className="md:hidden bg-gray-950/95 backdrop-blur-xl border-b border-emerald-500/10 px-4 pb-6 pt-2">
           <div className="flex flex-col gap-4">
             {navLinks.map((l) => (
               <Link key={l.href} href={l.href}
                 onClick={() => setMobileOpen(false)}
-                className="text-sm text-gray-300 hover:text-white transition-colors py-2">
+                className="text-sm text-gray-300 hover:text-emerald-400 transition-colors py-2">
                 {l.label}
               </Link>
             ))}
-            <div className="border-t border-white/10 pt-4 flex flex-col gap-3">
+            <div className="border-t border-emerald-500/10 pt-4 flex flex-col gap-3">
               <Link href="/login"
-                className="text-sm text-gray-300 hover:text-white transition-colors py-2 text-center">
+                className="text-sm text-gray-300 hover:text-emerald-400 transition-colors py-2 text-center">
                 Sign In
               </Link>
               <Link href="/login?mode=signup"
-                className="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg px-5 py-3 text-sm font-semibold transition-colors">
+                className="inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-white rounded-lg px-5 py-3 text-sm font-semibold transition-colors">
                 Start 14-Day Trial
               </Link>
             </div>
@@ -239,8 +239,6 @@ const SECTIONS = [
   },
 ]
 
-/* ─── Section Colors — inherit body gradient, no custom backgrounds ── */
-
 /* ─── About Page ────────────────────────────────────────────── */
 
 export default function AboutPage() {
@@ -254,6 +252,10 @@ export default function AboutPage() {
       <div className="flex-1 flex flex-col">
       {/* ── Hero ──────────────────────────────────────────────── */}
       <section className="relative flex items-center justify-center px-4 sm:px-6 py-24 sm:py-32">
+        {/* Emerald glow behind hero */}
+        <div className="absolute inset-0 -z-10"
+          style={{ background: 'radial-gradient(ellipse at 50% 40%, rgba(16,185,129,0.12) 0%, rgba(16,185,129,0.04) 40%, transparent 70%)' }} />
+
         <div className="max-w-3xl mx-auto text-center">
           <p className="anim-hero-1 text-xs font-semibold text-emerald-400 uppercase tracking-widest mb-4">
             About Provelo
@@ -261,7 +263,16 @@ export default function AboutPage() {
           <h1 className="anim-hero-2 text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-white leading-[1.1]">
             How one tenant went from overwhelmed to in control
           </h1>
-          <p className="anim-hero-3 text-lg sm:text-xl text-gray-300 mt-6 leading-relaxed max-w-2xl mx-auto">
+
+          {/* Emerald gradient divider */}
+          <div className="anim-hero-3 mx-auto my-6"
+            style={{
+              width: '200px',
+              height: '2px',
+              background: 'linear-gradient(90deg, transparent, rgba(16,185,129,0.5), transparent)',
+            }} />
+
+          <p className="anim-hero-3 text-lg sm:text-xl text-gray-300 leading-relaxed max-w-2xl mx-auto">
             This is the story of Sarah — and every tenant who manages more than they can track with spreadsheets and filing cabinets.
           </p>
         </div>
@@ -269,27 +280,28 @@ export default function AboutPage() {
 
 
       {/* ── Story Sections ────────────────────────────────────── */}
-      {SECTIONS.map((s) => {
+      {SECTIONS.map((s, idx) => {
         const Icon = s.icon
         return (
           <Fragment key={s.num}>
+          {/* Thin emerald gradient divider between sections */}
+          {idx > 0 && (
+            <div className="h-px max-w-xs mx-auto"
+              style={{ background: 'linear-gradient(90deg, transparent, rgba(16,185,129,0.2), transparent)' }} />
+          )}
           <section
-            className="relative py-20"
+            className="relative bg-transparent py-24"
           >
             <div className="max-w-4xl mx-auto px-4 sm:px-6">
               <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-8 lg:gap-16 items-start">
                 {/* Left: chapter marker */}
                 <RevealSection className="flex lg:flex-col items-center lg:items-start gap-4 lg:gap-3 lg:pt-2">
-                  <span className="text-5xl sm:text-6xl font-extrabold text-white/[0.08] leading-none select-none">
+                  <span className="text-5xl sm:text-6xl font-extrabold text-emerald-500/20 leading-none select-none">
                     {s.num}
                   </span>
                   <div className="flex items-center gap-2.5">
                     <div
-                      className="flex items-center justify-center w-10 h-10 rounded-xl"
-                      style={{
-                        background: 'rgba(16,185,129,0.10)',
-                        border: '1px solid rgba(16,185,129,0.18)',
-                      }}
+                      className="flex items-center justify-center w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/25"
                     >
                       <Icon className="h-5 w-5 text-emerald-400" />
                     </div>
@@ -378,14 +390,15 @@ export default function AboutPage() {
       })}
 
       {/* ── Final CTA ─────────────────────────────────────────── */}
-      <section className="py-24 sm:py-32">
+      <section className="relative py-24 sm:py-32">
+        {/* Emerald radial glow */}
+        <div className="absolute inset-0 -z-10"
+          style={{ background: 'radial-gradient(ellipse at 50% 50%, rgba(16,185,129,0.12) 0%, transparent 60%)' }} />
+
         <RevealSection>
           <div className="max-w-3xl mx-auto px-4 sm:px-6">
             <div
-              className="relative rounded-3xl px-6 py-16 sm:px-12 sm:py-20 text-center overflow-hidden"
-              style={{
-                background: 'rgba(255,255,255,0.03)',
-              }}
+              className="relative rounded-3xl px-6 py-16 sm:px-12 sm:py-20 text-center overflow-hidden bg-white/[0.03] border border-emerald-500/20"
             >
 
               <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-4">
@@ -398,7 +411,7 @@ export default function AboutPage() {
 
               <Link
                 href="/login?mode=signup"
-                className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl px-8 py-4 text-lg font-semibold transition-colors shadow-[0_4px_24px_rgba(16,185,129,0.3)]"
+                className="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-white rounded-xl px-8 py-4 text-lg font-semibold transition-colors shadow-[0_0_30px_rgba(16,185,129,0.3)]"
               >
                 Start 14-Day Trial <ArrowRight className="h-5 w-5" />
               </Link>
@@ -409,21 +422,21 @@ export default function AboutPage() {
 
 
       {/* ── Footer ────────────────────────────────────────────── */}
-      <footer className="mt-auto border-t border-white/[0.06]">
+      <footer className="mt-auto border-t border-emerald-500/10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-16">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
             <div>
               <h4 className="text-sm font-semibold text-white mb-4">Product</h4>
               <ul className="space-y-3">
-                <li><Link href="/#features" className="text-sm text-gray-400 hover:text-white transition-colors">Features</Link></li>
-                <li><Link href="/pricing" className="text-sm text-gray-400 hover:text-white transition-colors">Pricing</Link></li>
-                <li><Link href="/#for-tenants" className="text-sm text-gray-400 hover:text-white transition-colors">Security</Link></li>
+                <li><Link href="/#features" className="text-sm text-gray-400 hover:text-emerald-400 transition-colors">Features</Link></li>
+                <li><Link href="/pricing" className="text-sm text-gray-400 hover:text-emerald-400 transition-colors">Pricing</Link></li>
+                <li><Link href="/#for-tenants" className="text-sm text-gray-400 hover:text-emerald-400 transition-colors">Security</Link></li>
               </ul>
             </div>
             <div>
               <h4 className="text-sm font-semibold text-white mb-4">Company</h4>
               <ul className="space-y-3">
-                <li><Link href="/about" className="text-sm text-gray-400 hover:text-white transition-colors">About</Link></li>
+                <li><Link href="/about" className="text-sm text-gray-400 hover:text-emerald-400 transition-colors">About</Link></li>
                 <li><span className="text-sm text-gray-400">Contact</span></li>
                 <li><span className="text-sm text-gray-400">Careers</span></li>
               </ul>
@@ -443,7 +456,7 @@ export default function AboutPage() {
               </ul>
             </div>
           </div>
-          <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="border-t border-emerald-500/10 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded-md flex items-center justify-center"
                 style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.20)' }}>
