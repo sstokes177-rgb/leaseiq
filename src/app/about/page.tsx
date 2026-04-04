@@ -39,7 +39,7 @@ function Navbar() {
     <nav className={`sticky top-0 z-50 transition-all duration-300 ${
       scrolled
         ? 'bg-gray-950/80 backdrop-blur-xl border-b border-white/5'
-        : 'bg-transparent border-b border-transparent'
+        : 'bg-gray-950 border-b border-white/5'
     }`}>
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -245,10 +245,11 @@ export default function AboutPage() {
   return (
     <div
       className="min-h-screen flex flex-col"
-      style={{ scrollBehavior: 'smooth', background: '#1a1d25' }}
+      style={{ scrollBehavior: 'smooth' }}
     >
       <Navbar />
 
+      <div className="flex-1 flex flex-col" style={{ background: '#1a1d25' }}>
       {/* ── Hero ──────────────────────────────────────────────── */}
       <section className="relative flex items-center justify-center px-4 sm:px-6 py-24 sm:py-32">
         <div className="max-w-3xl mx-auto text-center">
@@ -451,6 +452,7 @@ export default function AboutPage() {
           </div>
         </div>
       </footer>
+      </div>
     </div>
   )
 }
